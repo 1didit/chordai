@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Standalone app launches on macOS
   4. `processBlock` runs as a real-time-safe skeleton (zero allocation/locking/I-O) even though v1 does no live audio processing
   5. Plugin state round-trips through a save/reload of an empty session (`getStateInformation`/`setStateInformation` work)
-**Plans**: 1/3 plans executed
+**Plans**: 2/3 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Toolchain install (cmake/ninja), JUCE 8.0.x submodule pin, CMake + APVTS plugin skeleton, first build of VST3/AU/Standalone (completed 2026-07-12)
-- [ ] 01-02-PLAN.md — Validation tooling (fetch-pluginval, standalone smoke script) + green auval/pluginval strictness-5 gate
+- [x] 01-02-PLAN.md — Validation tooling (fetch-pluginval, standalone smoke script) + green auval/pluginval strictness-5 gate (completed 2026-07-12)
 - [ ] 01-03-PLAN.md — Manual DAW load matrix checkpoint (Ableton, FL Studio, Logic Pro, Standalone; cold scans)
 
 ### Phase 2: Audio Import & Waveform
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Foundation | 0/3 | Not started | - |
+| 1. Plugin Foundation | 2/3 | In Progress | - |
 | 2. Audio Import & Waveform | 0/TBD | Not started | - |
 | 3. Core Chord-Detection Engine | 0/TBD | Not started | - |
 | 4. Analysis UI Integration | 0/TBD | Not started | - |
