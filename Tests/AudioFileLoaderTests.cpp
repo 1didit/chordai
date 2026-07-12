@@ -63,7 +63,7 @@ TEST_CASE ("AudioFileLoaderTests.AiffDecode", "[audiofileloader]")
     formatManager.registerBasicFormats();
 
     juce::AiffAudioFormat aiff;
-    auto file = writeSineFixture (aiff, ".aiff", 32);
+    auto file = writeSineFixture (aiff, ".aiff", 16); // AIFF writer supports 8/16/24-bit only
 
     auto loaded = loadAudioFileSync (file, formatManager);
     REQUIRE (loaded != nullptr);
