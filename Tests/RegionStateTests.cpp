@@ -40,17 +40,20 @@ TEST_CASE ("RegionStateTests.XmlSurvival", "[regionstate]")
 TEST_CASE ("RegionStateTests.ClampRegion", "[regionstate]")
 {
     // Out-of-range clamps to [0, totalLength].
-    auto clamped = RegionState::clampRegion ({ -5.0, 999.0 }, 10.0);
+    auto clamped = RegionState::clampRegion (-5.0, 999.0, 10.0);
     CHECK (clamped.getStart() == 0.0);
     CHECK (clamped.getEnd() == 10.0);
 
-    // Inverted input gets normalized.
-    auto normalized = RegionState::clampRegion ({ 8.0, 2.0 }, 10.0);
+    // Inverted input gets normalized. NB: raw-double overload used here — a
+    // juce::Range<double>{8.0, 2.0} literal would already collapse to {8.0, 8.0}
+    // at construction (Range enforces end >= start), destroying the inversion
+    // before clampRegion ever saw it. See RegionState.h comment.
+    auto normalized = RegionState::clampRegion (8.0, 2.0, 10.0);
     CHECK (normalized.getStart() == 2.0);
     CHECK (normalized.getEnd() == 8.0);
 
     // Empty range means "whole file".
-    auto whole = RegionState::clampRegion ({ 0.0, 0.0 }, 10.0);
+    auto whole = RegionState::clampRegion (0.0, 0.0, 10.0);
     CHECK (whole.getStart() == 0.0);
     CHECK (whole.getEnd() == 10.0);
 }
