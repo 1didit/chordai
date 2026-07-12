@@ -62,6 +62,7 @@ juce_add_console_app(ChordAITests PRODUCT_NAME "ChordAITests")
 target_sources(ChordAITests PRIVATE
     Tests/InfrastructureTests.cpp
     Tests/AudioFileLoaderTests.cpp
+    Tests/RegionStateTests.cpp
     Source/Import/AudioFileLoader.cpp)
 
 target_include_directories(ChordAITests PRIVATE
