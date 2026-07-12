@@ -36,6 +36,7 @@ target_sources(ChordAI PRIVATE
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
     juce::juce_audio_processors
+    juce::juce_audio_formats
     juce::juce_gui_extra)
 
 target_compile_definitions(ChordAI PUBLIC
@@ -44,3 +45,37 @@ target_compile_definitions(ChordAI PUBLIC
     JUCE_VST3_CAN_REPLACE_VST2=0)
 
 juce_generate_juce_header(ChordAI)
+
+# --- Test infrastructure (Catch2 + CTest) ---------------------------------
+enable_testing()
+include(FetchContent)
+
+FetchContent_Declare(
+    Catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.7.1)
+FetchContent_MakeAvailable(Catch2)
+
+juce_add_console_app(ChordAITests PRODUCT_NAME "ChordAITests")
+
+target_sources(ChordAITests PRIVATE
+    Tests/InfrastructureTests.cpp)
+
+target_compile_definitions(ChordAITests PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    JUCE_MODAL_LOOPS_PERMITTED=1
+    CHORDAI_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Tests/fixtures")
+
+target_link_libraries(ChordAITests PRIVATE
+    Catch2::Catch2WithMain
+    juce::juce_audio_formats
+    juce::juce_audio_utils
+    juce::juce_gui_basics)
+
+juce_generate_juce_header(ChordAITests)
+
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+include(CTest)
+include(Catch)
+catch_discover_tests(ChordAITests TEST_PREFIX "ChordAITests.")
