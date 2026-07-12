@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: phase_in_progress
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-07-12T18:40:45.000Z"
-last_activity: "2026-07-12 — Plan 02-02 (Conveyor Belt UI + Three-Band Editor Layout) complete: ConveyorBeltComponent (30Hz Timer-driven pixel-art belt + FileDragAndDropTarget + triggerChunkFallStub), MidiSetsPlaceholder reserved band, editor resized to 800x520 three-band layout wired to processor.loadAudioFile; IMP-01 now fully evidenced; 10/10 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU, standalone smoke test PASS"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-07-12T19:49:58.000Z"
+last_activity: "2026-07-12 — Plan 02-03 (Waveform Display + Region Selection) complete: WaveformMath (pure timeToX/xToTime) + RegionSelectionModel (whole-file default, drag clamp/normalize, click-reset) unit-tested; WaveformView (AudioThumbnail wrapper) + RegionSelectorOverlay (mouse-driven selection chrome); editor wired load-complete -> waveform+region restore, drag -> processor.setSelectedRegion; IMP-02 + IMP-03 now fully evidenced; 15/15 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU, standalone smoke test PASS"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 2 - Audio Import & Waveform (in progress, 2/4 plans complete)
+**Current focus:** Phase 2 - Audio Import & Waveform (in progress, 3/4 plans complete)
 
 ## Current Position
 
 Phase: 2 of 7 (Audio Import & Waveform) — IN PROGRESS
-Plan: 2 of 4 complete
-Status: Plan 02-02 complete (conveyor belt UI + three-band editor layout) — next 02-03-PLAN.md
-Last activity: 2026-07-12 — Plan 02-02 (Conveyor Belt UI + Three-Band Editor Layout) complete: ConveyorBeltComponent (30Hz Timer-driven pixel-art belt + FileDragAndDropTarget + triggerChunkFallStub), MidiSetsPlaceholder reserved band, editor resized to 800x520 three-band layout wired to processor.loadAudioFile; IMP-01 now fully evidenced; 10/10 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU, standalone smoke test PASS
+Plan: 3 of 4 complete
+Status: Plan 02-03 complete (waveform display + region selection) — next 02-04-PLAN.md
+Last activity: 2026-07-12 — Plan 02-03 (Waveform Display + Region Selection) complete: WaveformMath + RegionSelectionModel (pure, unit-tested) drive WaveformView (AudioThumbnail wrapper) + RegionSelectorOverlay (drag-selection chrome); editor wired end-to-end (load-complete -> waveform+region restore, drag -> processor.setSelectedRegion, editor-reopen restores from processor state); IMP-02 + IMP-03 now fully evidenced; 15/15 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU, standalone smoke test PASS
 
-Progress: [███████░░░] 71%
+Progress: [████████░░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 14.6 min
-- Total execution time: 1.2 hours
+- Total plans completed: 6
+- Average duration: 13 min
+- Total execution time: 1.3 hours
 
 **By Phase:**
 
@@ -48,10 +48,11 @@ Progress: [███████░░░] 71%
 | Phase 01 P03 | 6min | 2 tasks | 0 files |
 | Phase 02 P01 | 9min | 3 tasks | 11 files |
 | Phase 02 P02 | 3min | 2 tasks | 7 files |
+| Phase 02 P03 | 5min | 3 tasks | 10 files |
 
 **Recent Trend:**
-- Last 5 plans: 48min, 7min, 6min, 9min, 3min
-- Trend: Improving
+- Last 5 plans: 7min, 6min, 9min, 3min, 5min
+- Trend: Stable (well below the Phase 1 P01 baseline)
 
 *Updated after each plan completion*
 
@@ -74,6 +75,9 @@ Recent decisions affecting current work:
 - [Phase 02-01]: IMP-01 requirement left unchecked — this plan proves the decode backend only; drag-and-drop UI (needed for full IMP-01) lands in Plan 02-02/02-03.
 - [Phase 02-02]: Non-ASCII string literals must go through `juce::String(juce::CharPointer_UTF8(...))`, not a plain `"..."` literal — the implicit `const char*` constructor assumes ASCII and asserts on bytes > 127 (caught by pluginval strictness 5's Editor Automation pass).
 - [Phase 02-02]: IMP-01 now fully evidenced end-to-end (backend decode from 02-01 + drag-and-drop UI from 02-02) — marked complete in REQUIREMENTS.md.
+- [Phase 02-03]: `RegionSelectionModel` exposes `getTotalLength()` so `RegionSelectorOverlay` can build the `{0, totalLength}` visible range for `WaveformMath` conversion without the overlay caching its own copy of the length.
+- [Phase 02-03]: `handleLoadComplete(const LoadedAudio&)` factored as one private editor method, shared by the `ChangeListener` callback (fresh load) and the ctor's editor-reopen restore branch, to avoid duplicating the waveform/region/conveyor-stub wiring.
+- [Phase 02-03]: IMP-02 + IMP-03 now fully evidenced (waveform renders on load; region drag/clamp/reset reaches `apvts.state` via `processor.setSelectedRegion`) — marked complete in REQUIREMENTS.md.
 
 ### Pending Todos
 
@@ -87,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T18:40:45.000Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-07-12T18:51:31.668Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

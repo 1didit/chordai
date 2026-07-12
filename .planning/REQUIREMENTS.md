@@ -10,8 +10,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Import
 
 - [x] **IMP-01**: User can drag-and-drop an audio file (WAV/MP3/AIFF/FLAC) onto the plugin/standalone window and it loads (MP3/AAC decoded via macOS CoreAudio)
-- [ ] **IMP-02**: User sees the waveform of the loaded file
-- [ ] **IMP-03**: User can select a region on the waveform for analysis, or analyze the whole file (default)
+- [x] **IMP-02**: User sees the waveform of the loaded file
+- [x] **IMP-03**: User can select a region on the waveform for analysis, or analyze the whole file (default)
 
 ### Analysis
 
@@ -92,8 +92,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | PLT-01 | Phase 1 - Plugin Foundation | Complete |
 | IMP-01 | Phase 2 - Audio Import & Waveform | Complete |
-| IMP-02 | Phase 2 - Audio Import & Waveform | Pending |
-| IMP-03 | Phase 2 - Audio Import & Waveform | Pending |
+| IMP-02 | Phase 2 - Audio Import & Waveform | Complete |
+| IMP-03 | Phase 2 - Audio Import & Waveform | Complete |
 | ANL-01 | Phase 3 - Core Chord-Detection Engine | Pending |
 | ANL-02 | Phase 3 - Core Chord-Detection Engine | Pending |
 | ANL-03 | Phase 3 - Core Chord-Detection Engine | Pending |

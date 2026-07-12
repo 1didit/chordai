@@ -48,12 +48,12 @@ Plans:
   2. User sees the waveform of the loaded file rendered in the UI
   3. User can select a region on the waveform to constrain analysis to that region
   4. If no region is selected, the whole file is analyzed by default
-**Plans**: 1/4 plans executed
+**Plans**: 3/4 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Test infrastructure (Catch2/CTest, MP3 fixture) + background audio-import backend with APVTS region state (completed 2026-07-12)
-- [ ] 02-02-PLAN.md — Pixel-art conveyor belt UI (drop target, Timer animation) + three-band editor layout + MIDI-sets placeholder
-- [ ] 02-03-PLAN.md — Waveform display (AudioThumbnail) + region selection overlay + editor wiring
+- [x] 02-02-PLAN.md — Pixel-art conveyor belt UI (drop target, Timer animation) + three-band editor layout + MIDI-sets placeholder (completed 2026-07-12)
+- [x] 02-03-PLAN.md — Waveform display (AudioThumbnail) + region selection overlay + editor wiring (completed 2026-07-12)
 - [ ] 02-04-PLAN.md — Full regression gate + manual Standalone drag-and-drop verification checkpoint
 
 ### Phase 3: Core Chord-Detection Engine
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Foundation | 3/3 | Complete   | 2026-07-12 |
-| 2. Audio Import & Waveform | 2/4 | In Progress|  |
+| 2. Audio Import & Waveform | 3/4 | In Progress|  |
 | 3. Core Chord-Detection Engine | 0/TBD | Not started | - |
 | 4. Analysis UI Integration | 0/TBD | Not started | - |
 | 5. MIDI Conveyor Generation | 0/TBD | Not started | - |
