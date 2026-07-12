@@ -45,6 +45,29 @@ void ChordAIAudioProcessorEditor::resized()
     regionOverlay.setBounds (waveformArea);
 }
 
+bool ChordAIAudioProcessorEditor::isInterestedInFileDrag (const juce::StringArray& files)
+{
+    return ConveyorBeltComponent::isSupportedAudioFile (files);
+}
+
+void ChordAIAudioProcessorEditor::fileDragEnter (const juce::StringArray&, int, int)
+{
+    conveyor.setExternalDragHover (true);
+}
+
+void ChordAIAudioProcessorEditor::fileDragExit (const juce::StringArray&)
+{
+    conveyor.setExternalDragHover (false);
+}
+
+void ChordAIAudioProcessorEditor::filesDropped (const juce::StringArray& files, int, int)
+{
+    conveyor.setExternalDragHover (false);
+
+    if (files.size() == 1)
+        processor.loadAudioFile (juce::File (files[0]));
+}
+
 void ChordAIAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     if (auto loaded = processor.getLoadedAudio(); loaded != nullptr && processor.getLastLoadError().isEmpty())

@@ -30,6 +30,15 @@ public:
     // processor.loadAudioFile.
     std::function<void (juce::File)> onFileDropped;
 
+    // Single source of truth for which files the conveyor accepts. Also used
+    // by PluginEditor's whole-window drop target so both paths stay in sync.
+    static bool isSupportedAudioFile (const juce::StringArray& files);
+
+    // Lets PluginEditor light up the belt while a file is dragged anywhere
+    // over the editor (the belt stays the visual metaphor even though the
+    // whole window accepts drops).
+    void setExternalDragHover (bool shouldHighlight);
+
     // Falling-chunk visual STUB (locked scope: "at most a visual stub/
     // placeholder animation trigger"). Pushes one chunk that falls off the
     // right end of the belt. Nothing calls this yet in Phase 2 — Plan 02-03

@@ -101,13 +101,30 @@ void ConveyorBeltComponent::paint (juce::Graphics& g)
     }
 }
 
-bool ConveyorBeltComponent::isInterestedInFileDrag (const juce::StringArray& files)
+bool ConveyorBeltComponent::isSupportedAudioFile (const juce::StringArray& files)
 {
     if (files.size() != 1)
         return false;
 
+    // .m4a/.aac decode for free on macOS via CoreAudioFormat (same path MP3
+    // already uses) — common for tracks from Apple Music/iTunes rips.
     auto ext = juce::File (files[0]).getFileExtension().toLowerCase();
-    return ext == ".wav" || ext == ".mp3" || ext == ".aiff" || ext == ".aif" || ext == ".flac";
+    return ext == ".wav" || ext == ".mp3" || ext == ".aiff" || ext == ".aif"
+        || ext == ".flac" || ext == ".m4a" || ext == ".aac";
+}
+
+bool ConveyorBeltComponent::isInterestedInFileDrag (const juce::StringArray& files)
+{
+    return isSupportedAudioFile (files);
+}
+
+void ConveyorBeltComponent::setExternalDragHover (bool shouldHighlight)
+{
+    if (dragHover != shouldHighlight)
+    {
+        dragHover = shouldHighlight;
+        repaint();
+    }
 }
 
 void ConveyorBeltComponent::fileDragEnter (const juce::StringArray&, int, int)
