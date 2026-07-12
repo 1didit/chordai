@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_complete
-stopped_at: Phase 1 verified (passed 5/5) — next /gsd:plan-phase 2
-last_updated: "2026-07-12T17:44:10.329Z"
-last_activity: "2026-07-12 — Plan 01-03 (Manual DAW Load Matrix) complete: ChordAI confirmed loading cleanly (cold scans) in Ableton Live, FL Studio, Logic Pro, and Standalone, plus a DAW save/reload cycle; Phase 1 complete"
+status: phase_in_progress
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-07-12T18:35:00.000Z"
+last_activity: "2026-07-12 — Plan 02-01 (Test Infrastructure + Audio Import Backend) complete: Catch2/CTest wired, AudioFileLoader (WAV/AIFF/FLAC/MP3) + RegionState + PluginProcessor load/region API landed; 10/10 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_plans: 7
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 2 - Audio Import & Waveform (next)
+**Current focus:** Phase 2 - Audio Import & Waveform (in progress, 1/4 plans complete)
 
 ## Current Position
 
-Phase: 1 of 7 (Plugin Foundation) — COMPLETE, verification passed (5/5 must-haves, 2026-07-12)
-Plan: 3 of 3 complete
-Status: Ready for Phase 2 (Audio Import & Waveform) — run /gsd:plan-phase 2
-Last activity: 2026-07-12 — Plan 01-03 (Manual DAW Load Matrix) complete: ChordAI confirmed loading cleanly (cold scans) in Ableton Live, FL Studio, Logic Pro, and Standalone, plus a DAW save/reload cycle; Phase 1 complete
+Phase: 2 of 7 (Audio Import & Waveform) — IN PROGRESS
+Plan: 1 of 4 complete
+Status: Plan 02-01 complete (test infra + audio import backend) — next 02-02-PLAN.md
+Last activity: 2026-07-12 — Plan 02-01 (Test Infrastructure + Audio Import Backend) complete: Catch2/CTest wired, AudioFileLoader (WAV/AIFF/FLAC/MP3) + RegionState + PluginProcessor load/region API landed; 10/10 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 57%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 20.3 min
-- Total execution time: 1.0 hours
+- Total plans completed: 4
+- Average duration: 17.5 min
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -46,9 +46,10 @@ Progress: [██████████] 100%
 | Phase 01 P01 | 1 | 48min | 48min |
 | Phase 01 P02 | 7min | 3 tasks | 2 files |
 | Phase 01 P03 | 6min | 2 tasks | 0 files |
+| Phase 02 P01 | 9min | 3 tasks | 11 files |
 
 **Recent Trend:**
-- Last 5 plans: 48min, 7min, 6min
+- Last 5 plans: 48min, 7min, 6min, 9min
 - Trend: Improving
 
 *Updated after each plan completion*
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase 01-01]: Pinned JUCE submodule at tag 8.0.14 (newest 8.0.x available at execution time), superseding the 8.0.13 research floor
 - [Phase 01]: No contingency fixes needed — auval, pluginval strictness 5 (VST3+AU), and Standalone smoke test all passed cleanly against the unmodified Plan 01 skeleton (empty ParameterLayout, stereo bus config).
 - [Phase 01-plugin-foundation]: Phase 1 plugin shell (Plan 01 skeleton) confirmed loading cleanly in Ableton Live, FL Studio, and Logic Pro on cold rescans, plus a DAW project save/reload cycle, with zero source changes needed — PLT-01 fully evidenced, Phase 1 complete.
+- [Phase 02-01]: First test infrastructure in the project — Catch2 v3.7.1 + CTest via a `ChordAITests` console-app CMake target, `ChordAITests.`-prefixed test discovery.
+- [Phase 02-01]: `RegionState::clampRegion` takes raw `(double, double)` endpoints rather than `juce::Range<double>` — Range's own constructor forces `end = jmax(start, end)` at construction, silently destroying inverted input before the function body could observe it.
+- [Phase 02-01]: IMP-01 requirement left unchecked — this plan proves the decode backend only; drag-and-drop UI (needed for full IMP-01) lands in Plan 02-02/02-03.
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T17:41:03.573Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-07-12T18:35:00.000Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None

@@ -48,10 +48,10 @@ Plans:
   2. User sees the waveform of the loaded file rendered in the UI
   3. User can select a region on the waveform to constrain analysis to that region
   4. If no region is selected, the whole file is analyzed by default
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
-- [ ] 02-01-PLAN.md — Test infrastructure (Catch2/CTest, MP3 fixture) + background audio-import backend with APVTS region state
+- [x] 02-01-PLAN.md — Test infrastructure (Catch2/CTest, MP3 fixture) + background audio-import backend with APVTS region state (completed 2026-07-12)
 - [ ] 02-02-PLAN.md — Pixel-art conveyor belt UI (drop target, Timer animation) + three-band editor layout + MIDI-sets placeholder
 - [ ] 02-03-PLAN.md — Waveform display (AudioThumbnail) + region selection overlay + editor wiring
 - [ ] 02-04-PLAN.md — Full regression gate + manual Standalone drag-and-drop verification checkpoint
