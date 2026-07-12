@@ -1,0 +1,5 @@
+build/
+validation-logs/
+tools/pluginval.app/
+tools/pluginval.zip
+.DS_Store
