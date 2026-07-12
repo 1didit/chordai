@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-07-12T19:45:26.191Z"
-last_activity: "2026-07-12 — Plan 02-04 (Full Regression Gate + Manual Verification Checkpoint) complete: automated gate re-confirmed green (15/15 ChordAITests, pluginval strictness 5 SUCCESS VST3+AU, standalone smoke PASS); human verified real drag-and-drop for all four formats, waveform legibility, region selection, and 3+ minute decode responsiveness in the Standalone app; checkpoint surfaced and fixed a real defect (drop target was limited to the 120px conveyor strip; .m4a/.aac missing from filter) — fixed in 0abddc5, rebuilt, re-verified, approved; IMP-01/02/03 fully human-evidenced, Phase 2 complete"
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-07-12T21:28:54.210Z"
+last_activity: "2026-07-12 — Plan 03-01 (Foundation: frozen contracts, module skeletons, constant-q-cpp wiring, synthetic fixtures, dual-rate preprocessing) complete: ChordAnalyzer/AnalysisResult frozen interface + 23-file Source/Analysis/ skeleton registered in both CMake targets; constant-q-cpp pinned+linked+licensed (THIRD_PARTY_LICENSES.md); CqtEngineSanity resolves research Open Question 1 (288 bins, ~16.67Hz min, ~3.08ms hop); Tests/SyntheticFixtures.h + AudioPreprocessing.cpp TDD'd RED→GREEN; 21/21 tests green"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  total_plans: 13
+  completed_plans: 8
+  percent: 62
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 2 - Audio Import & Waveform (complete, 4/4 plans) — ready to start Phase 3
+**Current focus:** Phase 3 - Core Chord-Detection Engine (1/6 plans, Wave 1 foundation complete) — next: Wave 2 plans 03-02/03-03
 
 ## Current Position
 
-Phase: 2 of 7 (Audio Import & Waveform) — COMPLETE
-Plan: 4 of 4 complete
-Status: Plan 02-04 complete (full regression gate + manual verification checkpoint) — Phase 2 done, next: plan Phase 3
-Last activity: 2026-07-12 — Plan 02-04 (Full Regression Gate + Manual Verification Checkpoint) complete: automated gate re-confirmed green (15/15 ChordAITests, pluginval strictness 5 SUCCESS VST3+AU, standalone smoke PASS); human verified real drag-and-drop for all four formats, waveform legibility, region selection, and 3+ minute decode responsiveness in the Standalone app; checkpoint surfaced and fixed a real defect (drop target was limited to the 120px conveyor strip; .m4a/.aac missing from filter) — fixed in 0abddc5, rebuilt, re-verified, approved; IMP-01/02/03 fully human-evidenced, Phase 2 complete
+Phase: 3 of 7 (Core Chord-Detection Engine) — IN PROGRESS
+Plan: 1 of 6 complete
+Status: Plan 03-01 complete (build/test foundation: frozen contracts, module skeletons, constant-q-cpp wiring, synthetic fixtures, dual-rate preprocessing) — Wave 1 done, next: Wave 2 (03-02 chroma path, 03-03 tempo/beat path)
+Last activity: 2026-07-12 — Plan 03-01 complete: ChordAnalyzer/AnalysisResult frozen headless interface; 23-file Source/Analysis/ skeleton registered in both CMake targets (zero further CMakeLists.txt edits needed for Wave 2/3); constant-q-cpp pinned+linked+licensed; CqtEngineSanity resolves research Open Question 1; Tests/SyntheticFixtures.h + AudioPreprocessing.cpp TDD'd RED→GREEN; 21/21 tests green
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 12 min
-- Total execution time: 1.5 hours
+- Total execution time: ~1.8 hours
 
 **By Phase:**
 
@@ -50,10 +50,11 @@ Progress: [██████████] 100%
 | Phase 02 P02 | 3min | 2 tasks | 7 files |
 | Phase 02 P03 | 5min | 3 tasks | 10 files |
 | Phase 02 P04 | 12min | 2 tasks | 4 files |
+| Phase 03 P01 | 20min | 3 tasks | 32 files |
 
 **Recent Trend:**
-- Last 5 plans: 6min, 9min, 3min, 5min, 12min
-- Trend: Stable (well below the Phase 1 P01 baseline)
+- Last 5 plans: 3min, 5min, 12min, 20min
+- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; downstream Wave 2/3 plans should trend back down since CMake/build wiring is now complete.
 
 *Updated after each plan completion*
 
@@ -81,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 02-03]: IMP-02 + IMP-03 now fully evidenced (waveform renders on load; region drag/clamp/reset reaches `apvts.state` via `processor.setSelectedRegion`) — marked complete in REQUIREMENTS.md.
 - [Phase 02-04]: Checkpoint-discovered drop-target defect (only the 120px conveyor strip accepted drags; .m4a/.aac missing from filter) fixed live during Task 2 manual verification (commit 0abddc5): PluginEditor is now a whole-window FileDragAndDropTarget; extension allowlist centralized in ConveyorBeltComponent::isSupportedAudioFile.
 - [Phase 02-04]: IMP-01/02/03 fully human-verified in Standalone (4-format real OS drag-and-drop, waveform legibility, region select, 3+min decode responsiveness) — Phase 2 complete.
+- [Phase 03-01]: constant-q-cpp pinned at commit 7ac8404 (verified current master HEAD via `git ls-remote`), wired as a hand-enumerated static lib (upstream has no CMakeLists.txt); include paths + `kiss_fft_scalar=double` derived from upstream's own Makefile.inc, not guessed.
+- [Phase 03-01]: 03-RESEARCH.md Open Question 1 resolved empirically — `CQParameters(11025.0, 32.70, 4186.01, 36)` actually yields 288 bins / 8 octaves / minFrequency≈16.67Hz (not the hand-calculated ~32.7Hz/7 octaves); CqtEngineSanity now asserts self-consistency against runtime-queried values instead of a hardcoded range.
+- [Phase 03-01]: All 23 Source/Analysis/ skeleton files + both CMake targets' source lists are frozen for Wave 1 — plans 03-02 through 03-06 implement real module bodies only, no further CMakeLists.txt edits needed.
 
 ### Pending Todos
 
@@ -88,12 +92,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 3 (Core Chord-Detection Engine) is flagged by research as highest-uncertainty — recommend `/gsd:research-phase` before planning to firm up CQT/chroma/HMM parameters.
 - Phase 6 (Row Preview & Export) drag-and-drop has documented DAW-specific fragility (Ableton/FL Studio) — recommend a research/spike pass before considering the phase done.
-- Legal gate: DSP dependencies must be MIT/BSD/Apache/zlib only (no GPL/AGPL) — applies to Phase 3, already resolved as a stack decision but must be enforced per-dependency.
+- Legal gate: DSP dependencies must be MIT/BSD/Apache/zlib only (no GPL/AGPL) — enforced for constant-q-cpp (MIT-style) + bundled KissFFT (BSD-3-Clause) in Plan 03-01; continue enforcing per-dependency for remaining Phase 3 plans (all in-house algorithm code, no further third-party deps expected).
 
 ## Session Continuity
 
-Last session: 2026-07-12T19:45:26.188Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-07-12T21:28:54.210Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
