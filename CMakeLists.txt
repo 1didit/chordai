@@ -65,6 +65,7 @@ target_sources(ChordAITests PRIVATE
     Tests/InfrastructureTests.cpp
     Tests/AudioFileLoaderTests.cpp
     Tests/RegionStateTests.cpp
+    Tests/WaveformRegionTests.cpp
     Source/Import/AudioFileLoader.cpp)
 
 target_include_directories(ChordAITests PRIVATE
