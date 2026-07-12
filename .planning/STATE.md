@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-07-12T21:28:54.210Z"
-last_activity: "2026-07-12 — Plan 03-01 (Foundation: frozen contracts, module skeletons, constant-q-cpp wiring, synthetic fixtures, dual-rate preprocessing) complete: ChordAnalyzer/AnalysisResult frozen interface + 23-file Source/Analysis/ skeleton registered in both CMake targets; constant-q-cpp pinned+linked+licensed (THIRD_PARTY_LICENSES.md); CqtEngineSanity resolves research Open Question 1 (288 bins, ~16.67Hz min, ~3.08ms hop); Tests/SyntheticFixtures.h + AudioPreprocessing.cpp TDD'd RED→GREEN; 21/21 tests green"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-07-12T22:46:51.000Z"
+last_activity: "2026-07-12 — Plan 03-02 (Chroma path: CQT wrapper, tuning estimation, percussion suppression, dual harmonic+bass chroma fold) complete: ConstantQAnalysis/TuningEstimator/HarmonicPercussiveFilter/ChromaExtractor all TDD'd RED→GREEN against synthetic triad/percussion/detune/bass-inversion/silence fixtures; ChromaSequence output ready for 03-04/03-05; ran in parallel with Plan 03-03 (Wave 2), both now complete, disjoint file sets, no conflicts"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
-  percent: 62
+  completed_plans: 10
+  percent: 77
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 3 - Core Chord-Detection Engine (1/6 plans, Wave 1 foundation complete) — next: Wave 2 plans 03-02/03-03
+**Current focus:** Phase 3 - Core Chord-Detection Engine (3/6 plans, Wave 1+2 complete) — next: Wave 3 plans 03-04/03-05
 
 ## Current Position
 
 Phase: 3 of 7 (Core Chord-Detection Engine) — IN PROGRESS
-Plan: 1 of 6 complete
-Status: Plan 03-01 complete (build/test foundation: frozen contracts, module skeletons, constant-q-cpp wiring, synthetic fixtures, dual-rate preprocessing) — Wave 1 done, next: Wave 2 (03-02 chroma path, 03-03 tempo/beat path)
-Last activity: 2026-07-12 — Plan 03-01 complete: ChordAnalyzer/AnalysisResult frozen headless interface; 23-file Source/Analysis/ skeleton registered in both CMake targets (zero further CMakeLists.txt edits needed for Wave 2/3); constant-q-cpp pinned+linked+licensed; CqtEngineSanity resolves research Open Question 1; Tests/SyntheticFixtures.h + AudioPreprocessing.cpp TDD'd RED→GREEN; 21/21 tests green
+Plan: 3 of 6 complete
+Status: Plans 03-01/03-02/03-03 complete (foundation + chroma path + tempo/beat path) — Wave 1+2 done, next: Wave 3 (03-04 key detection, 03-05 chord recognition)
+Last activity: 2026-07-12 — Plan 03-02 complete: ConstantQAnalysis streaming CQT wrapper, TuningEstimator circular cents estimate, HarmonicPercussiveFilter median-filter suppression, ChromaExtractor dual harmonic+bass fold — all TDD'd RED→GREEN against synthetic fixtures (clean triad, percussion-robustness, -30/+25 cent detune, bass-inversion, silence-tail); ran in parallel with 03-03 (Wave 2), disjoint file sets, no conflicts; full suite 42/42 green
 
-Progress: [██████░░░░] 62%
+Progress: [████████░░] 77%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 10
 - Average duration: 12 min
-- Total execution time: ~1.8 hours
+- Total execution time: ~2.1 hours
 
 **By Phase:**
 
@@ -51,10 +51,12 @@ Progress: [██████░░░░] 62%
 | Phase 02 P03 | 5min | 3 tasks | 10 files |
 | Phase 02 P04 | 12min | 2 tasks | 4 files |
 | Phase 03 P01 | 20min | 3 tasks | 32 files |
+| Phase 03 P02 | 14min | 3 tasks | 6 files |
+| Phase 03 P03 | (see 03-03-SUMMARY.md) | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 3min, 5min, 12min, 20min
-- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; downstream Wave 2/3 plans should trend back down since CMake/build wiring is now complete.
+- Last 5 plans: 5min, 12min, 20min, 14min
+- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts.
 
 *Updated after each plan completion*
 
@@ -87,6 +89,8 @@ Recent decisions affecting current work:
 - [Phase 03-01]: All 23 Source/Analysis/ skeleton files + both CMake targets' source lists are frozen for Wave 1 — plans 03-02 through 03-06 implement real module bodies only, no further CMakeLists.txt edits needed.
 - [Phase 03-03]: OnsetEnvelope STFT framing uses librosa-style centered/zero-padded frames (pad kFftSize/2 each side) rather than a naive non-overlap-safe frame count — this is required to hit the promised 250Hz envelope rate (envelope.size() ≈ duration*rateHz) instead of undercounting by one window; also improves click-to-onset-peak time alignment.
 - [Phase 03-03]: Octave-error mitigation (Ellis 2007 TPS2/TPS3 composite functions) implemented per PLAN.md's literal formula; ANL-02 fully evidenced (90/120/160 BPM ±3, syncopated-fixture octave resistance, beat alignment, exact bar grid) and marked complete in REQUIREMENTS.md.
+- [Phase 03-02]: `kHpssKernelSeconds` exposed as a public named constant in HarmonicPercussiveFilter.h (not hidden in the .cpp) since `suppressPercussion`'s signature takes no default argument — callers need a documented default to reference.
+- [Phase 03-02]: Two test assertions calibrated against empirically-measured CQT/fold behavior rather than hand-guessed expectations (same pattern as 03-01's CqtEngineSanity fix): bass-inversion fixture checks top-4 (not top-3) harmonic pitch-class membership, since the harmonic (>=80Hz) and bass (55-250Hz) ranges deliberately overlap per research Pattern 3 and a loud bass note legitimately competes for a slot — root disambiguation from that competition is the chord-decoder's (03-05) job, not the chroma fold's; silence-tail classification uses a ~0.7s settling margin since low CQT bins have wide time-domain windows causing a ~0.5-0.6s magnitude decay tail after audio stops, not an instant drop. ANL-03 remains unchecked in REQUIREMENTS.md — this plan only completes the chroma-extraction stage, not the full chord-progression detection (needs 03-04/03-05/03-06).
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T21:28:54.210Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-07-12T22:46:51.000Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
