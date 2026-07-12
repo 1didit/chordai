@@ -75,6 +75,52 @@ FetchContent_Declare(
     GIT_TAG v3.7.1)
 FetchContent_MakeAvailable(Catch2)
 
+# constant-q-cpp (Chris Cannam / QMUL, MIT-style license) — pinned to a specific
+# commit on master (no tagged releases). No upstream CMakeLists.txt (only
+# Makefile.linux/.osx/.mingw32) so FetchContent only populates the source tree;
+# the static lib target below enumerates its sources explicitly.
+FetchContent_Declare(constant_q_cpp
+    GIT_REPOSITORY https://github.com/cannam/constant-q-cpp.git
+    GIT_TAG        7ac84048e3e43c433d88e12d221af15e50f41591)  # master HEAD as of 2026-07-12 — verified via git ls-remote
+FetchContent_MakeAvailable(constant_q_cpp)
+
+# Upstream has no CMakeLists.txt (only Makefile.linux/.osx/.mingw32) — source
+# list enumerated explicitly from the fetched tree (verified via `ls`, not guessed).
+add_library(constant_q_cpp STATIC
+    ${constant_q_cpp_SOURCE_DIR}/src/CQInverse.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/CQKernel.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/CQSpectrogram.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/Chromagram.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/ConstantQ.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/Pitch.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/dsp/FFT.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/dsp/KaiserWindow.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/dsp/MathUtilities.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/dsp/Resampler.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/dsp/SincWindow.cpp
+    ${constant_q_cpp_SOURCE_DIR}/src/ext/kissfft/kiss_fft.c
+    ${constant_q_cpp_SOURCE_DIR}/src/ext/kissfft/tools/kiss_fftr.c)
+
+target_include_directories(constant_q_cpp SYSTEM PUBLIC
+    ${constant_q_cpp_SOURCE_DIR})
+
+# Matches upstream Makefile.inc's own GENERAL_FLAGS include path
+# (-I. -Icq -Isrc -Isrc/ext/kissfft -Isrc/ext/kissfft/tools): internal .cpp
+# files use unqualified #include "CQKernel.h" / "kiss_fft.h" etc, resolved
+# relative to these directories, not the "cq/..." qualified public path.
+target_include_directories(constant_q_cpp PRIVATE
+    ${constant_q_cpp_SOURCE_DIR}/cq
+    ${constant_q_cpp_SOURCE_DIR}/src
+    ${constant_q_cpp_SOURCE_DIR}/src/ext/kissfft
+    ${constant_q_cpp_SOURCE_DIR}/src/ext/kissfft/tools)
+
+# Matches upstream Makefile.inc's -Dkiss_fft_scalar=double (this library's
+# RealSequence/RealColumn types are vector<double>; kissfft defaults to float).
+target_compile_definitions(constant_q_cpp PRIVATE
+    kiss_fft_scalar=double)
+
+target_link_libraries(ChordAI PRIVATE constant_q_cpp)
+
 juce_add_console_app(ChordAITests PRODUCT_NAME "ChordAITests")
 
 target_sources(ChordAITests PRIVATE
@@ -107,7 +153,8 @@ target_link_libraries(ChordAITests PRIVATE
     juce::juce_audio_formats
     juce::juce_audio_utils
     juce::juce_gui_basics
-    juce::juce_dsp)
+    juce::juce_dsp
+    constant_q_cpp)
 
 juce_generate_juce_header(ChordAITests)
 
