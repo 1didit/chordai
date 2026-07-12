@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace
 {
@@ -123,8 +124,166 @@ std::array<float, 36> scoreBeatObservations (const BeatChroma& beat, const std::
     return normalized;
 }
 
-// Stub -- full Viterbi decode + N-state override + segment merge owned by Task 2.
-std::vector<ChordSegment> decodeChords (const ChromaSequence& /*chroma*/, const BeatGrid& /*beats*/)
+namespace
 {
-    return {};
+    constexpr int kNumStates = 36;
+
+    // Self-transition weight (beta in 03-RESEARCH.md's Viterbi transition
+    // matrix). Literature-reported chord-HMM values cluster in 0.8-0.99, with
+    // 0.85 flagged as only a v1 STARTING point, explicitly tunable (Open
+    // Question 3) and required to be validated against both a slow
+    // (1-chord-per-bar) and a fast (1-chord-per-beat) synthetic progression.
+    // Empirically, 0.85 badly oversmoothed ChordDecoderTests.FastChanges (8
+    // distinct 1-beat chords collapsed to 1-2 segments) and even
+    // ChordDecoderTests.SilenceGivesNoChord's 4-beat second chord never won
+    // the global Viterbi path away from the first chord's state. Root cause:
+    // this project's L1-normalized cosine+bass-bias observation matrix (Task
+    // 1) is far less peaked than a typical trained-HMM emission model -- the
+    // best-vs-second-best per-beat likelihood ratio for real (non-idealized)
+    // synthetic audio is usually only ~2-3x, not orders of magnitude -- so
+    // literature betas tuned for sharper emission models are far too sticky
+    // here. 0.85 down to 0.05 all still failed FastChanges; 0.03 was the
+    // first value to pass every fixture, 0.04 (this value) keeps a small
+    // margin above that empirical floor while remaining just above the
+    // uniform/no-bias baseline (1/36 = 0.0278) -- i.e. v1's self-transition
+    // bias is real but deliberately weak given the current scoring sharpness.
+    constexpr float kSelfTransition = 0.04f;
+
+    // N-state silence-override floor on the beat-averaged pre-normalization
+    // harmonic L2 norm (BeatChroma::preNormL2Avg). Beats below this are forced
+    // to ChordQuality::NoChord regardless of the Viterbi state -- NoChord is
+    // NOT a 37th HMM state (03-RESEARCH.md "v1 chord vocabulary"). Tuned
+    // against ChordDecoderTests.SilenceGivesNoChord (synthetic sine-stack
+    // fixtures): observed true-silence beats measure ~0.0004, onset/decay
+    // transient beats at a chord's fade-in/fade-out edge measure ~1.3-3.8,
+    // and fully sounding beats measure ~28-64. 0.5 sits below every observed
+    // transient-edge value (so real chord onsets are never misclassified as
+    // silence) while sitting far above the true-silence noise floor.
+    constexpr float kSilenceFloor = 0.5f;
+
+    // Log-domain Viterbi observation floor (03-RESEARCH.md Code Examples:
+    // "Use log(B + 1e-12) for observations").
+    constexpr float kLogObservationFloor = 1e-12f;
+}
+
+std::vector<ChordSegment> decodeChords (const ChromaSequence& chroma, const BeatGrid& beats)
+{
+    const auto& beatTimes = beats.beatTimesSeconds;
+    if (chroma.frames.empty() || beatTimes.size() < 2)
+        return {};
+
+    const auto beatChromas = computeBeatSyncChroma (chroma, beats);
+    const auto templates = buildAllTemplates();
+    const int numBeats = (int) beatChromas.size();
+
+    // Observation matrix B[beat][state] -- L1-normalized per-beat scores from Task 1.
+    std::vector<std::array<float, kNumStates>> observations ((size_t) numBeats);
+    for (int t = 0; t < numBeats; ++t)
+        observations[(size_t) t] = scoreBeatObservations (beatChromas[(size_t) t], templates);
+
+    // Log-domain Viterbi: uniform initial prior 1/36; self-transition beta on
+    // the diagonal, (1-beta)/35 elsewhere.
+    const float logInitialPrior = std::log (1.0f / (float) kNumStates);
+    const float logSelfTransition = std::log (kSelfTransition);
+    const float logOtherTransition = std::log ((1.0f - kSelfTransition) / (float) (kNumStates - 1));
+
+    std::vector<std::array<float, kNumStates>> logDelta ((size_t) numBeats);
+    std::vector<std::array<int, kNumStates>> backpointer ((size_t) numBeats);
+
+    for (int s = 0; s < kNumStates; ++s)
+        logDelta[0][(size_t) s] = logInitialPrior + std::log (observations[0][(size_t) s] + kLogObservationFloor);
+
+    for (int t = 1; t < numBeats; ++t)
+    {
+        for (int s = 0; s < kNumStates; ++s)
+        {
+            float bestScore = -std::numeric_limits<float>::infinity();
+            int bestPrev = 0;
+            for (int sp = 0; sp < kNumStates; ++sp)
+            {
+                const float transitionLogProb = (sp == s) ? logSelfTransition : logOtherTransition;
+                const float score = logDelta[(size_t) (t - 1)][(size_t) sp] + transitionLogProb;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestPrev = sp;
+                }
+            }
+            logDelta[(size_t) t][(size_t) s] = bestScore + std::log (observations[(size_t) t][(size_t) s] + kLogObservationFloor);
+            backpointer[(size_t) t][(size_t) s] = bestPrev;
+        }
+    }
+
+    // Backtrace from the highest-scoring final state.
+    std::vector<int> stateSequence ((size_t) numBeats);
+    {
+        int bestFinalState = 0;
+        float bestFinalScore = -std::numeric_limits<float>::infinity();
+        for (int s = 0; s < kNumStates; ++s)
+        {
+            if (logDelta[(size_t) (numBeats - 1)][(size_t) s] > bestFinalScore)
+            {
+                bestFinalScore = logDelta[(size_t) (numBeats - 1)][(size_t) s];
+                bestFinalState = s;
+            }
+        }
+        stateSequence[(size_t) (numBeats - 1)] = bestFinalState;
+        for (int t = numBeats - 2; t >= 0; --t)
+            stateSequence[(size_t) t] = backpointer[(size_t) (t + 1)][(size_t) stateSequence[(size_t) (t + 1)]];
+    }
+
+    // N-state override (deterministic, post-Viterbi): force NoChord on beats
+    // whose averaged pre-norm harmonic L2 is below kSilenceFloor.
+    std::vector<ChordSymbol> perBeatChord ((size_t) numBeats);
+    std::vector<float> perBeatConfidence ((size_t) numBeats);
+    for (int t = 0; t < numBeats; ++t)
+    {
+        if (beatChromas[(size_t) t].preNormL2Avg < kSilenceFloor)
+        {
+            perBeatChord[(size_t) t] = ChordSymbol { 0, ChordQuality::NoChord };
+            perBeatConfidence[(size_t) t] = 0.0f; // no template match applies to a forced NoChord beat
+        }
+        else
+        {
+            perBeatChord[(size_t) t] = symbolForIndex (stateSequence[(size_t) t]);
+            perBeatConfidence[(size_t) t] = observations[(size_t) t][(size_t) stateSequence[(size_t) t]];
+        }
+    }
+
+    // Segment merge: run-length-encode consecutive equal (pitchClass, quality)
+    // beats into ChordSegments. startBeatIndex/endBeatIndex is a half-open
+    // [start, end) range into beatTimesSeconds (endBeatIndex is one-past-last,
+    // so it may equal beatTimesSeconds.size() for the final segment).
+    // startSeconds/endSeconds mirror computeBeatSyncChroma's own last-interval
+    // rule: the final segment's endSeconds is the last beat time plus the
+    // median inter-beat interval (there is no beat[last+1] to bound it).
+    std::vector<ChordSegment> segments;
+    const double medianIbi = medianInterBeatInterval (beatTimes);
+    int segmentStart = 0;
+
+    for (int t = 1; t <= numBeats; ++t)
+    {
+        const bool segmentBoundary = (t == numBeats)
+            || ! (perBeatChord[(size_t) t].pitchClass == perBeatChord[(size_t) (t - 1)].pitchClass
+                  && perBeatChord[(size_t) t].quality == perBeatChord[(size_t) (t - 1)].quality);
+        if (! segmentBoundary)
+            continue;
+
+        ChordSegment segment;
+        segment.chord = perBeatChord[(size_t) segmentStart];
+        segment.startBeatIndex = segmentStart;
+        segment.endBeatIndex = t;
+        segment.startSeconds = beatTimes[(size_t) segmentStart];
+        segment.endSeconds = (t < numBeats) ? beatTimes[(size_t) t] : (beatTimes.back() + medianIbi);
+
+        float confidenceSum = 0.0f;
+        for (int k = segmentStart; k < t; ++k)
+            confidenceSum += perBeatConfidence[(size_t) k];
+        segment.confidence = confidenceSum / (float) (t - segmentStart);
+
+        segments.push_back (segment);
+        segmentStart = t;
+    }
+
+    return segments;
 }
