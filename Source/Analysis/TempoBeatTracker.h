@@ -7,6 +7,13 @@
 #include "OnsetEnvelope.h"
 #include <vector>
 
+// v1 DELIBERATE LIMITATION (03-RESEARCH.md Open Question 2): no true
+// downbeat/meter detection. barStartBeatIndices simply marks every 4th
+// detected beat, treating the first detected beat as downbeat 1 of bar 1 -
+// this assumes 4/4 time and does not verify it. Accuracy on 3/4, 6/8, or
+// pickup-beat material is unvalidated. Downstream consumers (chord
+// segmentation in 03-05, bar-aligned MIDI export in Phases 4-6) must not
+// assume this field reflects genuine musical downbeats.
 struct BeatGrid
 {
     double bpm = 0.0;
