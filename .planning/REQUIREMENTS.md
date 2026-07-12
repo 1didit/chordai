@@ -90,13 +90,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmap) | | |
+| PLT-01 | Phase 1 - Plugin Foundation | Pending |
+| IMP-01 | Phase 2 - Audio Import & Waveform | Pending |
+| IMP-02 | Phase 2 - Audio Import & Waveform | Pending |
+| IMP-03 | Phase 2 - Audio Import & Waveform | Pending |
+| ANL-01 | Phase 3 - Core Chord-Detection Engine | Pending |
+| ANL-02 | Phase 3 - Core Chord-Detection Engine | Pending |
+| ANL-03 | Phase 3 - Core Chord-Detection Engine | Pending |
+| ANL-06 | Phase 3 - Core Chord-Detection Engine | Pending |
+| ANL-04 | Phase 4 - Analysis UI Integration | Pending |
+| ANL-05 | Phase 4 - Analysis UI Integration | Pending |
+| GEN-01 | Phase 5 - MIDI Conveyor Generation | Pending |
+| GEN-02 | Phase 5 - MIDI Conveyor Generation | Pending |
+| GEN-03 | Phase 5 - MIDI Conveyor Generation | Pending |
+| GEN-04 | Phase 5 - MIDI Conveyor Generation | Pending |
+| PRV-01 | Phase 6 - Row Preview & Export | Pending |
+| EXP-01 | Phase 6 - Row Preview & Export | Pending |
+| EXP-02 | Phase 6 - Row Preview & Export | Pending |
+| EXP-03 | Phase 6 - Row Preview & Export | Pending |
+| PLT-02 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
+| PLT-03 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
 
 **Coverage:**
-- v1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19 ⚠️
+- v1 requirements: 20 total (corrected from initial count of 19 — recount at roadmap creation found 20 listed IDs)
+- Mapped to phases: 20
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-07-12*
-*Last updated: 2026-07-12 after initial definition*
+*Last updated: 2026-07-12 after roadmap creation (7 phases, full coverage)*
