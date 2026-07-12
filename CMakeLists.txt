@@ -32,7 +32,8 @@ juce_add_plugin(ChordAI
 target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
-    Source/Import/AudioFileLoader.cpp)
+    Source/Import/AudioFileLoader.cpp
+    Source/UI/ConveyorBeltComponent.cpp)
 
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
