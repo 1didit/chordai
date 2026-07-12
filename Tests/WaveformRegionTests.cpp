@@ -5,6 +5,40 @@
 #include "Source/UI/WaveformMath.h"
 #include "Source/UI/RegionSelectionModel.h"
 
+namespace
+{
+    // Writes a 1 s, 440 Hz sine, 44.1 kHz stereo WAV fixture — same shape as
+    // AudioFileLoaderTests' helper, duplicated locally (that helper lives in
+    // an anonymous namespace private to its own translation unit).
+    juce::File writeWavFixture()
+    {
+        auto file = juce::File::createTempFile (".wav");
+
+        constexpr double sampleRate = 44100.0;
+        constexpr int numChannels = 2;
+        constexpr int numSamples = 44100; // 1 s
+
+        juce::AudioBuffer<float> buffer (numChannels, numSamples);
+        for (int ch = 0; ch < numChannels; ++ch)
+        {
+            auto* data = buffer.getWritePointer (ch);
+            for (int i = 0; i < numSamples; ++i)
+                data[i] = 0.5f * std::sin (2.0 * juce::MathConstants<double>::pi * 440.0 * (double) i / sampleRate);
+        }
+
+        juce::WavAudioFormat wav;
+        std::unique_ptr<juce::FileOutputStream> stream (file.createOutputStream());
+        std::unique_ptr<juce::AudioFormatWriter> writer (
+            wav.createWriterFor (stream.get(), sampleRate, (unsigned int) numChannels, 32, {}, 0));
+        stream.release(); // writer now owns the stream
+
+        writer->writeFromAudioSampleBuffer (buffer, 0, numSamples);
+        writer.reset(); // flush + close
+
+        return file;
+    }
+}
+
 TEST_CASE ("WaveformRegionTests.PixelTimeConversion", "[waveformregion]")
 {
     juce::Range<double> visibleRange (0.0, 10.0);
@@ -88,4 +122,26 @@ TEST_CASE ("WaveformRegionTests.ClickResetsToWholeFile", "[waveformregion]")
     CHECK (region.getStart() == 0.0);
     CHECK (region.getEnd() == 10.0);
     CHECK (model.isWholeFile());
+}
+
+TEST_CASE ("WaveformRegionTests.ThumbnailPopulates", "[waveformregion]")
+{
+    juce::ScopedJuceInitialiser_GUI guiInit;
+
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    juce::AudioThumbnailCache cache (5);
+    juce::AudioThumbnail thumbnail (512, formatManager, cache);
+
+    auto file = writeWavFixture();
+    thumbnail.setSource (new juce::FileInputSource (file));
+
+    auto deadline = juce::Time::getMillisecondCounter() + 5000;
+    while (! thumbnail.isFullyLoaded() && juce::Time::getMillisecondCounter() < deadline)
+        juce::MessageManager::getInstance()->runDispatchLoopUntil (50);
+
+    REQUIRE (thumbnail.getTotalLength() > 0.9);
+
+    file.deleteFile();
 }

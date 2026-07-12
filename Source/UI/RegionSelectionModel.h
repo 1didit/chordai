@@ -43,6 +43,8 @@ struct RegionSelectionModel
 
     juce::Range<double> getRegion() const { return region; }
 
+    double getTotalLength() const { return totalLength; }
+
     bool isWholeFile() const
     {
         return std::abs (region.getStart() - 0.0) < 1e-9
