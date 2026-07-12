@@ -16,7 +16,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Analysis
 
 - [ ] **ANL-01**: Key of the analyzed region is detected automatically
-- [ ] **ANL-02**: Tempo (BPM) and bar grid are detected automatically
+- [x] **ANL-02**: Tempo (BPM) and bar grid are detected automatically
 - [ ] **ANL-03**: Chord progression is detected (chromagram + template matching + Viterbi smoothing) and aligned to the bar grid
 - [ ] **ANL-04**: Analysis runs on a background thread — UI stays responsive, progress is shown; a 3-minute song analyzes in seconds
 - [ ] **ANL-05**: Detected chords are displayed as named chords (Am, Cmaj7, F/A) on a timeline over the waveform
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IMP-02 | Phase 2 - Audio Import & Waveform | Complete |
 | IMP-03 | Phase 2 - Audio Import & Waveform | Complete |
 | ANL-01 | Phase 3 - Core Chord-Detection Engine | Pending |
-| ANL-02 | Phase 3 - Core Chord-Detection Engine | Pending |
+| ANL-02 | Phase 3 - Core Chord-Detection Engine | Complete |
 | ANL-03 | Phase 3 - Core Chord-Detection Engine | Pending |
 | ANL-06 | Phase 3 - Core Chord-Detection Engine | Pending |
 | ANL-04 | Phase 4 - Analysis UI Integration | Pending |

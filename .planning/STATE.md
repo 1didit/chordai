@@ -85,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 03-01]: constant-q-cpp pinned at commit 7ac8404 (verified current master HEAD via `git ls-remote`), wired as a hand-enumerated static lib (upstream has no CMakeLists.txt); include paths + `kiss_fft_scalar=double` derived from upstream's own Makefile.inc, not guessed.
 - [Phase 03-01]: 03-RESEARCH.md Open Question 1 resolved empirically — `CQParameters(11025.0, 32.70, 4186.01, 36)` actually yields 288 bins / 8 octaves / minFrequency≈16.67Hz (not the hand-calculated ~32.7Hz/7 octaves); CqtEngineSanity now asserts self-consistency against runtime-queried values instead of a hardcoded range.
 - [Phase 03-01]: All 23 Source/Analysis/ skeleton files + both CMake targets' source lists are frozen for Wave 1 — plans 03-02 through 03-06 implement real module bodies only, no further CMakeLists.txt edits needed.
+- [Phase 03-03]: OnsetEnvelope STFT framing uses librosa-style centered/zero-padded frames (pad kFftSize/2 each side) rather than a naive non-overlap-safe frame count — this is required to hit the promised 250Hz envelope rate (envelope.size() ≈ duration*rateHz) instead of undercounting by one window; also improves click-to-onset-peak time alignment.
+- [Phase 03-03]: Octave-error mitigation (Ellis 2007 TPS2/TPS3 composite functions) implemented per PLAN.md's literal formula; ANL-02 fully evidenced (90/120/160 BPM ±3, syncopated-fixture octave resistance, beat alignment, exact bar grid) and marked complete in REQUIREMENTS.md.
 
 ### Pending Todos
 
