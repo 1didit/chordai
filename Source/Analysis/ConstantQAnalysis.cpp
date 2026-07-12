@@ -21,7 +21,8 @@ namespace
     constexpr size_t kProcessChunkSize = 16384;
 }
 
-CqtFrames computeCqt (const std::vector<float>& samples, double sampleRate)
+CqtFrames computeCqt (const std::vector<float>& samples, double sampleRate,
+                       const std::function<bool()>& shouldCancel)
 {
     CqtFrames result;
 
@@ -45,6 +46,9 @@ CqtFrames computeCqt (const std::vector<float>& samples, double sampleRate)
 
     for (size_t offset = 0; offset < input.size(); offset += kProcessChunkSize)
     {
+        if (shouldCancel && shouldCancel())
+            return result; // cancelled mid-stream -- skip the flush, discard partial columns
+
         const size_t chunkLen = std::min (kProcessChunkSize, input.size() - offset);
         CQSpectrogram::RealSequence chunk (input.begin() + (std::ptrdiff_t) offset,
                                             input.begin() + (std::ptrdiff_t) (offset + chunkLen));

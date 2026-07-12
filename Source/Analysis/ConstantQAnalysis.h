@@ -2,6 +2,7 @@
 
 // Owned by plan 03-02. Skeleton created in 03-01 for build wiring only.
 
+#include <functional>
 #include <vector>
 
 struct CqtFrames
@@ -19,4 +20,9 @@ struct CqtFrames
     }
 };
 
-CqtFrames computeCqt (const std::vector<float>& samples, double sampleRate);
+// shouldCancel (optional, default empty -- existing callers unaffected) is
+// polled once per feed chunk (plan 03-06): the streaming process() loop below
+// bails out early without flushing getRemainingOutput(), giving sub-second
+// cancellation latency even for the longest analysis stage.
+CqtFrames computeCqt (const std::vector<float>& samples, double sampleRate,
+                       const std::function<bool()>& shouldCancel = {});
