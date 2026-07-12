@@ -1,6 +1,12 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "Source/Analysis/KeyDetector.h"
+#include "Source/Analysis/AudioPreprocessing.h"
+#include "Source/Analysis/ChromaExtractor.h"
+#include "Source/Analysis/ConstantQAnalysis.h"
+#include "Source/Analysis/HarmonicPercussiveFilter.h"
+#include "Source/Analysis/TuningEstimator.h"
+#include "Tests/SyntheticFixtures.h"
 
 #include <array>
 
@@ -14,6 +20,21 @@ namespace
         for (int p = 0; p < 12; ++p)
             rotated[(size_t) ((p + shift + 12) % 12)] = v[(size_t) p];
         return rotated;
+    }
+
+    constexpr double kSourceRate = 44100.0;
+    constexpr double kBpm = 120.0;
+
+    // Full real chain: computeCqt -> suppressPercussion -> extractChroma.
+    // tuningCents is either a fixed 0.0 (in-tune fixtures) or the real
+    // estimateTuningCents(cqt) result (detuned fixture).
+    ChromaSequence extractChromaThroughFullChain (const juce::AudioBuffer<float>& buffer, bool applyTuningEstimate)
+    {
+        auto preprocessed = preprocessForAnalysis (buffer, kSourceRate, {});
+        auto cqt = computeCqt (preprocessed.chromaSamples, preprocessed.chromaRate);
+        suppressPercussion (cqt, kHpssKernelSeconds);
+        const double tuningCents = applyTuningEstimate ? estimateTuningCents (cqt) : 0.0;
+        return extractChroma (cqt, tuningCents);
     }
 }
 
@@ -84,4 +105,74 @@ TEST_CASE ("KeyDetectorTests.ConfidenceMargins", "[chordanalysis]")
     CHECK (strongKey.confidence > ambiguousKey.confidence);
     CHECK (ambiguousKey.confidence < 0.1f);
     CHECK (ambiguousKey.confidence >= 0.0f);
+}
+
+// Task 2: audio-integration key tests through the real chroma path
+// (renderChordProgression -> preprocessForAnalysis -> computeCqt ->
+// suppressPercussion -> extractChroma -> accumulateChroma -> detectKey).
+// 2 bars/chord @ 120 BPM (beatsPerChord=8) so each fixture is well over the
+// >= 8s duration needed for stable accumulated chroma.
+
+TEST_CASE ("KeyDetectorTests.CMajorFixture", "[chordanalysis]")
+{
+    // C-F-G-C, roots 0/5/7/0, all major.
+    std::vector<fixtures::ChordSpec> chords {
+        { { 0, ChordQuality::Major } },
+        { { 5, ChordQuality::Major } },
+        { { 7, ChordQuality::Major } },
+        { { 0, ChordQuality::Major } }
+    };
+    auto buffer = fixtures::renderChordProgression (chords, kBpm, kSourceRate, 8);
+
+    auto chroma = extractChromaThroughFullChain (buffer, false);
+    REQUIRE (! chroma.frames.empty());
+
+    auto key = detectKey (accumulateChroma (chroma));
+
+    CHECK (key.tonicPitchClass == 0);
+    CHECK (key.isMajor == true);
+}
+
+TEST_CASE ("KeyDetectorTests.RelativeMinor", "[chordanalysis]")
+{
+    // Am-Dm-E-Am, roots 9/2/4/9, qualities minor/minor/MAJOR/minor -- the E
+    // major dominant supplies the G# leading tone that breaks the C-major
+    // relative-key tie; a natural-minor-only progression would be genuinely
+    // ambiguous with C major, so this fixture must include the E major chord.
+    std::vector<fixtures::ChordSpec> chords {
+        { { 9, ChordQuality::Minor } },
+        { { 2, ChordQuality::Minor } },
+        { { 4, ChordQuality::Major } },
+        { { 9, ChordQuality::Minor } }
+    };
+    auto buffer = fixtures::renderChordProgression (chords, kBpm, kSourceRate, 8);
+
+    auto chroma = extractChromaThroughFullChain (buffer, false);
+    REQUIRE (! chroma.frames.empty());
+
+    auto key = detectKey (accumulateChroma (chroma));
+
+    CHECK (key.tonicPitchClass == 9);
+    CHECK (key.isMajor == false);
+}
+
+TEST_CASE ("KeyDetectorTests.DetunedKeyStillDetected", "[chordanalysis]")
+{
+    // C-F-G-C at detuneCents=-30 -- still C major once the tuning estimate is
+    // applied through the real chain.
+    std::vector<fixtures::ChordSpec> chords {
+        { { 0, ChordQuality::Major } },
+        { { 5, ChordQuality::Major } },
+        { { 7, ChordQuality::Major } },
+        { { 0, ChordQuality::Major } }
+    };
+    auto buffer = fixtures::renderChordProgression (chords, kBpm, kSourceRate, 8, -30.0);
+
+    auto chroma = extractChromaThroughFullChain (buffer, true);
+    REQUIRE (! chroma.frames.empty());
+
+    auto key = detectKey (accumulateChroma (chroma));
+
+    CHECK (key.tonicPitchClass == 0);
+    CHECK (key.isMajor == true);
 }
