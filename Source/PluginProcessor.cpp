@@ -1,6 +1,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "Import/AudioFileLoader.h"
+#include "Import/RegionState.h"
+
 ChordAIAudioProcessor::ChordAIAudioProcessor()
     : AudioProcessor (BusesProperties()
                            .withInput ("Input", juce::AudioChannelSet::stereo(), true)
@@ -12,6 +15,7 @@ ChordAIAudioProcessor::ChordAIAudioProcessor()
       // JUCE effect default and keeps the plugin inert-but-valid.
     , apvts (*this, nullptr, "PARAMETERS", createParameterLayout())
 {
+    formatManager.registerBasicFormats();
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout ChordAIAudioProcessor::createParameterLayout()
@@ -59,6 +63,62 @@ void ChordAIAudioProcessor::setStateInformation (const void* data, int sizeInByt
     if (auto xml = getXmlFromBinary (data, sizeInBytes))
         if (xml->hasTagName (apvts.state.getType()))
             apvts.replaceState (juce::ValueTree::fromXml (*xml));
+}
+
+void ChordAIAudioProcessor::loadAudioFile (const juce::File& file)
+{
+    std::weak_ptr<int> weakAlive (aliveToken);
+
+    AudioFileLoadJob::Callback callback = [this, weakAlive] (std::shared_ptr<const LoadedAudio> result, juce::String errorMessage)
+    {
+        // The processor may have been destroyed between the background decode
+        // finishing and this callAsync-delivered callback running on the
+        // message thread. Bail rather than touch a dangling `this`.
+        if (weakAlive.expired())
+            return;
+
+        if (result != nullptr)
+        {
+            std::atomic_store (&loadedAudio, result);
+            selectedRegion = { 0.0, result->lengthSeconds }; // whole-file default, IMP-03
+            lastLoadError.clear();
+            RegionState::write (apvts.state, result->sourceFile, selectedRegion);
+        }
+        else
+        {
+            lastLoadError = errorMessage;
+        }
+
+        loadBroadcaster.sendChangeMessage();
+    };
+
+    loaderPool.addJob (new AudioFileLoadJob (file, formatManager, callback), true);
+}
+
+std::shared_ptr<const LoadedAudio> ChordAIAudioProcessor::getLoadedAudio() const
+{
+    return std::atomic_load (&loadedAudio);
+}
+
+juce::Range<double> ChordAIAudioProcessor::getSelectedRegion() const
+{
+    return selectedRegion;
+}
+
+void ChordAIAudioProcessor::setSelectedRegion (juce::Range<double> regionSeconds)
+{
+    auto audio = getLoadedAudio();
+    if (audio == nullptr)
+        return; // no-op if nothing loaded
+
+    selectedRegion = RegionState::clampRegion (regionSeconds.getStart(), regionSeconds.getEnd(), audio->lengthSeconds);
+    RegionState::write (apvts.state, audio->sourceFile, selectedRegion);
+    // Do NOT broadcast — the UI initiated this change.
+}
+
+juce::String ChordAIAudioProcessor::getLastLoadError() const
+{
+    return lastLoadError;
 }
 
 // This creates new instances of the plugin — required by every JUCE plugin, build
