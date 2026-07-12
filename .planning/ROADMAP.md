@@ -13,7 +13,7 @@ ChordAI goes from an empty, loadable plugin shell to a commercial-shaped conveyo
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Plugin Foundation** - Empty VST3/AU/Standalone plugin loads cleanly in all target hosts with real-time-safety and state-persistence patterns established (completed 2026-07-12)
-- [ ] **Phase 2: Audio Import & Waveform** - User drags a song in, sees its waveform, and picks what to analyze
+- [x] **Phase 2: Audio Import & Waveform** - User drags a song in, sees its waveform, and picks what to analyze (completed 2026-07-12)
 - [ ] **Phase 3: Core Chord-Detection Engine** - Headless engine detects key, tempo, and bar-aligned chord progression behind a swappable interface
 - [ ] **Phase 4: Analysis UI Integration** - Detected key/tempo/chords appear live on the waveform timeline without freezing the UI
 - [ ] **Phase 5: MIDI Conveyor Generation** - One analysis produces multiple simultaneous MIDI rows: as-is progression, style variants, and bass line
@@ -48,13 +48,13 @@ Plans:
   2. User sees the waveform of the loaded file rendered in the UI
   3. User can select a region on the waveform to constrain analysis to that region
   4. If no region is selected, the whole file is analyzed by default
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Test infrastructure (Catch2/CTest, MP3 fixture) + background audio-import backend with APVTS region state (completed 2026-07-12)
 - [x] 02-02-PLAN.md — Pixel-art conveyor belt UI (drop target, Timer animation) + three-band editor layout + MIDI-sets placeholder (completed 2026-07-12)
 - [x] 02-03-PLAN.md — Waveform display (AudioThumbnail) + region selection overlay + editor wiring (completed 2026-07-12)
-- [ ] 02-04-PLAN.md — Full regression gate + manual Standalone drag-and-drop verification checkpoint
+- [x] 02-04-PLAN.md — Full regression gate + manual Standalone drag-and-drop verification checkpoint (completed 2026-07-12)
 
 ### Phase 3: Core Chord-Detection Engine
 **Goal**: The plugin can correctly determine key, tempo, and chord progression from a decoded audio buffer, isolated behind an interface that a v2 ML backend can later replace without touching UI or generation code.
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Foundation | 3/3 | Complete   | 2026-07-12 |
-| 2. Audio Import & Waveform | 3/4 | In Progress|  |
+| 2. Audio Import & Waveform | 4/4 | Complete   | 2026-07-12 |
 | 3. Core Chord-Detection Engine | 0/TBD | Not started | - |
 | 4. Analysis UI Integration | 0/TBD | Not started | - |
 | 5. MIDI Conveyor Generation | 0/TBD | Not started | - |

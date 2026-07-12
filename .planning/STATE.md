@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: phase_in_progress
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-07-12T19:49:58.000Z"
-last_activity: "2026-07-12 — Plan 02-03 (Waveform Display + Region Selection) complete: WaveformMath (pure timeToX/xToTime) + RegionSelectionModel (whole-file default, drag clamp/normalize, click-reset) unit-tested; WaveformView (AudioThumbnail wrapper) + RegionSelectorOverlay (mouse-driven selection chrome); editor wired load-complete -> waveform+region restore, drag -> processor.setSelectedRegion; IMP-02 + IMP-03 now fully evidenced; 15/15 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU, standalone smoke test PASS"
+status: verifying
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-07-12T19:45:26.191Z"
+last_activity: "2026-07-12 — Plan 02-04 (Full Regression Gate + Manual Verification Checkpoint) complete: automated gate re-confirmed green (15/15 ChordAITests, pluginval strictness 5 SUCCESS VST3+AU, standalone smoke PASS); human verified real drag-and-drop for all four formats, waveform legibility, region selection, and 3+ minute decode responsiveness in the Standalone app; checkpoint surfaced and fixed a real defect (drop target was limited to the 120px conveyor strip; .m4a/.aac missing from filter) — fixed in 0abddc5, rebuilt, re-verified, approved; IMP-01/02/03 fully human-evidenced, Phase 2 complete"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 2 - Audio Import & Waveform (in progress, 3/4 plans complete)
+**Current focus:** Phase 2 - Audio Import & Waveform (complete, 4/4 plans) — ready to start Phase 3
 
 ## Current Position
 
-Phase: 2 of 7 (Audio Import & Waveform) — IN PROGRESS
-Plan: 3 of 4 complete
-Status: Plan 02-03 complete (waveform display + region selection) — next 02-04-PLAN.md
-Last activity: 2026-07-12 — Plan 02-03 (Waveform Display + Region Selection) complete: WaveformMath + RegionSelectionModel (pure, unit-tested) drive WaveformView (AudioThumbnail wrapper) + RegionSelectorOverlay (drag-selection chrome); editor wired end-to-end (load-complete -> waveform+region restore, drag -> processor.setSelectedRegion, editor-reopen restores from processor state); IMP-02 + IMP-03 now fully evidenced; 15/15 ChordAITests green, pluginval strictness 5 SUCCESS on VST3+AU, standalone smoke test PASS
+Phase: 2 of 7 (Audio Import & Waveform) — COMPLETE
+Plan: 4 of 4 complete
+Status: Plan 02-04 complete (full regression gate + manual verification checkpoint) — Phase 2 done, next: plan Phase 3
+Last activity: 2026-07-12 — Plan 02-04 (Full Regression Gate + Manual Verification Checkpoint) complete: automated gate re-confirmed green (15/15 ChordAITests, pluginval strictness 5 SUCCESS VST3+AU, standalone smoke PASS); human verified real drag-and-drop for all four formats, waveform legibility, region selection, and 3+ minute decode responsiveness in the Standalone app; checkpoint surfaced and fixed a real defect (drop target was limited to the 120px conveyor strip; .m4a/.aac missing from filter) — fixed in 0abddc5, rebuilt, re-verified, approved; IMP-01/02/03 fully human-evidenced, Phase 2 complete
 
-Progress: [████████░░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 13 min
-- Total execution time: 1.3 hours
+- Total plans completed: 7
+- Average duration: 12 min
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
@@ -49,9 +49,10 @@ Progress: [████████░░] 86%
 | Phase 02 P01 | 9min | 3 tasks | 11 files |
 | Phase 02 P02 | 3min | 2 tasks | 7 files |
 | Phase 02 P03 | 5min | 3 tasks | 10 files |
+| Phase 02 P04 | 12min | 2 tasks | 4 files |
 
 **Recent Trend:**
-- Last 5 plans: 7min, 6min, 9min, 3min, 5min
+- Last 5 plans: 6min, 9min, 3min, 5min, 12min
 - Trend: Stable (well below the Phase 1 P01 baseline)
 
 *Updated after each plan completion*
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 02-03]: `RegionSelectionModel` exposes `getTotalLength()` so `RegionSelectorOverlay` can build the `{0, totalLength}` visible range for `WaveformMath` conversion without the overlay caching its own copy of the length.
 - [Phase 02-03]: `handleLoadComplete(const LoadedAudio&)` factored as one private editor method, shared by the `ChangeListener` callback (fresh load) and the ctor's editor-reopen restore branch, to avoid duplicating the waveform/region/conveyor-stub wiring.
 - [Phase 02-03]: IMP-02 + IMP-03 now fully evidenced (waveform renders on load; region drag/clamp/reset reaches `apvts.state` via `processor.setSelectedRegion`) — marked complete in REQUIREMENTS.md.
+- [Phase 02-04]: Checkpoint-discovered drop-target defect (only the 120px conveyor strip accepted drags; .m4a/.aac missing from filter) fixed live during Task 2 manual verification (commit 0abddc5): PluginEditor is now a whole-window FileDragAndDropTarget; extension allowlist centralized in ConveyorBeltComponent::isSupportedAudioFile.
+- [Phase 02-04]: IMP-01/02/03 fully human-verified in Standalone (4-format real OS drag-and-drop, waveform legibility, region select, 3+min decode responsiveness) — Phase 2 complete.
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T18:51:31.668Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-07-12T19:45:26.188Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
