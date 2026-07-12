@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Foundation | 3/3 | Complete   | 2026-07-12 |
-| 2. Audio Import & Waveform | 0/4 | Planned | - |
+| 2. Audio Import & Waveform | 2/4 | In Progress|  |
 | 3. Core Chord-Detection Engine | 0/TBD | Not started | - |
 | 4. Analysis UI Integration | 0/TBD | Not started | - |
 | 5. MIDI Conveyor Generation | 0/TBD | Not started | - |
