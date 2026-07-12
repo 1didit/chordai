@@ -41,7 +41,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform
 
-- [ ] **PLT-01**: Project builds as VST3, AU, and Standalone app on macOS (JUCE 8, C++20, CMake)
+- [x] **PLT-01**: Project builds as VST3, AU, and Standalone app on macOS (JUCE 8, C++20, CMake)
 - [ ] **PLT-02**: Plugin state (source file reference, analysis result, generated rows, settings) persists with the DAW project save/reload
 - [ ] **PLT-03**: Drag-and-drop MIDI export verified in Ableton Live, FL Studio, Logic Pro (per-DAW test matrix)
 
@@ -90,7 +90,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLT-01 | Phase 1 - Plugin Foundation | Pending |
+| PLT-01 | Phase 1 - Plugin Foundation | Complete |
 | IMP-01 | Phase 2 - Audio Import & Waveform | Pending |
 | IMP-02 | Phase 2 - Audio Import & Waveform | Pending |
 | IMP-03 | Phase 2 - Audio Import & Waveform | Pending |

@@ -32,10 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Standalone app launches on macOS
   4. `processBlock` runs as a real-time-safe skeleton (zero allocation/locking/I-O) even though v1 does no live audio processing
   5. Plugin state round-trips through a save/reload of an empty session (`getStateInformation`/`setStateInformation` work)
-**Plans**: 3 plans
+**Plans**: 1/3 plans executed
 
 Plans:
-- [ ] 01-01-PLAN.md — Toolchain install (cmake/ninja), JUCE 8.0.x submodule pin, CMake + APVTS plugin skeleton, first build of VST3/AU/Standalone
+- [x] 01-01-PLAN.md — Toolchain install (cmake/ninja), JUCE 8.0.x submodule pin, CMake + APVTS plugin skeleton, first build of VST3/AU/Standalone (completed 2026-07-12)
 - [ ] 01-02-PLAN.md — Validation tooling (fetch-pluginval, standalone smoke script) + green auval/pluginval strictness-5 gate
 - [ ] 01-03-PLAN.md — Manual DAW load matrix checkpoint (Ableton, FL Studio, Logic Pro, Standalone; cold scans)
 
