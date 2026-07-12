@@ -1,8 +1,8 @@
 ---
 phase: 1
 slug: plugin-foundation
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-12
 ---
@@ -38,12 +38,14 @@ created: 2026-07-12
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 1-XX (build) | TBD | 1 | PLT-01 | build | `cmake -B build -G Ninja && cmake --build build` | ❌ W0 (CMakeLists.txt) | ⬜ pending |
-| 1-XX (AU validity) | TBD | 1 | PLT-01 | smoke/CLI | `auval -v aufx <SUBT> <MANU>` | ❌ W0 (потрібен .component) | ⬜ pending |
-| 1-XX (cross-format) | TBD | 1 | PLT-01 | smoke/CLI | `pluginval --strictness-level 5 --validate-in-process --output-dir ./validation-logs <path>` per format | ❌ W0 (pluginval binary) | ⬜ pending |
-| 1-XX (standalone) | TBD | 1 | PLT-01 | smoke/script | `tools/smoke-test-standalone.sh` — запуск, N с, процес живий, немає нових crash reports | ❌ W0 (скрипт) | ⬜ pending |
-| 1-XX (RT-safety) | TBD | 1 | PLT-01 | static + CLI | grep `processBlock`/callees на `new`/`malloc`/resize/`std::mutex`/I-O + pluginval RealtimeCheck (не ловить mutex — grep обов'язковий) | ❌ W0 (коду нема) | ⬜ pending |
-| 1-XX (state round-trip) | TBD | 1 | PLT-01 | smoke/CLI | входить у стандартний pluginval strictness-5 прогін (randomize + restore) | ❌ W0 | ⬜ pending |
+| 01-01-T1 (toolchain+JUCE pin) | 01-01 | 1 | PLT-01 | env/CLI | `cmake --version && ninja --version && git -C external/JUCE describe --tags --exact-match` | ❌ W0 (submodule) | ⬜ pending |
+| 01-01-T2 (configure) | 01-01 | 1 | PLT-01 | build | `cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug` | ❌ W0 (CMakeLists.txt) | ⬜ pending |
+| 01-01-T3 (build+RT grep) | 01-01 | 1 | PLT-01 | build + static | `cmake --build build` + перевірка бандлів у ~/Library/Audio/Plug-Ins + grep processBlock на alloc/mutex/I-O | ❌ W0 (коду нема) | ⬜ pending |
+| 01-02-T1 (pluginval fetch) | 01-02 | 2 | PLT-01 | tooling | `bash tools/fetch-pluginval.sh && pluginval --version` | ❌ W0 (скрипт) | ⬜ pending |
+| 01-02-T2 (standalone smoke) | 01-02 | 2 | PLT-01 | smoke/script | `bash tools/smoke-test-standalone.sh` — запуск, процес живий, немає нових crash reports | ❌ W0 (скрипт) | ⬜ pending |
+| 01-02-T3 (auval+pluginval) | 01-02 | 2 | PLT-01 | smoke/CLI | `auval -v aufx Cha1 Chai` + `pluginval --strictness-level 5 --validate-in-process` (VST3 та AU; включає state round-trip і RT-check) | ❌ W0 (потрібні бандли) | ⬜ pending |
+| 01-03-T1 (pre-flight) | 01-03 | 3 | PLT-01 | build+CLI | rebuild + auval + smoke перед ручною перевіркою | — | ⬜ pending |
+| 01-03-T2 (DAW loads) | 01-03 | 3 | PLT-01 | manual-only | MISSING — checkpoint:human-verify (Ableton/FL/Logic не мають headless-режиму) | — | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -72,11 +74,11 @@ created: 2026-07-12
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 300s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies (єдиний MISSING — ручні DAW-завантаження, обґрунтовано)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 300s (виняток: перша повна збірка JUCE ~5-10 хв, одноразово — зафіксовано план-чекером як неминуче)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-07-12 (plan-checker: 0 blockers)
