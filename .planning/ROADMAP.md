@@ -65,14 +65,14 @@ Plans:
   2. Given a loaded song/region, the engine outputs a detected tempo (BPM) and bar grid
   3. Given a loaded song/region, the engine outputs a chord progression aligned to the bar grid
   4. Detection is invocable and verifiable through a `ChordAnalyzer` interface via a standalone test harness, independent of any UI
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 Plans:
 - [x] 03-01-PLAN.md — Foundation: frozen ChordAnalyzer/AnalysisResult contracts, module skeletons + CMake wiring, constant-q-cpp (MIT, pinned) + THIRD_PARTY_LICENSES.md, synthetic fixtures, dual-rate preprocessing (Wave 1) (completed 2026-07-12)
 - [x] 03-02-PLAN.md — Chroma path: CQT wrapper, tuning estimation, percussion suppression, dual harmonic+bass chroma fold (Wave 2) (completed 2026-07-12)
 - [x] 03-03-PLAN.md — Tempo/beat path: Ellis 2007 onset envelope + weighted-autocorrelation tempo + DP beat backtrace + 4/4 bar grid (Wave 2) (completed 2026-07-12)
 - [x] 03-04-PLAN.md — Key detection: Krumhansl-Kessler 24-profile correlation + audio-integration tests (Wave 3) (completed 2026-07-12)
-- [ ] 03-05-PLAN.md — Chord recognition: 36 binary templates, beat-sync averaging, bass-root bias, log-Viterbi, beat-aligned segments (Wave 3)
+- [x] 03-05-PLAN.md — Chord recognition: 36 binary templates, beat-sync averaging, bass-root bias, log-Viterbi, beat-aligned segments (Wave 3) (completed 2026-07-12)
 - [ ] 03-06-PLAN.md — ClassicDspChordAnalyzer facade (progress/cancel), performance budget test, real-track listening checkpoint (Wave 4)
 
 ### Phase 4: Analysis UI Integration

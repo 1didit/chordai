@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-07-12T23:01:00.000Z"
-last_activity: "2026-07-12 — Plan 03-04 (Key detection: Krumhansl-Kessler 24-profile Pearson correlation + audio-integration tests) complete: KeyDetector::accumulateChroma (energy-weighted, L2-normalized) + detectKey (24-candidate K-K correlation, confidence margin) TDD'd RED→GREEN against pure-vector and full-chain synthetic fixtures, including relative-minor disambiguation via the E-major dominant's leading tone; ANL-01 fully evidenced and marked complete; ran in parallel with Plan 03-05 (Wave 3), disjoint file sets"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-07-12T23:18:33.000Z"
+last_activity: "2026-07-12 — Plan 03-05 (Chord recognition: 36-class binary templates, beat-sync chroma averaging, cosine+bass-bias scoring, log-Viterbi, N-state silence override, segment merge) complete: ChordTemplates.h + ChordDecoder::decodeChords TDD'd RED→GREEN against hand-built unit-level chroma and real synthetic-audio fixtures (4-chord progression, bass-root-bias both directions, silence→NoChord, 1-chord-per-beat); kSelfTransition empirically retuned 0.85→0.04 after literature value badly oversmoothed real audio; ran in parallel with Plan 03-04 (Wave 3), disjoint file sets, both now complete"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 3 - Core Chord-Detection Engine (4/6 plans, Wave 1+2+key-detection complete) — next: 03-05 (chord recognition, Wave 3, in parallel) then 03-06 (Wave 4)
+**Current focus:** Phase 3 - Core Chord-Detection Engine (5/6 plans, Wave 1+2+3 complete) — next: 03-06 (classic-DSP orchestrator, Wave 4, final Phase 3 plan)
 
 ## Current Position
 
 Phase: 3 of 7 (Core Chord-Detection Engine) — IN PROGRESS
-Plan: 4 of 6 complete
-Status: Plans 03-01/03-02/03-03/03-04 complete (foundation + chroma path + tempo/beat path + key detection) — Wave 1+2 done, Wave 3's 03-04 done, next: 03-05 (chord recognition, running concurrently) then Wave 4 (03-06 orchestrator)
-Last activity: 2026-07-12 — Plan 03-04 complete: KeyDetector::accumulateChroma (energy-weighted, L2-normalized global chroma) + detectKey (24-candidate Krumhansl-Kessler Pearson correlation, confidence = best-vs-second margin) — TDD'd RED→GREEN against hand-built pure-vector fixtures (C major, A minor with G# leading tone, +2-semitone transposition, confidence margins) and full audio-chain integration fixtures (C-F-G-C, Am-Dm-E-Am relative-minor disambiguation, -30 cent detuned); ANL-01 fully evidenced and marked complete; ran in parallel with 03-05 (Wave 3), disjoint file sets; full suite 53/53 green
+Plan: 5 of 6 complete
+Status: Plans 03-01/03-02/03-03/03-04/03-05 complete (foundation + chroma path + tempo/beat path + key detection + chord recognition) — Wave 1+2+3 done, next: Wave 4 (03-06 orchestrator, wires real TempoBeatTracker BeatGrid + bar grid + decodeChords end-to-end, closes out ANL-03)
+Last activity: 2026-07-12 — Plan 03-05 complete: ChordTemplates.h (36 binary L2-normalized templates, index<->ChordSymbol convention) + ChordDecoder (beat-sync chroma averaging, cosine+bass-root-bias L1-normalized scoring, log-domain Viterbi, deterministic N-state silence override, half-open segment merge) — TDD'd RED→GREEN against hand-built unit-level chroma (template shapes, bass-bias tie-break) and real synthetic-audio fixtures (4-chord progression decodes exactly, beat-aligned/gap-free segments, bass-bias verified both directions at audio level, silence→NoChord, 1-chord-per-beat not oversmoothed); kSelfTransition empirically retuned from research's 0.85 starting point down to 0.04 after real-audio observation scores proved far less peaked than literature assumes; ran in parallel with 03-04 (Wave 3), disjoint file sets, both now complete; full suite 58/58 green
 
-Progress: [████████░░] 85%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 12 min
-- Total execution time: ~2.3 hours
+- Total execution time: ~2.7 hours
 
 **By Phase:**
 
@@ -54,10 +54,11 @@ Progress: [████████░░] 85%
 | Phase 03 P02 | 14min | 3 tasks | 6 files |
 | Phase 03 P03 | (see 03-03-SUMMARY.md) | - | - |
 | Phase 03 P04 | ~10min | 2 tasks | 3 files |
+| Phase 03 P05 | 23min | 2 tasks | 4 files |
 
 **Recent Trend:**
-- Last 5 plans: 5min, 12min, 20min, 14min
-- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts.
+- Last 5 plans: 12min, 20min, 14min, ~10min, 23min
+- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning (real-audio observation scores proving much flatter than the literature's HMM-tuned values assume), not build/wiring overhead.
 
 *Updated after each plan completion*
 
@@ -94,6 +95,8 @@ Recent decisions affecting current work:
 - [Phase 03-02]: Two test assertions calibrated against empirically-measured CQT/fold behavior rather than hand-guessed expectations (same pattern as 03-01's CqtEngineSanity fix): bass-inversion fixture checks top-4 (not top-3) harmonic pitch-class membership, since the harmonic (>=80Hz) and bass (55-250Hz) ranges deliberately overlap per research Pattern 3 and a loud bass note legitimately competes for a slot — root disambiguation from that competition is the chord-decoder's (03-05) job, not the chroma fold's; silence-tail classification uses a ~0.7s settling margin since low CQT bins have wide time-domain windows causing a ~0.5-0.6s magnitude decay tail after audio stops, not an instant drop. ANL-03 remains unchecked in REQUIREMENTS.md — this plan only completes the chroma-extraction stage, not the full chord-progression detection (needs 03-04/03-05/03-06).
 - [Phase 03-04]: `accumulateChroma` implemented alongside `detectKey` in the same Task 1 commit (both trivial companion stubs in one file) rather than deferred to Task 2 as the plan's task split implied; Task 2's three full-chain integration tests then validated (rather than newly drove) that behavior — no functional gap, just an earlier-than-planned implementation landing. ANL-01 fully evidenced end-to-end (pure-vector rotation/confidence tests + real audio-chain tests including relative-minor disambiguation via the E-major dominant's leading tone) and marked complete in REQUIREMENTS.md.
 - [Phase 03-04]: Cross-agent git index race with concurrently-executing Plan 03-05 (shared repo, disjoint file sets): one commit (`fd68f4a`) picked up 03-05's already-staged `ChordDecoder.cpp` alongside this plan's `KeyDetector.cpp` change, since both agents share one git index. No code lost (full suite stayed green throughout); mitigated for all later commits by checking `git status --short` immediately before every add/commit. Documented in 03-04-SUMMARY.md "Issues Encountered" for transparency.
+- [Phase 03-05]: `kSelfTransition` (Viterbi self-transition beta) retuned from research's 0.85 starting point down to 0.04, empirically: this project's L1-normalized cosine+bass-bias observation matrix is far flatter than a typical trained-HMM emission model (best-vs-second-best per-beat likelihood ratio ~2-3x on real synthetic audio, not orders of magnitude), so literature betas (0.8-0.99) badly oversmoothed both a 1-chord-per-beat fixture (8 distinct chords collapsed to 1-2 segments) and a chord-silence-chord fixture (second chord's path never won against the first). 0.03 was the first value to pass every fixture; 0.04 keeps a small safety margin, still just above the uniform/no-bias baseline (1/36 ≈ 0.0278) — full root-cause analysis and empirical sweep documented in-code (`Source/Analysis/ChordDecoder.cpp`).
+- [Phase 03-05]: ANL-03 remains unchecked in REQUIREMENTS.md — `decodeChords` is proven against hand-built beat grids by design ("a decoder test, not a tracker test" per the plan's own scope); 03-06's orchestrator still needs to demonstrate the full real-pipeline, bar-grid-aligned output before ANL-03's "aligned to the bar grid" criterion is fully evidenced (matching 03-01/03-02's own documented precedent).
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T23:01:00.000Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-07-12T23:18:33.000Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None
