@@ -4,6 +4,8 @@
 #include "cq/CQParameters.h"
 #include "cq/CQSpectrogram.h"
 
+#include "Source/Analysis/ConstantQAnalysis.h"
+
 #include <cmath>
 #include <numbers>
 
@@ -101,4 +103,64 @@ TEST_CASE ("ChromaExtractorTests.CqtEngineSanity", "[chordanalysis]")
     const double detectedFreq = cq.getBinFrequency ((double) bestBin);
     INFO ("Detected peak bin " << bestBin << " -> " << detectedFreq << " Hz (expected ~440 Hz)");
     CHECK (detectedFreq == Catch::Approx (440.0).epsilon (0.03));
+}
+
+// computeCqt: the ConstantQAnalysis.h/.cpp wrapper around the raw API above.
+
+TEST_CASE ("ChromaExtractorTests.CqtWrapperCoversFullDuration", "[chordanalysis]")
+{
+    constexpr double durationSeconds = 3.0;
+    const int numSamples = (int) std::lround (durationSeconds * kSampleRate);
+    std::vector<float> sine ((size_t) numSamples);
+    for (int i = 0; i < numSamples; ++i)
+        sine[(size_t) i] = (float) std::sin (2.0 * std::numbers::pi * 220.0 * (double) i / kSampleRate);
+
+    auto cqt = computeCqt (sine, kSampleRate);
+
+    REQUIRE (! cqt.columns.empty());
+    const double covered = (double) cqt.columns.size() * cqt.columnHopSeconds;
+    CHECK (covered >= 2.9);
+
+    const size_t expectedBins = cqt.binFrequenciesHz.size();
+    REQUIRE (expectedBins > 0);
+    for (const auto& column : cqt.columns)
+        CHECK (column.size() == expectedBins);
+}
+
+TEST_CASE ("ChromaExtractorTests.CqtWrapperSinePeak", "[chordanalysis]")
+{
+    constexpr double durationSeconds = 2.0;
+    const int numSamples = (int) std::lround (durationSeconds * kSampleRate);
+    std::vector<float> sine ((size_t) numSamples);
+    for (int i = 0; i < numSamples; ++i)
+        sine[(size_t) i] = (float) std::sin (2.0 * std::numbers::pi * 440.0 * (double) i / kSampleRate);
+
+    auto cqt = computeCqt (sine, kSampleRate);
+
+    REQUIRE (! cqt.columns.empty());
+    const size_t numBins = cqt.binFrequenciesHz.size();
+    REQUIRE (numBins > 0);
+
+    std::vector<double> meanMagnitude (numBins, 0.0);
+    for (const auto& column : cqt.columns)
+        for (size_t bin = 0; bin < numBins; ++bin)
+            meanMagnitude[bin] += column[bin];
+    for (auto& m : meanMagnitude)
+        m /= (double) cqt.columns.size();
+
+    size_t bestBin = 0;
+    for (size_t bin = 1; bin < numBins; ++bin)
+        if (meanMagnitude[bin] > meanMagnitude[bestBin])
+            bestBin = bin;
+
+    const double detectedFreq = cqt.binFrequenciesHz[bestBin];
+    INFO ("Detected peak bin " << bestBin << " -> " << detectedFreq << " Hz (expected ~440 Hz)");
+    CHECK (detectedFreq == Catch::Approx (440.0).epsilon (0.03));
+}
+
+TEST_CASE ("ChromaExtractorTests.CqtWrapperEmptyInput", "[chordanalysis]")
+{
+    std::vector<float> empty;
+    auto cqt = computeCqt (empty, kSampleRate);
+    CHECK (cqt.columns.empty());
 }
