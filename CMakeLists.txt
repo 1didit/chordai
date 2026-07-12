@@ -29,6 +29,18 @@ juce_add_plugin(ChordAI
     FORMATS VST3 AU Standalone
     PRODUCT_NAME "ChordAI")
 
+set(CHORDAI_ANALYSIS_SOURCES
+    Source/Analysis/AudioPreprocessing.cpp
+    Source/Analysis/ConstantQAnalysis.cpp
+    Source/Analysis/TuningEstimator.cpp
+    Source/Analysis/HarmonicPercussiveFilter.cpp
+    Source/Analysis/ChromaExtractor.cpp
+    Source/Analysis/OnsetEnvelope.cpp
+    Source/Analysis/TempoBeatTracker.cpp
+    Source/Analysis/KeyDetector.cpp
+    Source/Analysis/ChordDecoder.cpp
+    Source/Analysis/ClassicDspChordAnalyzer.cpp)
+
 target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
@@ -36,13 +48,15 @@ target_sources(ChordAI PRIVATE
     Source/UI/ConveyorBeltComponent.cpp
     Source/UI/MidiSetsPlaceholder.cpp
     Source/UI/WaveformView.cpp
-    Source/UI/RegionSelectorOverlay.cpp)
+    Source/UI/RegionSelectorOverlay.cpp
+    ${CHORDAI_ANALYSIS_SOURCES})
 
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
     juce::juce_audio_processors
     juce::juce_audio_formats
-    juce::juce_gui_extra)
+    juce::juce_gui_extra
+    juce::juce_dsp)
 
 target_compile_definitions(ChordAI PUBLIC
     JUCE_WEB_BROWSER=0
@@ -68,7 +82,16 @@ target_sources(ChordAITests PRIVATE
     Tests/AudioFileLoaderTests.cpp
     Tests/RegionStateTests.cpp
     Tests/WaveformRegionTests.cpp
-    Source/Import/AudioFileLoader.cpp)
+    Tests/SyntheticFixturesTests.cpp
+    Tests/AudioPreprocessingTests.cpp
+    Tests/ChromaExtractorTests.cpp
+    Tests/TuningEstimatorTests.cpp
+    Tests/TempoBeatTrackerTests.cpp
+    Tests/KeyDetectorTests.cpp
+    Tests/ChordDecoderTests.cpp
+    Tests/ClassicDspChordAnalyzerTests.cpp
+    Source/Import/AudioFileLoader.cpp
+    ${CHORDAI_ANALYSIS_SOURCES})
 
 target_include_directories(ChordAITests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR})
@@ -83,7 +106,8 @@ target_link_libraries(ChordAITests PRIVATE
     Catch2::Catch2WithMain
     juce::juce_audio_formats
     juce::juce_audio_utils
-    juce::juce_gui_basics)
+    juce::juce_gui_basics
+    juce::juce_dsp)
 
 juce_generate_juce_header(ChordAITests)
 
