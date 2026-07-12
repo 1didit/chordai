@@ -31,7 +31,8 @@ juce_add_plugin(ChordAI
 
 target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
-    Source/PluginEditor.cpp)
+    Source/PluginEditor.cpp
+    Source/Import/AudioFileLoader.cpp)
 
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
@@ -59,7 +60,12 @@ FetchContent_MakeAvailable(Catch2)
 juce_add_console_app(ChordAITests PRODUCT_NAME "ChordAITests")
 
 target_sources(ChordAITests PRIVATE
-    Tests/InfrastructureTests.cpp)
+    Tests/InfrastructureTests.cpp
+    Tests/AudioFileLoaderTests.cpp
+    Source/Import/AudioFileLoader.cpp)
+
+target_include_directories(ChordAITests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_definitions(ChordAITests PRIVATE
     JUCE_WEB_BROWSER=0
