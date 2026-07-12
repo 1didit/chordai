@@ -33,7 +33,8 @@ target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
     Source/Import/AudioFileLoader.cpp
-    Source/UI/ConveyorBeltComponent.cpp)
+    Source/UI/ConveyorBeltComponent.cpp
+    Source/UI/MidiSetsPlaceholder.cpp)
 
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
