@@ -38,11 +38,11 @@ created: 2026-07-12
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| (планувальник) | TBD | TBD | ANL-01 | unit | `ctest -R KeyDetectorTests` (C-major fixture → C major; A-minor → не relative-major) | ❌ W0 | ⬜ pending |
-| (планувальник) | TBD | TBD | ANL-02 | unit | `ctest -R TempoBeatTrackerTests` (click 90/120/160 BPM ± tolerance; octave-error resistance; BarGrid — кожен 4-й біт) | ❌ W0 | ⬜ pending |
-| (планувальник) | TBD | TBD | ANL-03 | unit/integration | `ctest -R ChordDecoderTests` (SyntheticProgression точна послідовність; BassRootBias; SegmentsAlignToBeats) + `ChromaExtractorTests.PercussionRobustness` + `TuningEstimatorTests` (-30 cents) | ❌ W0 | ⬜ pending |
-| (планувальник) | TBD | TBD | ANL-06 | unit | `ctest -R ClassicDspChordAnalyzerTests` (HeadlessInvocation без GUI/ThreadPool; Cancellation; ProgressMonotonic) | ❌ W0 | ⬜ pending |
-| (планувальник) | TBD | TBD | NFR perf | unit (timed) | `ctest -R ClassicDspChordAnalyzerTests.PerformanceBudget` (3-хв синтетика < ~5-10 s) | ❌ W0 | ⬜ pending |
+| 03-04-T1/T2 | 03-04 | 3 | ANL-01 | unit | `ctest -R KeyDetectorTests` (C-major fixture → C major; A-minor → не relative-major) | ❌ W0 (03-01) | ⬜ pending |
+| 03-03-T1/T2 | 03-03 | 2 | ANL-02 | unit | `ctest -R TempoBeatTrackerTests` (click 90/120/160 BPM ± tolerance; octave-error resistance; BarGrid — кожен 4-й біт) | ❌ W0 (03-01) | ⬜ pending |
+| 03-02-T2/T3, 03-05-T1/T2 | 03-02, 03-05 | 2-3 | ANL-03 | unit/integration | `ctest -R ChordDecoderTests` (SyntheticProgression точна послідовність; BassRootBias; SegmentsAlignToBeats) + `ChromaExtractorTests.PercussionRobustness` + `TuningEstimatorTests` (-30 cents) | ❌ W0 (03-01) | ⬜ pending |
+| 03-01-T1, 03-06-T1 | 03-01, 03-06 | 1, 4 | ANL-06 | unit | `ctest -R ClassicDspChordAnalyzerTests` (HeadlessInvocation без GUI/ThreadPool; Cancellation; ProgressMonotonic) | ❌ W0 (03-01) | ⬜ pending |
+| 03-06-T2 | 03-06 | 4 | NFR perf | unit (timed) | `ctest -R ClassicDspChordAnalyzerTests.PerformanceBudget` (3-хв синтетика < ~10 s) | ❌ W0 (03-01) | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
