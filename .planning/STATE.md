@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-07-12T22:46:51.000Z"
-last_activity: "2026-07-12 — Plan 03-02 (Chroma path: CQT wrapper, tuning estimation, percussion suppression, dual harmonic+bass chroma fold) complete: ConstantQAnalysis/TuningEstimator/HarmonicPercussiveFilter/ChromaExtractor all TDD'd RED→GREEN against synthetic triad/percussion/detune/bass-inversion/silence fixtures; ChromaSequence output ready for 03-04/03-05; ran in parallel with Plan 03-03 (Wave 2), both now complete, disjoint file sets, no conflicts"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-07-12T23:01:00.000Z"
+last_activity: "2026-07-12 — Plan 03-04 (Key detection: Krumhansl-Kessler 24-profile Pearson correlation + audio-integration tests) complete: KeyDetector::accumulateChroma (energy-weighted, L2-normalized) + detectKey (24-candidate K-K correlation, confidence margin) TDD'd RED→GREEN against pure-vector and full-chain synthetic fixtures, including relative-minor disambiguation via the E-major dominant's leading tone; ANL-01 fully evidenced and marked complete; ran in parallel with Plan 03-05 (Wave 3), disjoint file sets"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 10
-  percent: 77
+  completed_plans: 11
+  percent: 85
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 3 - Core Chord-Detection Engine (3/6 plans, Wave 1+2 complete) — next: Wave 3 plans 03-04/03-05
+**Current focus:** Phase 3 - Core Chord-Detection Engine (4/6 plans, Wave 1+2+key-detection complete) — next: 03-05 (chord recognition, Wave 3, in parallel) then 03-06 (Wave 4)
 
 ## Current Position
 
 Phase: 3 of 7 (Core Chord-Detection Engine) — IN PROGRESS
-Plan: 3 of 6 complete
-Status: Plans 03-01/03-02/03-03 complete (foundation + chroma path + tempo/beat path) — Wave 1+2 done, next: Wave 3 (03-04 key detection, 03-05 chord recognition)
-Last activity: 2026-07-12 — Plan 03-02 complete: ConstantQAnalysis streaming CQT wrapper, TuningEstimator circular cents estimate, HarmonicPercussiveFilter median-filter suppression, ChromaExtractor dual harmonic+bass fold — all TDD'd RED→GREEN against synthetic fixtures (clean triad, percussion-robustness, -30/+25 cent detune, bass-inversion, silence-tail); ran in parallel with 03-03 (Wave 2), disjoint file sets, no conflicts; full suite 42/42 green
+Plan: 4 of 6 complete
+Status: Plans 03-01/03-02/03-03/03-04 complete (foundation + chroma path + tempo/beat path + key detection) — Wave 1+2 done, Wave 3's 03-04 done, next: 03-05 (chord recognition, running concurrently) then Wave 4 (03-06 orchestrator)
+Last activity: 2026-07-12 — Plan 03-04 complete: KeyDetector::accumulateChroma (energy-weighted, L2-normalized global chroma) + detectKey (24-candidate Krumhansl-Kessler Pearson correlation, confidence = best-vs-second margin) — TDD'd RED→GREEN against hand-built pure-vector fixtures (C major, A minor with G# leading tone, +2-semitone transposition, confidence margins) and full audio-chain integration fixtures (C-F-G-C, Am-Dm-E-Am relative-minor disambiguation, -30 cent detuned); ANL-01 fully evidenced and marked complete; ran in parallel with 03-05 (Wave 3), disjoint file sets; full suite 53/53 green
 
-Progress: [████████░░] 77%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 12 min
-- Total execution time: ~2.1 hours
+- Total execution time: ~2.3 hours
 
 **By Phase:**
 
@@ -53,6 +53,7 @@ Progress: [████████░░] 77%
 | Phase 03 P01 | 20min | 3 tasks | 32 files |
 | Phase 03 P02 | 14min | 3 tasks | 6 files |
 | Phase 03 P03 | (see 03-03-SUMMARY.md) | - | - |
+| Phase 03 P04 | ~10min | 2 tasks | 3 files |
 
 **Recent Trend:**
 - Last 5 plans: 5min, 12min, 20min, 14min
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 03-03]: Octave-error mitigation (Ellis 2007 TPS2/TPS3 composite functions) implemented per PLAN.md's literal formula; ANL-02 fully evidenced (90/120/160 BPM ±3, syncopated-fixture octave resistance, beat alignment, exact bar grid) and marked complete in REQUIREMENTS.md.
 - [Phase 03-02]: `kHpssKernelSeconds` exposed as a public named constant in HarmonicPercussiveFilter.h (not hidden in the .cpp) since `suppressPercussion`'s signature takes no default argument — callers need a documented default to reference.
 - [Phase 03-02]: Two test assertions calibrated against empirically-measured CQT/fold behavior rather than hand-guessed expectations (same pattern as 03-01's CqtEngineSanity fix): bass-inversion fixture checks top-4 (not top-3) harmonic pitch-class membership, since the harmonic (>=80Hz) and bass (55-250Hz) ranges deliberately overlap per research Pattern 3 and a loud bass note legitimately competes for a slot — root disambiguation from that competition is the chord-decoder's (03-05) job, not the chroma fold's; silence-tail classification uses a ~0.7s settling margin since low CQT bins have wide time-domain windows causing a ~0.5-0.6s magnitude decay tail after audio stops, not an instant drop. ANL-03 remains unchecked in REQUIREMENTS.md — this plan only completes the chroma-extraction stage, not the full chord-progression detection (needs 03-04/03-05/03-06).
+- [Phase 03-04]: `accumulateChroma` implemented alongside `detectKey` in the same Task 1 commit (both trivial companion stubs in one file) rather than deferred to Task 2 as the plan's task split implied; Task 2's three full-chain integration tests then validated (rather than newly drove) that behavior — no functional gap, just an earlier-than-planned implementation landing. ANL-01 fully evidenced end-to-end (pure-vector rotation/confidence tests + real audio-chain tests including relative-minor disambiguation via the E-major dominant's leading tone) and marked complete in REQUIREMENTS.md.
+- [Phase 03-04]: Cross-agent git index race with concurrently-executing Plan 03-05 (shared repo, disjoint file sets): one commit (`fd68f4a`) picked up 03-05's already-staged `ChordDecoder.cpp` alongside this plan's `KeyDetector.cpp` change, since both agents share one git index. No code lost (full suite stayed green throughout); mitigated for all later commits by checking `git status --short` immediately before every add/commit. Documented in 03-04-SUMMARY.md "Issues Encountered" for transparency.
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T22:46:51.000Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-07-12T23:01:00.000Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
