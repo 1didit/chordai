@@ -18,4 +18,10 @@ struct ChromaFrame
 
 struct ChromaSequence { std::vector<ChromaFrame> frames; };
 
+// Folds CQT bins into per-frame harmonic (>= ~80 Hz) + bass (55-250 Hz) 12-bin
+// chroma, tuning-corrected via tuningCents (see TuningEstimator) and L2-normalized
+// with a silence floor. Does NOT apply percussion suppression itself -- callers
+// that want it must run suppressPercussion(cqt, ...) on the CqtFrames first
+// (see HarmonicPercussiveFilter.h); expected call order is:
+//   computeCqt -> suppressPercussion -> extractChroma
 ChromaSequence extractChroma (const CqtFrames& cqt, double tuningCents);

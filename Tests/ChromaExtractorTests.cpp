@@ -5,13 +5,74 @@
 #include "cq/CQSpectrogram.h"
 
 #include "Source/Analysis/ConstantQAnalysis.h"
+#include "Source/Analysis/ChromaExtractor.h"
+#include "Source/Analysis/HarmonicPercussiveFilter.h"
+#include "Source/Analysis/TuningEstimator.h"
+#include "Source/Analysis/AudioPreprocessing.h"
+#include "Tests/SyntheticFixtures.h"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include <numbers>
+#include <set>
 
 namespace
 {
     constexpr double kSampleRate = 11025.0;
+    constexpr double kSourceRate = 44100.0;
+    constexpr double kBpm = 90.0;
+
+    // C major triad (root pitch class 0), one 8-beat chord so there's enough
+    // duration for stable mean chroma / median-filter statistics.
+    std::vector<fixtures::ChordSpec> cMajorTriadFixture (int bassPitchClass = -1)
+    {
+        return { { { 0, ChordQuality::Major }, bassPitchClass } };
+    }
+
+    ChromaSequence extractChromaFromBuffer (const juce::AudioBuffer<float>& buffer, double tuningCents)
+    {
+        auto preprocessed = preprocessForAnalysis (buffer, kSourceRate, {});
+        auto cqt = computeCqt (preprocessed.chromaSamples, preprocessed.chromaRate);
+        suppressPercussion (cqt, kHpssKernelSeconds);
+        return extractChroma (cqt, tuningCents);
+    }
+
+    std::array<float, 12> meanHarmonicChroma (const ChromaSequence& chroma)
+    {
+        std::array<float, 12> mean {};
+        if (chroma.frames.empty())
+            return mean;
+
+        for (const auto& frame : chroma.frames)
+            for (int pc = 0; pc < 12; ++pc)
+                mean[(size_t) pc] += frame.harmonic[(size_t) pc];
+        for (auto& v : mean)
+            v /= (float) chroma.frames.size();
+        return mean;
+    }
+
+    std::array<float, 12> meanBassChroma (const ChromaSequence& chroma)
+    {
+        std::array<float, 12> mean {};
+        if (chroma.frames.empty())
+            return mean;
+
+        for (const auto& frame : chroma.frames)
+            for (int pc = 0; pc < 12; ++pc)
+                mean[(size_t) pc] += frame.bass[(size_t) pc];
+        for (auto& v : mean)
+            v /= (float) chroma.frames.size();
+        return mean;
+    }
+
+    // Indices of the 3 largest entries in a 12-bin chroma vector.
+    std::set<int> top3PitchClasses (const std::array<float, 12>& chroma)
+    {
+        std::array<int, 12> indices { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+        std::sort (indices.begin(), indices.end(), [&] (int a, int b) { return chroma[(size_t) a] > chroma[(size_t) b]; });
+        return { indices[0], indices[1], indices[2] };
+    }
 }
 
 // Exercises the RAW constant-q-cpp library API (not the ChromaExtractor
@@ -163,4 +224,114 @@ TEST_CASE ("ChromaExtractorTests.CqtWrapperEmptyInput", "[chordanalysis]")
     std::vector<float> empty;
     auto cqt = computeCqt (empty, kSampleRate);
     CHECK (cqt.columns.empty());
+}
+
+// HarmonicPercussiveFilter + ChromaExtractor dual fold.
+
+TEST_CASE ("ChromaExtractorTests.TriadFoldTopPitchClasses", "[chordanalysis]")
+{
+    auto buffer = fixtures::renderChordProgression (cMajorTriadFixture(), kBpm, kSourceRate, 8);
+    auto chroma = extractChromaFromBuffer (buffer, 0.0);
+
+    REQUIRE (! chroma.frames.empty());
+    auto mean = meanHarmonicChroma (chroma);
+    auto top3 = top3PitchClasses (mean);
+
+    INFO ("top3 = {" << *top3.begin() << ", ...}");
+    CHECK (top3 == std::set<int> { 0, 4, 7 });
+}
+
+TEST_CASE ("ChromaExtractorTests.PercussionRobustness", "[chordanalysis]")
+{
+    auto buffer = fixtures::renderChordProgression (cMajorTriadFixture(), kBpm, kSourceRate, 8);
+    fixtures::addPercussiveBursts (buffer, kBpm, kSourceRate);
+
+    auto chroma = extractChromaFromBuffer (buffer, 0.0);
+
+    REQUIRE (! chroma.frames.empty());
+    auto mean = meanHarmonicChroma (chroma);
+    auto top3 = top3PitchClasses (mean);
+
+    CHECK (top3 == std::set<int> { 0, 4, 7 });
+}
+
+TEST_CASE ("ChromaExtractorTests.DetunedFixtureFoldsCorrectly", "[chordanalysis]")
+{
+    auto buffer = fixtures::renderChordProgression (cMajorTriadFixture(), kBpm, kSourceRate, 8, -30.0);
+
+    auto preprocessed = preprocessForAnalysis (buffer, kSourceRate, {});
+    auto cqt = computeCqt (preprocessed.chromaSamples, preprocessed.chromaRate);
+    suppressPercussion (cqt, kHpssKernelSeconds);
+    const double tuningCents = estimateTuningCents (cqt);
+    auto chroma = extractChroma (cqt, tuningCents);
+
+    REQUIRE (! chroma.frames.empty());
+    auto mean = meanHarmonicChroma (chroma);
+    auto top3 = top3PitchClasses (mean);
+
+    CHECK (top3 == std::set<int> { 0, 4, 7 });
+}
+
+TEST_CASE ("ChromaExtractorTests.BassChromaIsolatesBassNote", "[chordanalysis]")
+{
+    auto buffer = fixtures::renderChordProgression (cMajorTriadFixture (9), kBpm, kSourceRate, 8);
+    auto chroma = extractChromaFromBuffer (buffer, 0.0);
+
+    REQUIRE (! chroma.frames.empty());
+    auto meanBass = meanBassChroma (chroma);
+    auto meanHarmonic = meanHarmonicChroma (chroma);
+
+    int bassArgmax = 0;
+    for (int pc = 1; pc < 12; ++pc)
+        if (meanBass[(size_t) pc] > meanBass[(size_t) bassArgmax])
+            bassArgmax = pc;
+
+    CHECK (bassArgmax == 9);
+
+    auto harmonicTop3 = top3PitchClasses (meanHarmonic);
+    CHECK (harmonicTop3.count (0) == 1);
+    CHECK (harmonicTop3.count (4) == 1);
+    CHECK (harmonicTop3.count (7) == 1);
+}
+
+TEST_CASE ("ChromaExtractorTests.SilenceFramesFlagged", "[chordanalysis]")
+{
+    auto chordBuffer = fixtures::renderChordProgression (cMajorTriadFixture(), kBpm, kSourceRate, 8);
+
+    const int silenceSamples = (int) std::llround (1.0 * kSourceRate);
+    juce::AudioBuffer<float> buffer (1, chordBuffer.getNumSamples() + silenceSamples);
+    buffer.clear();
+    buffer.copyFrom (0, 0, chordBuffer, 0, 0, chordBuffer.getNumSamples());
+
+    auto chroma = extractChromaFromBuffer (buffer, 0.0);
+    REQUIRE (! chroma.frames.empty());
+
+    // Split frames into "audible" (within the chord's own duration) and
+    // "trailing" (within the appended silence) by timeSeconds.
+    const double chordDurationSeconds = (double) chordBuffer.getNumSamples() / kSourceRate;
+
+    float maxAudibleL2 = 0.0f;
+    float maxTrailingL2 = 0.0f;
+    bool anyTrailing = false;
+
+    for (const auto& frame : chroma.frames)
+    {
+        if (frame.timeSeconds < chordDurationSeconds - 0.05)
+            maxAudibleL2 = std::max (maxAudibleL2, frame.harmonicPreNormL2);
+        else if (frame.timeSeconds > chordDurationSeconds + 0.05)
+        {
+            anyTrailing = true;
+            maxTrailingL2 = std::max (maxTrailingL2, frame.harmonicPreNormL2);
+
+            for (float v : frame.harmonic)
+            {
+                CHECK (! std::isnan (v));
+                CHECK (! std::isinf (v));
+                CHECK (v == 0.0f);
+            }
+        }
+    }
+
+    REQUIRE (anyTrailing);
+    CHECK (maxTrailingL2 < maxAudibleL2);
 }
