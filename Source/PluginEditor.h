@@ -6,6 +6,7 @@
 #include "UI/MidiSetsPlaceholder.h"
 #include "UI/WaveformView.h"
 #include "UI/RegionSelectorOverlay.h"
+#include "UI/ChordTimelineView.h"
 
 class ChordAIAudioProcessorEditor : public juce::AudioProcessorEditor,
                                      public juce::ChangeListener,
@@ -28,7 +29,7 @@ public:
     void filesDropped (const juce::StringArray& files, int x, int y) override;
 
 private:
-    void changeListenerCallback (juce::ChangeBroadcaster*) override;
+    void changeListenerCallback (juce::ChangeBroadcaster* source) override;
 
     // Shared by changeListenerCallback (fresh load) and the ctor's
     // editor-reopen restore path (DAW closes/reopens editor while the
@@ -39,6 +40,7 @@ private:
     ChordAIAudioProcessor& processor;
 
     ConveyorBeltComponent conveyor;
+    ChordTimelineView chordTimeline;
     WaveformView waveformView;
     RegionSelectorOverlay regionOverlay;
     MidiSetsPlaceholder midiSetsPlaceholder;

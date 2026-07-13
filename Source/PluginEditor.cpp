@@ -4,6 +4,7 @@ ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor&
     : AudioProcessorEditor (&p), processor (p)
 {
     addAndMakeVisible (conveyor);
+    addAndMakeVisible (chordTimeline);
     addAndMakeVisible (waveformView);
     addAndMakeVisible (regionOverlay); // on top of waveformView (z-order) — handles all mouse input
     addAndMakeVisible (midiSetsPlaceholder);
@@ -12,6 +13,7 @@ ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor&
     regionOverlay.onRegionChanged = [this] (juce::Range<double> r) { processor.setSelectedRegion (r); };
 
     processor.loadBroadcaster.addChangeListener (this);
+    processor.analysisBroadcaster.addChangeListener (this);
 
     setSize (800, 520);
 
@@ -26,6 +28,7 @@ ChordAIAudioProcessorEditor::~ChordAIAudioProcessorEditor()
 {
     // Dangling-listener crash on editor close otherwise.
     processor.loadBroadcaster.removeChangeListener (this);
+    processor.analysisBroadcaster.removeChangeListener (this);
 }
 
 void ChordAIAudioProcessorEditor::paint (juce::Graphics& g)
@@ -40,9 +43,11 @@ void ChordAIAudioProcessorEditor::resized()
     conveyor.setBounds (bounds.removeFromTop (120));
     midiSetsPlaceholder.setBounds (bounds.removeFromBottom (140));
 
-    waveformArea = bounds; // remaining middle (~260 px)
+    chordTimeline.setBounds (bounds.removeFromTop (28));
+
+    waveformArea = bounds; // remaining middle (~230 px)
     waveformView.setBounds (waveformArea);
-    regionOverlay.setBounds (waveformArea);
+    regionOverlay.setBounds (waveformArea); // overlay MUST keep identical bounds — owns all mouse input
 }
 
 bool ChordAIAudioProcessorEditor::isInterestedInFileDrag (const juce::StringArray& files)
@@ -68,8 +73,18 @@ void ChordAIAudioProcessorEditor::filesDropped (const juce::StringArray& files, 
         processor.loadAudioFile (juce::File (files[0]));
 }
 
-void ChordAIAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaster*)
+void ChordAIAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaster* source)
 {
+    if (source == &processor.analysisBroadcaster)
+    {
+        // Fires on trigger, progress, and completion. A superseded run never
+        // republishes, and the processor doesn't clear the result during
+        // re-analysis, so the last good chord timeline stays visible until a
+        // fresher one lands.
+        chordTimeline.setResult (processor.getAnalysisResult());
+        return;
+    }
+
     if (auto loaded = processor.getLoadedAudio(); loaded != nullptr && processor.getLastLoadError().isEmpty())
         handleLoadComplete (*loaded);
     else if (processor.getLastLoadError().isNotEmpty())
@@ -81,4 +96,10 @@ void ChordAIAudioProcessorEditor::handleLoadComplete (const LoadedAudio& loaded)
     waveformView.setSource (loaded.sourceFile);
     regionOverlay.setTotalLength (loaded.lengthSeconds);
     conveyor.triggerChunkFallStub(); // placeholder "something came off the belt" feedback
+
+    chordTimeline.setTotalLength (loaded.lengthSeconds);
+    // Restores the timeline on editor reopen (result already published) and
+    // blanks it on fresh load (processor cleared the result to nullptr
+    // before broadcasting, per 04-01).
+    chordTimeline.setResult (processor.getAnalysisResult());
 }
