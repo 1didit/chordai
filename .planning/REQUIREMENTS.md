@@ -37,7 +37,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **EXP-01**: User can drag any MIDI row from the plugin straight into the DAW piano roll (temp .mid + external file drag)
 - [ ] **EXP-02**: User can save any MIDI row to disk as a .mid file (fallback path)
-- [ ] **EXP-03**: Exported MIDI is bar-aligned and carries the detected tempo
+- [x] **EXP-03**: Exported MIDI is bar-aligned and carries the detected tempo
 
 ### Platform
 
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRV-01 | Phase 6 - Row Preview & Export | Pending |
 | EXP-01 | Phase 6 - Row Preview & Export | Pending |
 | EXP-02 | Phase 6 - Row Preview & Export | Pending |
-| EXP-03 | Phase 6 - Row Preview & Export | Pending |
+| EXP-03 | Phase 6 - Row Preview & Export | Complete |
 | PLT-02 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
 | PLT-03 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
 

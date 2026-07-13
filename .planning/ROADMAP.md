@@ -125,7 +125,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — MidiFileWriter: beat-domain rows → format-1 SMF (TPQN 960, tempo + 4/4 meta), atomic write, MIDI-pack file naming, round-trip tests (Wave 1)
+- [x] 06-01-PLAN.md — MidiFileWriter: beat-domain rows → format-1 SMF (TPQN 960, tempo + 4/4 meta), atomic write, MIDI-pack file naming, round-trip tests (Wave 1) (completed 2026-07-13)
 - [ ] 06-02-PLAN.md — Audition engine: deterministic AuditionVoice/Renderer pre-render + RT-safe double-buffer playback in processBlock, pluginval RT gate (Wave 2)
 - [ ] 06-03-PLAN.md — Interactive rows: play/save gutter icons, drag-out with Ableton-safe deferred temp cleanup, async save dialog, stop-audition-on-regenerate wiring (Wave 3)
 - [ ] 06-04-PLAN.md — Phase gate (suite + pluginval) + human checkpoint: drag into FL Studio piano roll, audition all rows, save dialog (Wave 4)
@@ -153,5 +153,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
 | 4. Analysis UI Integration | 4/4 | Complete   | 2026-07-13 |
 | 5. MIDI Conveyor Generation | 6/6 | Complete   | 2026-07-13 |
-| 6. Row Preview & Export | 0/4 | Planned | - |
+| 6. Row Preview & Export | 1/4 | In Progress | - |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |

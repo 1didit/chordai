@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-07-13T13:25:52.000Z"
-last_activity: "2026-07-13 — Plan 05-06 complete (Wave 5, Phase 5 closing plan): fresh Release build/suite/pluginval gate green (109/109, VST3+AU strictness 5), user-verified all 5 MIDI rows visible/legible/distinct/regenerating on their own real track (TOCK.mp3) in Standalone with zero defects; GEN-01/02/03/04 fully evidenced; Phase 5 complete (6/6 plans)"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-07-13T14:14:00.000Z"
+last_activity: "2026-07-13 — Plan 06-01 complete (Wave 1): MidiFileWriter core landed -- buildMidiFile/writeToFile (format-1 SMF, TPQN 960, tempo+4/4 meta track, zero-length-note guard, atomic TemporaryFile replace) and suggestedFileName (MIDI-pack-style rowId_Key_NNNbpm.mid); 11 new [midifilewriter] tests, full suite 120/120 green; EXP-03 core evidenced by unit tests"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  total_plans: 27
+  completed_plans: 24
+  percent: 89
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 5 - MIDI Conveyor Generation COMPLETE (6/6 plans) — MidiGen foundation (05-01), style voicing (05-02), bass line (05-03), the generateAllRows orchestrator + PluginProcessor wiring (05-04), the MidiSetsPanel bottom-band UI (05-05), and the phase-gate + human real-track checkpoint (05-06) all landed; next: Phase 6 - Row Preview & Export
+**Current focus:** Phase 6 - Row Preview & Export IN PROGRESS (1/4 plans) — MidiFileWriter core (06-01) landed: shared format-1 SMF writer both drag-out and save-dialog will call; next: 06-02 (audition renderer + RT-safe processBlock handoff)
 
 ## Current Position
 
-Phase: 5 of 7 (MIDI Conveyor Generation) — COMPLETE
-Plan: 6 of 6 complete
-Status: Plans 05-01 through 05-06 complete — MidiGen foundation, all four style-voiced chord rows, the bass row generator, the generateAllRows orchestrator wired synchronously into PluginProcessor, the MidiSetsPanel bottom-band UI (5 labeled mini piano-roll strips), and the closing phase gate + human checkpoint all implemented, tested, and user-verified on a real track; full suite 109/109 green, pluginval strictness 5 green (VST3+AU); GEN-01/02/03/04 marked complete. Phase 5 done, ready for /gsd:verify-work and Phase 6 planning.
-Last activity: 2026-07-13 — Plan 05-06 complete (Wave 5, phase closing plan): fresh Release build/suite/pluginval gate green (109/109, VST3+AU strictness 5); user checkpoint approved on real track TOCK.mp3 in Standalone — 5 labeled MIDI rows visible/legible/distinct, regenerating on region drag, zero defects; Phase 5 complete (6/6 plans)
+Phase: 6 of 7 (Row Preview & Export) — IN PROGRESS
+Plan: 1 of 4 complete
+Status: Plan 06-01 complete — MidiFileWriter core (buildMidiFile/writeToFile/suggestedFileName) implemented and unit-tested: format-1 SMF (TPQN 960), tempo+4/4 meta track derived from AnalysisResult.bpm (bpm<=0 falls back to 120), zero-length-note guard, atomic TemporaryFile-based overwrite, MIDI-pack-style file naming (rowId_Key_NNNbpm.mid). 11 new [midifilewriter] tests, full suite 120/120 green. EXP-03 core evidenced by unit tests (bar-2 tick assertion, tempo round-trip incl. non-integer bpm + fallback). No plugin-target change this plan — pluginval gate deferred to 06-02 (first processBlock-touching wave). Next: 06-02 (AuditionRenderer + RT-safe double-buffer handoff).
+Last activity: 2026-07-13 — Plan 06-01 complete (Wave 1, foundation plan): MidiFileWriter core landed via TDD red->green across 2 tasks; single shared MIDI-writer code path ready for both 06-03 export entry points (drag-out + save dialog); zero deviations, zero regressions
 
-Progress: [██████████] 100%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [██████████] 100%
 | Phase 05 P04 | ~6min | 3 tasks | 5 files |
 | Phase 05 P05 | ~15min (recovery) | 3 tasks | 11 files |
 | Phase 05 P06 | ~13min | 2 tasks | 0 code files (docs-only) |
+| Phase 06 P01 | ~14min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase 05-05]: MidiSetsPanel replaces MidiSetsPlaceholder with 5 labeled MidiRowView mini piano-roll strips in the 140px bottom band; MidiRowLayout.h mirrors WaveformMath.h's pure-free-function extraction rationale (beatsToX/noteWidthPx/pitchToY, unit-tested without a Component); each row auto-zooms its own pitch register (+/-2 semitones) rather than sharing one global range; note velocity maps to accent-colour alpha, not size, keeping flat-rect pixel-art fidelity; setRows wired into both changeListenerCallback's analysisBroadcaster branch and handleLoadComplete alongside chordTimeline.setResult, so rows and the chord timeline can never desync; this was a recovery session (prior agent's untracked Task-1 skeleton files were assessed, kept where they matched spec, and completed) — one Rule 3 blocking fix (relative-include path in the recovered MidiRowView.h/MidiSetsPanel.h) applied before proceeding
 - [Phase 05-06]: Phase 5 closing gate — fresh Release build/full suite (109/109)/pluginval strictness 5 (VST3+AU) all green on first re-run, zero code changes needed; human checkpoint on real track TOCK.mp3 in Release Standalone approved with zero defects ("супер я бачу ряди midi") — GEN-01/02/03/04 fully evidenced end-to-end; Phase 5 complete (6/6 plans)
 - [Phase 05-06 / user demand signal]: During the Phase 5 closing checkpoint, user confirmed Phase 6 scope exactly as roadmapped — drag the MIDI pattern out to the DAW piano roll + save .mid files to a folder, referencing the commercial "MIDI pack" workflow (drop a note pattern into piano roll, assign a sound, get an instant melody). User also proposed two v2 ideas, explicitly deferred step-by-step until after Phase 6 export ships: (a) suggest similar MIDI patterns for a generated row, (b) slight randomization/variation of a generated row's melody — logged as GEN-07/GEN-08 in REQUIREMENTS.md v2 backlog, no roadmap change, no implementation triggered now.
+- [Phase 06-01]: MidiFileWriter placed under Source/MidiGen/ (not a new Source/Audio/ folder) since it only needs juce_audio_basics MIDI types, not audio-buffer/DSP types — 06-RESEARCH.md's own noted fallback option; kNoteNames duplicated verbatim from ChordNameFormatter.h as a file-local constant per the plan's explicit v1 guidance (don't refactor the shared header this phase). Single shared buildMidiFile/writeToFile code path now ready for both 06-03 export entry points (drag-out temp file + save dialog) — the structural guarantee behind EXP-03. EXP-03 marked complete in REQUIREMENTS.md per the plan's own explicit framing ("proven by round-trip unit tests, not by manual DAW import alone") — bar-2 tick assertion + tempo round-trip (incl. non-integer bpm + bpm<=0 fallback) unit-tested; EXP-01/EXP-02's own manual DAW-drag/save-dialog checkpoints still land in 06-03/06-04.
 
 ### Pending Todos
 
@@ -140,6 +142,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T13:25:52.000Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-07-13T14:14:00.000Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
