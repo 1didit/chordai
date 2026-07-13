@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 03-06-PLAN.md
-last_updated: "2026-07-13T09:39:18+01:00"
-last_activity: "2026-07-13 — Plan 03-06 (ClassicDspChordAnalyzer orchestrator) complete: synchronous, headless, cancellable analyse() wires preprocess->beat->chroma->key->chords behind the ChordAnalyzer interface; performance budget test green (180s synthetic song well under 10s Debug); checkpoint-discovered real defect (onset envelope's negative HP-filter dips at real-mix silence drove beat tracking to BPM 0/empty chords) fixed live (half-wave rectify post-smoothing, commit d4eced3); human-verified on a real 75s trap beat (BPM 170.455, key G# minor, coherent diatonic progression) — Phase 3 complete, all 4 requirements (ANL-01/02/03/06) evidenced"
+status: in_progress
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-07-13T10:09:51.758Z"
+last_activity: "2026-07-13 — Plan 04-01 complete: AnalysisPipeline (juce::ThreadPoolJob) wraps ClassicDspChordAnalyzer::analyse with a CancelToken adapter and generation-tagged callAsync progress/completion; PluginProcessor gained triggerAnalysis()/getAnalysisResult()/isAnalyzing()/getAnalysisProgress()/analysisBroadcaster, auto-triggered on load-complete and on real region changes; two-region-change race resolved by an atomic<uint64_t> generation guard (proven by AnalysisPipelineTests.CancelAndRestart); 4 new tests green, full suite 68/68 green, pluginval strictness 5 green (VST3+AU)"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_plans: 17
+  completed_plans: 14
+  percent: 82
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 3 - Core Chord-Detection Engine COMPLETE (6/6 plans) — next: Phase 4 (Analysis UI Integration, needs planning)
+**Current focus:** Phase 4 - Analysis UI Integration IN PROGRESS (1/4 plans) — Plan 04-01 (background AnalysisPipeline) complete, next: Plan 04-02
 
 ## Current Position
 
-Phase: 3 of 7 (Core Chord-Detection Engine) — COMPLETE
-Plan: 6 of 6 complete
-Status: Plans 03-01 through 03-06 complete (foundation + chroma path + tempo/beat path + key detection + chord recognition + orchestrator) — all 4 phase requirements (ANL-01, ANL-02, ANL-03, ANL-06) evidenced end-to-end and human-verified on real audio; Phase 3 done, Phase 4 not yet planned
-Last activity: 2026-07-13 — Plan 03-06 complete: ClassicDspChordAnalyzer (synchronous, headless, cancellable, progress-reporting orchestration behind the ChordAnalyzer interface: preprocess->beat->chroma->key->chords, region-relative times shifted to absolute source-file time, computeCqt gained a per-feed-chunk cancel hook) — 5 orchestration tests + PerformanceBudget green (180s synthetic song well under the 10s Debug budget); real-track checkpoint caught a genuine defect no synthetic fixture across 5 prior plans exposed (onset envelope's negative HP-filter dips at real-mix silence drove the DP beat-tracker to BPM 0/empty chords), root-caused via new CHORDAI_DIAG diagnostics and fixed live (half-wave rectify post-smoothing, matching librosa's onset_strength convention, commit d4eced3); re-verified on user's own 75s trap beat post-fix (BPM 170.455, key G# minor, coherent diatonic progression) and approved; full suite 64/64 green (11288 assertions)
+Phase: 4 of 7 (Analysis UI Integration) — IN PROGRESS
+Plan: 1 of 4 complete
+Status: Plan 04-01 (background AnalysisPipeline) complete — ANL-04 evidenced (background thread, generation-guarded cancel-and-restart, progress plumbing); remaining Phase 4 plans cover ANL-05 (chord timeline display) and remaining UI wiring
+Last activity: 2026-07-13 — Plan 04-01 complete: AnalysisPipeline (juce::ThreadPoolJob) wraps ClassicDspChordAnalyzer::analyse with a CancelToken adapter and generation-tagged callAsync progress/completion; PluginProcessor gained triggerAnalysis()/getAnalysisResult()/isAnalyzing()/getAnalysisProgress()/analysisBroadcaster, auto-triggered on load-complete and on real region changes; two-region-change race resolved by an atomic<uint64_t> generation guard (proven by AnalysisPipelineTests.CancelAndRestart); 4 new tests green, full suite 68/68 green, pluginval strictness 5 green (VST3+AU)
 
-Progress: [██████████] 100%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -56,10 +56,11 @@ Progress: [██████████] 100%
 | Phase 03 P04 | ~10min | 2 tasks | 3 files |
 | Phase 03 P05 | 23min | 2 tasks | 4 files |
 | Phase 03 P06 | ~23min (Tasks 1-2) + checkpoint fix session | 3 tasks | 6 files |
+| Phase 04 P01 | 20min | 3 tasks | 6 files |
 
 **Recent Trend:**
-- Last 5 plans: 20min, 14min, ~10min, 23min, ~23min+checkpoint
-- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning. P06 (final Phase 3 plan) closed the phase: its checkpoint caught a real end-to-end defect (BPM 0/empty chords on real-mix silence) invisible to all 58 prior synthetic-fixture tests, fixed live in one surgical commit — validates the phase's decision to gate on human real-track listening rather than synthetic fixtures alone.
+- Last 5 plans: 14min, ~10min, 23min, ~23min+checkpoint, 20min
+- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning. P06 (final Phase 3 plan) closed the phase: its checkpoint caught a real end-to-end defect (BPM 0/empty chords on real-mix silence) invisible to all 58 prior synthetic-fixture tests, fixed live in one surgical commit — validates the phase's decision to gate on human real-track listening rather than synthetic fixtures alone. Phase 4 P01 (first UI-integration plan) landed clean on the first attempt — every 04-RESEARCH.md pattern proved directly applicable, only one anticipated CMake link-dependency gap needed fixing.
 
 *Updated after each plan completion*
 
@@ -103,6 +104,10 @@ Recent decisions affecting current work:
 
 - [Phase 03 post-verify]: Tempo metrical-level disambiguation (commit 87d6511) — user ground truth (TOCK.mp3 = 128 BPM, detected 170.45) exposed a 4/3 metrical-level lock from triplet hi-hats; fixed by rescoring DP grids at ratios {1, 3/4, 4/3, 1/2, 2, 1/3, 3} with W(tau)·meanOnset/sqrt(period) density-compensated scoring. Re-verified: 128.2 BPM on TOCK, 49/49 test cases green.
 
+- [Phase 04-01]: `analysisPool` is a second, separate size-1 `juce::ThreadPool` (not sharing `loaderPool`) — a new-file-drop mid-re-analysis must not queue behind a still-cancelling analysis job, and `removeAllJobs`'s cancellation scope must never touch an unrelated decode job.
+- [Phase 04-01]: Generation-guarded cancel-and-restart (`analysisPool.removeAllJobs(true, 0)` + `std::atomic<uint64_t> analysisGeneration`) established as the reusable pattern for any future supersedable background job — Phase 5's GEN-04 (regenerate rows on region change) is expected to reuse it verbatim.
+- [Phase 04-01]: `ChordAITests` target needed `juce::juce_audio_processors` + `juce::juce_gui_extra` added to its link libraries (plus `PluginProcessor.cpp`/`PluginEditor.cpp`/UI component sources and a `JucePlugin_Name` define) so tests can construct a real `ChordAIAudioProcessor` via its public API — first Phase 4 test file to exercise the processor rather than only headless DSP code.
+
 ### Pending Todos
 
 None yet.
@@ -114,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T09:39:18+01:00
-Stopped at: Completed 03-06-PLAN.md (Phase 3 complete)
+Last session: 2026-07-13T10:08:31.555Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
