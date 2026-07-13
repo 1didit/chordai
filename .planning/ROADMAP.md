@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Audio Import & Waveform** - User drags a song in, sees its waveform, and picks what to analyze (completed 2026-07-12)
 - [x] **Phase 3: Core Chord-Detection Engine** - Headless engine detects key, tempo, and bar-aligned chord progression behind a swappable interface (completed 2026-07-13)
 - [x] **Phase 4: Analysis UI Integration** - Detected key/tempo/chords appear live on the waveform timeline without freezing the UI (completed 2026-07-13)
-- [ ] **Phase 5: MIDI Conveyor Generation** - One analysis produces multiple simultaneous MIDI rows: as-is progression, style variants, and bass line
+- [x] **Phase 5: MIDI Conveyor Generation** - One analysis produces multiple simultaneous MIDI rows: as-is progression, style variants, and bass line (completed 2026-07-13)
 - [ ] **Phase 6: Row Preview & Export** - User auditions any row and gets it into the DAW via drag-out or .mid save
 - [ ] **Phase 7: Persistence & Multi-DAW Verification** - Plugin state survives DAW project reload; drag-and-drop export verified per-DAW
 
@@ -103,7 +103,7 @@ Plans:
   3. Style variants are built from the user's actual detected progression, not from static preset lookups
   4. The bass row follows the detected chord roots with style-appropriate rhythm
   5. Rows regenerate automatically when the user changes the analysis region or style settings
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — MidiGen foundation: beat-domain NoteEvent/MidiSetRow model, frozen generator contracts, music-math helpers, struct-literal fixtures, one-time CMake wiring (Wave 1) (completed 2026-07-13)
@@ -111,7 +111,7 @@ Plans:
 - [x] 05-03-PLAN.md — Bass line generator: root-following with trap sustain / R&B root-fifth walk / house four-on-the-floor rhythms (Wave 2) (completed 2026-07-13)
 - [x] 05-04-PLAN.md — generateAllRows orchestrator (5 rows, determinism, <1ms budget) + synchronous PluginProcessor wiring with regenerate-on-region-change (Wave 3) (completed 2026-07-13)
 - [x] 05-05-PLAN.md — MidiSetsPanel + MidiRowView mini piano-roll strips in the bottom band; MidiSetsPlaceholder deleted (Wave 4) (completed 2026-07-13)
-- [ ] 05-06-PLAN.md — Phase gate (full suite + pluginval) + human checkpoint: 5 rows visible/legible/distinct on a real track, regenerate on region drag (Wave 5)
+- [x] 05-06-PLAN.md — Phase gate (full suite + pluginval) + human checkpoint: 5 rows visible/legible/distinct on a real track, regenerate on region drag (Wave 5) (completed 2026-07-13)
 
 ### Phase 6: Row Preview & Export
 **Goal**: User can hear any generated row and get it out of the plugin into the DAW.
@@ -146,6 +146,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Audio Import & Waveform | 4/4 | Complete   | 2026-07-12 |
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
 | 4. Analysis UI Integration | 4/4 | Complete   | 2026-07-13 |
-| 5. MIDI Conveyor Generation | 5/6 | In Progress|  |
+| 5. MIDI Conveyor Generation | 6/6 | Complete   | 2026-07-13 |
 | 6. Row Preview & Export | 0/TBD | Not started | - |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |

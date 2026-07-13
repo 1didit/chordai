@@ -62,6 +62,8 @@ Deferred to future release. Tracked but not in current roadmap.
 
 - **GEN-05**: Expanded voicing-style library / more genre presets
 - **GEN-06**: Preset favoriting and tagging of detected sessions
+- **GEN-07**: Suggest similar MIDI patterns for a generated row (user-requested 2026-07-13, post Phase 5 checkpoint)
+- **GEN-08**: Slight randomization/variation of a generated row's melody (user-requested 2026-07-13, post Phase 5 checkpoint)
 
 ### Platform
 
