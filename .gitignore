@@ -1,4 +1,5 @@
 build/
+build-release/
 validation-logs/
 tools/pluginval.app/
 tools/pluginval.zip
