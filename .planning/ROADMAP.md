@@ -122,7 +122,13 @@ Plans:
   2. User can drag any MIDI row directly from the plugin into the DAW's piano roll
   3. User can save any MIDI row to disk as a standalone .mid file (fallback path)
   4. MIDI produced by either export path is bar-aligned and carries the detected tempo
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — MidiFileWriter: beat-domain rows → format-1 SMF (TPQN 960, tempo + 4/4 meta), atomic write, MIDI-pack file naming, round-trip tests (Wave 1)
+- [ ] 06-02-PLAN.md — Audition engine: deterministic AuditionVoice/Renderer pre-render + RT-safe double-buffer playback in processBlock, pluginval RT gate (Wave 2)
+- [ ] 06-03-PLAN.md — Interactive rows: play/save gutter icons, drag-out with Ableton-safe deferred temp cleanup, async save dialog, stop-audition-on-regenerate wiring (Wave 3)
+- [ ] 06-04-PLAN.md — Phase gate (suite + pluginval) + human checkpoint: drag into FL Studio piano roll, audition all rows, save dialog (Wave 4)
 
 ### Phase 7: Persistence & Multi-DAW Verification
 **Goal**: The plugin's work survives a full DAW project save/reload, and the drag-out mechanic is confirmed solid in every target host — the release gate for v1.
@@ -147,5 +153,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
 | 4. Analysis UI Integration | 4/4 | Complete   | 2026-07-13 |
 | 5. MIDI Conveyor Generation | 6/6 | Complete   | 2026-07-13 |
-| 6. Row Preview & Export | 0/TBD | Not started | - |
+| 6. Row Preview & Export | 0/4 | Planned | - |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |
