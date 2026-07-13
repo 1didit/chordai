@@ -10,7 +10,7 @@ progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 34
-  completed_plans: 28
+  completed_plans: 29
   percent: 100
 ---
 
@@ -76,6 +76,7 @@ Progress: [██████████] 100%
 | Phase 06 P03 | ~12min | 3 tasks | 7 files |
 | Phase 06 P04 | ~58min (incl. checkpoint troubleshooting) | 3 tasks | 0 code files (docs-only) |
 | Phase 06.1 P02 | ~18min | 2 tasks | 2 files |
+| Phase 06.1 P01 | ~20min | 3 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,7 @@ Recent decisions affecting current work:
 - [Phase 06-04]: Phase 6 closing gate — fresh Release build (build-release/)/full suite (134/134)/pluginval strictness 5 (VST3+AU SUCCESS x2) all green; human checkpoint on real track TOCK.mp3 in FL Studio approved with zero code defects. Checkpoint-process lesson (not a code deviation): the user's first verification attempt failed ("нічого не грає, не перетягується") against a stale pre-Phase-6 Standalone instance (PID 55706, started 14:19) that macOS `open` had merely refocused instead of replacing — `open App.app` on an already-running process does not exec a new process from a freshly rebuilt bundle. Killing the stale PID and relaunching the fresh 15:51-built binary (confirmed fresh PID 62976 started 16:19) resolved it immediately; user then confirmed full pass ("супер"). **Lesson for future checkpoint instructions: always kill any running instance of the app under test before presenting an `open`/launch step to the user for a human-verify checkpoint.** PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end (all four were already `[x]` from 06-01/06-02/06-03; this plan supplied the missing manual DAW/audition evidence, no REQUIREMENTS.md edit needed). Phase 6 complete (4/4 plans).
 - [Phase 06-04 / user demand signal]: During the Phase 6 closing checkpoint, after approving with "супер", the user gave a large new forward-looking feature direction — explicitly not to be implemented now, recorded here as the driver for an upcoming inserted Phase 6.1: (1) a genre system — genre chips near a narrower waveform strip (trap, uk drill, rap, hip hop, electronic, etc.) with a menu of checkboxes to pick the 5 main genres shown, and the MIDI panel showing 5 patterns of the selected genre fitting the song's motif; (2) a per-row regenerate/randomize button; (3) a premium-quality conveyor rework — idle state shows "drop song or melody here" (stopped), animates only on drag/analysis; (4) maximum-quality MIDI generation algorithms (raising the bar on 05's existing generators). No roadmap/requirements change made in this plan — needs its own `/gsd:plan-phase` pass to scope as Phase 6.1 before or interleaved with Phase 7.
 - [Phase 06.1-02]: Premium conveyor rework (UI-01): belt gated STOPPED/animate on (dragHover || analyzing), persistent "drop song or melody here" pixel text drawn into the logical frame, roller-rotation/dither/two-tone belt texture and chunk arc+bounce all procedural (no juce::Random/assets); fixed a pre-existing scale bug that made the falling-chunk stub invisible since 04-03 (physics in full-resolution units, draw now divides by pixelScale). Ran in parallel with 06.1-01 (disjoint file sets: Source/UI/ConveyorBeltComponent.* only).
+- [Phase 06.1-01]: Genre-engine foundation landed: MidiSetRow reshaped RowStyle->PatternKind+patternIndex via a byte-preserving transitional migration (full pre-existing 134-test suite green throughout); every Wave 2/3 MidiGen contract frozen (GenreRegistry.h types + toneSetIntervals dispatcher, PatternEngine.h signature, GenreState.h); tick-exact GrooveEngine (swing constants/tileOnsets/isTickExact, empirically round-tripped through the real MidiFileWriter to an exact tick) and float-free deterministic PatternSeed (hashChordProgression/computeBaseSeed/combineSeedWithVariation) both TDD-implemented; Arpeggiator + ChordToneMapper diatonicScaleIntervals/powerChordIntervals added. One-time CMake wiring frozen for the whole phase's MidiGen sources + 8 test files. Ran in parallel with 06.1-02 (disjoint file sets: Source/MidiGen/*, Tests/*, CMakeLists.txt vs. Source/UI/ConveyorBeltComponent.*); recovered once from a shared-build-directory `libChordAI_SharedCode.a` link-archive race caused by both plans invoking `cmake --build build` concurrently (rebuilt the target in isolation, no source change needed) — documented as a process note for future parallel waves sharing one build dir.
 
 ### Pending Todos
 
