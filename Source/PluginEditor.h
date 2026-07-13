@@ -39,6 +39,10 @@ private:
 
     ChordAIAudioProcessor& processor;
 
+    // Tracks the analyzing->idle transition so the falling-chunk stub fires
+    // exactly once per completed analysis (see changeListenerCallback).
+    bool wasAnalyzing = false;
+
     ConveyorBeltComponent conveyor;
     ChordTimelineView chordTimeline;
     WaveformView waveformView;

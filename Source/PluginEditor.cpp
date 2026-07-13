@@ -82,6 +82,18 @@ void ChordAIAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaste
         // re-analysis, so the last good chord timeline stays visible until a
         // fresher one lands.
         chordTimeline.setResult (processor.getAnalysisResult());
+
+        const bool nowAnalyzing = processor.isAnalyzing();
+        conveyor.setAnalysisProgress (processor.getAnalysisProgress(), nowAnalyzing);
+
+        // Chunk falls exactly on the analyzing->idle transition with a
+        // published result — a superseded/cancelled run never flips
+        // analyzing false without publishing (04-01's generation guard), so
+        // this never fires spuriously.
+        if (wasAnalyzing && ! nowAnalyzing && processor.getAnalysisResult() != nullptr)
+            conveyor.triggerChunkFallStub();
+
+        wasAnalyzing = nowAnalyzing;
         return;
     }
 
@@ -95,11 +107,16 @@ void ChordAIAudioProcessorEditor::handleLoadComplete (const LoadedAudio& loaded)
 {
     waveformView.setSource (loaded.sourceFile);
     regionOverlay.setTotalLength (loaded.lengthSeconds);
-    conveyor.triggerChunkFallStub(); // placeholder "something came off the belt" feedback
 
     chordTimeline.setTotalLength (loaded.lengthSeconds);
     // Restores the timeline on editor reopen (result already published) and
     // blanks it on fresh load (processor cleared the result to nullptr
     // before broadcasting, per 04-01).
     chordTimeline.setResult (processor.getAnalysisResult());
+
+    // Editor reopened mid-analysis (or after one already ran): show the
+    // belt's current busy state immediately instead of waiting for the next
+    // analysisBroadcaster message.
+    conveyor.setAnalysisProgress (processor.getAnalysisProgress(), processor.isAnalyzing());
+    wasAnalyzing = processor.isAnalyzing();
 }
