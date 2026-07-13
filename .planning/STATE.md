@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-07-13T14:27:12.000Z"
-last_activity: "2026-07-13 — Plan 06-02 complete (Wave 2): AuditionRenderer + AuditionVoice deterministic pre-renderer landed under new Source/Audio/ folder, plus RT-safe preallocated double-buffer handoff wired into processBlock (startAudition/stopAudition/isAuditionPlaying/getAuditionRowId); 12 new tests (7 [auditionrenderer] + 5 [processoraudition]), full suite 132/132 green, pluginval strictness 5 SUCCESS on VST3+AU (first processBlock-touching wave); PRV-01 engine half complete"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-07-13T15:45:33+01:00"
+last_activity: "2026-07-13 — Plan 06-03 complete (Wave 3): MidiRowView interactive play/stop + save icons, drag-anywhere-on-row OS file drag (deferred temp cleanup, Ableton-safe), async .mid save dialog; hooks forwarded PluginEditor->MidiSetsPanel->MidiRowView; stopAudition-on-setRows guard; full suite 134/134 green, pluginval strictness 5 SUCCESS on VST3+AU; PRV-01/EXP-01/EXP-02 all marked complete"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 27
-  completed_plans: 25
-  percent: 93
+  completed_plans: 26
+  percent: 96
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 6 - Row Preview & Export IN PROGRESS (2/4 plans) — MidiFileWriter core (06-01) + audition engine (06-02) landed: shared format-1 SMF writer, deterministic AuditionRenderer, and RT-safe processBlock playback all ready; next: 06-03 (UI wiring — click-to-audition, drag-out, save dialog)
+**Current focus:** Phase 6 - Row Preview & Export IN PROGRESS (3/4 plans) — MidiFileWriter core (06-01), audition engine (06-02), and interactive row UI (06-03) all landed: shared format-1 SMF writer, deterministic AuditionRenderer, RT-safe processBlock playback, and click-to-audition/drag-out/save-dialog wiring all ready; next: 06-04 (Release build + full manual DAW checkpoint)
 
 ## Current Position
 
 Phase: 6 of 7 (Row Preview & Export) — IN PROGRESS
-Plan: 2 of 4 complete
-Status: Plan 06-02 complete — AuditionRenderer/AuditionVoice deterministic pre-renderer (Source/Audio/, new folder) + ChordAIAudioProcessor startAudition/stopAudition/isAuditionPlaying/getAuditionRowId RT-safe playback API implemented: preallocated double-buffer + plain std::atomic index/length/pos/playing handoff into processBlock (bounded, additive addFrom mix, auto-stop at buffer end), deliberately NOT the shared_ptr atomic_load/atomic_store idiom used elsewhere (unsafe on the audio thread). 12 new tests (7 [auditionrenderer] + 5 [processoraudition]), full suite 132/132 green. pluginval strictness 5 SUCCESS on VST3 and AU (first processBlock-touching wave, mandatory RT gate). PRV-01 engine half complete — UI play/stop wiring lands in 06-03. Next: 06-03 (UI wiring for audition/drag-out/save).
-Last activity: 2026-07-13 — Plan 06-02 complete (Wave 2): AuditionRenderer + AuditionVoice deterministic pre-renderer landed under new Source/Audio/ folder, plus RT-safe preallocated double-buffer handoff wired into processBlock; 12 new tests, full suite 132/132 green, pluginval strictness 5 SUCCESS on VST3+AU; one Rule 3 test-harness fix (setRateAndBufferSizeDetails before prepareToPlay, matching real host behavior)
+Plan: 3 of 4 complete
+Status: Plan 06-03 complete — MidiRowView interactive play/stop + save icons in the 92px gutter, drag-anywhere-on-row OS file drag (temp .mid written via 06-01's MidiFileWriter, deferred cleanup at next drag start per 06-RESEARCH.md Pitfall 1's Ableton fix, canMoveFiles=false + nullptr callback), async FileChooser save dialog (~/Documents/ChordAI MIDI/ default + session last-dir memory). MidiSetsPanel forwards hooks into every rebuilt MidiRowView, calls onStopAudition unconditionally as setRows()'s first statement (Pitfall 3 guard), and runs a self-stopping 10Hz Timer so icons reflect processor auto-stop within ~100ms. PluginEditor wires all 5 hooks to ChordAIAudioProcessor. Full suite 134/134 green, pluginval strictness 5 SUCCESS on VST3+AU. PRV-01/EXP-01/EXP-02 all marked complete — only manual DAW-drag/save-dialog/sound verification remains, in 06-04's checkpoint. Next: 06-04 (Release build + full suite + pluginval + human checkpoint).
+Last activity: 2026-07-13 — Plan 06-03 complete (Wave 3): MidiRowView interactive play/stop + save icons, drag-anywhere-on-row OS file drag (deferred temp cleanup, Ableton-safe), async .mid save dialog; hooks forwarded PluginEditor->MidiSetsPanel->MidiRowView; stopAudition-on-setRows guard; full suite 134/134 green, pluginval strictness 5 SUCCESS on VST3+AU
 
-Progress: [█████████░] 93%
+Progress: [█████████░] 96%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [█████████░] 93%
 | Phase 05 P06 | ~13min | 2 tasks | 0 code files (docs-only) |
 | Phase 06 P01 | ~14min | 2 tasks | 4 files |
 | Phase 06 P02 | ~11min | 2 tasks | 9 files |
+| Phase 06 P03 | ~12min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -132,6 +133,7 @@ Recent decisions affecting current work:
 - [Phase 05-06 / user demand signal]: During the Phase 5 closing checkpoint, user confirmed Phase 6 scope exactly as roadmapped — drag the MIDI pattern out to the DAW piano roll + save .mid files to a folder, referencing the commercial "MIDI pack" workflow (drop a note pattern into piano roll, assign a sound, get an instant melody). User also proposed two v2 ideas, explicitly deferred step-by-step until after Phase 6 export ships: (a) suggest similar MIDI patterns for a generated row, (b) slight randomization/variation of a generated row's melody — logged as GEN-07/GEN-08 in REQUIREMENTS.md v2 backlog, no roadmap change, no implementation triggered now.
 - [Phase 06-01]: MidiFileWriter placed under Source/MidiGen/ (not a new Source/Audio/ folder) since it only needs juce_audio_basics MIDI types, not audio-buffer/DSP types — 06-RESEARCH.md's own noted fallback option; kNoteNames duplicated verbatim from ChordNameFormatter.h as a file-local constant per the plan's explicit v1 guidance (don't refactor the shared header this phase). Single shared buildMidiFile/writeToFile code path now ready for both 06-03 export entry points (drag-out temp file + save dialog) — the structural guarantee behind EXP-03. EXP-03 marked complete in REQUIREMENTS.md per the plan's own explicit framing ("proven by round-trip unit tests, not by manual DAW import alone") — bar-2 tick assertion + tempo round-trip (incl. non-integer bpm + bpm<=0 fallback) unit-tested; EXP-01/EXP-02's own manual DAW-drag/save-dialog checkpoints still land in 06-03/06-04.
 - [Phase 06-02]: New Source/Audio/ folder introduced for AuditionVoice/AuditionRenderer (juce::AudioBuffer/juce::ADSR types), keeping Source/MidiGen/'s "pure value types, no JUCE audio dependency" rule intact for MidiFileWriter — per 06-RESEARCH.md Open Question 2's own recommendation. Preallocated double-buffer + plain std::atomic<int>/<bool> handoff established as the sanctioned pattern for message-thread-render-into-processBlock features, deliberately distinct from the codebase's existing shared_ptr atomic_load/atomic_store publication idiom (unsafe on the audio thread per 06-RESEARCH.md Pitfall 2 — those free functions are not guaranteed lock-free). AuditionVoice's deterministic voice (0.6*triangle + 0.4*saw, one-pole ~2.5kHz lowpass, juce::ADSR 5ms/400ms/0.25/150ms) is bounded to [-1,1] at every stage by construction, no randomness. Playing-row identity lives on ChordAIAudioProcessor (getAuditionRowId), not on any MidiRowView, ready for 06-03's UI wiring since MidiSetsPanel::setRows() destroys every MidiRowView on regeneration (06-RESEARCH.md Pitfall 3). PRV-01 marked complete in REQUIREMENTS.md (engine half); pluginval strictness 5 SUCCESS on VST3+AU — first wave to touch processBlock beyond the Phase 1 no-op.
+- [Phase 06-03]: MidiRowView flips setInterceptsMouseClicks(true, false) and gains a mouseDown/mouseDrag/mouseUp gesture split — a real drag (e.mouseWasDraggedSinceMouseDown(), anywhere on the row body including icons) writes a fresh temp .mid via 06-01's MidiFileWriter and calls performExternalDragDropOfFiles(canMoveFiles=false, nullptr callback); the previous drag's temp file(s) are swept at the START of the next drag, never in a completion callback — the verified Ableton "could not be opened" fix (06-RESEARCH.md Pitfall 1). Save dialog's juce::FileChooser is a unique_ptr member (outlives launchAsync's callback); the callback captures row/bpm by value, never `this`, so a mid-dialog MidiSetsPanel::setRows() regeneration can destroy the owning MidiRowView safely (chooser dies with it, callback simply never fires). Playing-row identity stays on ChordAIAudioProcessor exclusively — MidiSetsPanel::setRows() calls onStopAudition unconditionally as its first statement before every rebuild (Pitfall 3), and MidiSetsPanel is now a private juce::Timer (10Hz, self-stopping) so icons reflect processor-driven auto-stop live rather than from any cached view-local boolean. PRV-01/EXP-01/EXP-02 marked complete in REQUIREMENTS.md — only the inherently-manual OS drag/native-dialog/audible-sound verification remains, in 06-04's human checkpoint. pluginval strictness 5 SUCCESS on VST3+AU (first wave to exercise the Editor Automation pass against real new mouse/paint code).
 
 ### Pending Todos
 
@@ -144,6 +146,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T14:27:12.000Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-07-13T15:45:33+01:00
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
