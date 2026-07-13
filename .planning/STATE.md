@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 06.1-04-PLAN.md
-last_updated: "2026-07-13T19:02:10.879Z"
-last_activity: "2026-07-13 — Plan 06.1-04 complete (Wave 2): 10-genre PatternArchetype data library authored (GenreRegistry.cpp, 636 lines) with full research-table authenticity detail for the 5 main genres and solid tick-exact starters for the remaining 5; BassLine slot dual-path policy established (delegate to generateBassRow vs. generic toneSet+rhythmPool path); phase-critical 960-tick-exactness sweep green; full suite 175/175"
+stopped_at: Completed 06.1-05-PLAN.md
+last_updated: "2026-07-13T19:21:46.000Z"
+last_activity: "2026-07-13 — Plan 06.1-05 complete (Wave 3): MidiRowBuilder gained generateGenreRows/regenerateRow over the pattern engine; PluginProcessor gained the full genre API (setActiveGenre/setMainGenres/regenerateRow/getters) backed by GenreState-persisted apvts.state properties; Phase 5's fixed generators (generateAllRows/AsIsRowGenerator/StyleVoicingGenerators) fully retired with every surviving test behavior migrated, including the explicit gap-closure port of the voice-leading-minimizes-movement test into PatternEngineTests; full suite 170/170, pluginval strictness 5 SUCCESS (VST3+AU)"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 34
-  completed_plans: 31
-  percent: 91
+  completed_plans: 32
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 ## Current Position
 
 Phase: 6.1 of 7+ (Genre Patterns & Premium Conveyor, inserted phase) — IN PROGRESS
-Plan: 04 of 07 complete (01, 02, 04 have landed SUMMARYs; 03 ran concurrently with 04 — its own SUMMARY/STATE update is tracked by its own execution thread)
-Status: Plan 06.1-04 complete — full 10-genre GenreRegistry.cpp library authored (trap, uk-drill, boom-bap, rnb-neosoul, house, pop, lofi, afrobeats, reggaeton, techno) over the frozen 06.1-01 contracts, with the phase-critical tick-exactness sweep (AllRhythmPoolOnsetsDivide960Exactly) green across every onset/span in the registry. Ran in parallel wave with 06.1-03 (PatternEngine.cpp body, disjoint files); full project suite green (175/175) after both landed. Next: 06.1-05 (MidiRowBuilder genre wiring + PluginProcessor), then 06.1-06 (genre selector UI) and 06.1-07 (ear-check checkpoint) before Phase 7 (Persistence & Multi-DAW Verification).
-Last activity: 2026-07-13 — Plan 06.1-04 complete (Wave 2): 10-genre PatternArchetype data library authored (GenreRegistry.cpp, 636 lines) with full research-table authenticity detail for the 5 main genres and solid tick-exact starters for the remaining 5; BassLine slot dual-path policy established (delegate to generateBassRow vs. generic toneSet+rhythmPool path); phase-critical 960-tick-exactness sweep green; full suite 175/175
+Plan: 05 of 07 complete
+Status: Plan 06.1-05 complete — MidiRowBuilder gained generateGenreRows/regenerateRow over the pattern engine; PluginProcessor gained the full genre API (setActiveGenre/setMainGenres/regenerateRow(int)/getActiveGenreId/getMainGenreIds), backed by GenreState-persisted apvts.state properties restored in both the ctor and setStateInformation. triggerAnalysis's onDone now publishes generateGenreRows in the same atomic_store+broadcast ordering, with every findGenre() call site null-checked and falling back to "trap" (Pitfall F). Phase 5's fixed generators (generateAllRows/AsIsRowGenerator/StyleVoicingGenerators) fully retired from source and CMakeLists.txt, with every surviving test behavior migrated — including the explicit gap-closure port of RnbVoiceLeadingMinimizesMovement into PatternEngineTests.VoiceLeadingMinimizesMovementAcrossTransition before deletion. Full suite 170/170; pluginval strictness 5 SUCCESS on both VST3 and AU against a freshly rebuilt plugin bundle. GEN-09/GEN-11 marked complete (processor-level behavior fully proven); GEN-10 left pending (only the state/persistence half is done — the chip/menu UI itself lands in 06.1-06). Next: 06.1-06 (genre selector UI), then 06.1-07 (ear-check checkpoint) before Phase 7 (Persistence & Multi-DAW Verification).
+Last activity: 2026-07-13 — Plan 06.1-05 complete (Wave 3): MidiRowBuilder gained generateGenreRows/regenerateRow over the pattern engine; PluginProcessor gained the full genre API (setActiveGenre/setMainGenres/regenerateRow/getters) backed by GenreState-persisted apvts.state properties; Phase 5's fixed generators (generateAllRows/AsIsRowGenerator/StyleVoicingGenerators) fully retired with every surviving test behavior migrated, including the explicit gap-closure port of the voice-leading-minimizes-movement test into PatternEngineTests; full suite 170/170, pluginval strictness 5 SUCCESS (VST3+AU)
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
@@ -79,6 +79,7 @@ Progress: [█████████░] 91%
 | Phase 06.1 P01 | ~20min | 3 tasks | 24 files |
 | Phase 06.1 P03 | 24min | 2 tasks | 2 files |
 | Phase 06.1 P04 | 20min | 2 tasks | 2 files |
+| Phase 06.1 P05 | ~35min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,7 @@ Recent decisions affecting current work:
 - [Phase 06.1-01]: Genre-engine foundation landed: MidiSetRow reshaped RowStyle->PatternKind+patternIndex via a byte-preserving transitional migration (full pre-existing 134-test suite green throughout); every Wave 2/3 MidiGen contract frozen (GenreRegistry.h types + toneSetIntervals dispatcher, PatternEngine.h signature, GenreState.h); tick-exact GrooveEngine (swing constants/tileOnsets/isTickExact, empirically round-tripped through the real MidiFileWriter to an exact tick) and float-free deterministic PatternSeed (hashChordProgression/computeBaseSeed/combineSeedWithVariation) both TDD-implemented; Arpeggiator + ChordToneMapper diatonicScaleIntervals/powerChordIntervals added. One-time CMake wiring frozen for the whole phase's MidiGen sources + 8 test files. Ran in parallel with 06.1-02 (disjoint file sets: Source/MidiGen/*, Tests/*, CMakeLists.txt vs. Source/UI/ConveyorBeltComponent.*); recovered once from a shared-build-directory `libChordAI_SharedCode.a` link-archive race caused by both plans invoking `cmake --build build` concurrently (rebuilt the target in isolation, no source change needed) — documented as a process note for future parallel waves sharing one build dir.
 - [Phase 06.1-04]: Genre library data complete — all 10 `GenreSpec`s (trap, uk-drill, boom-bap, rnb-neosoul, house, pop, lofi, afrobeats, reggaeton, techno) authored in `GenreRegistry.cpp` over the frozen 06.1-01 contracts, each with 5 `PatternArchetype` slots. BassLine slot dual-path policy established: non-empty `bassRhythmPool` delegates to `generateBassRow` (trap/uk-drill/rnb-neosoul/house, reusing Phase 5 shapes verbatim); empty `bassRhythmPool` routes the slot through the generic `toneSet`+`rhythmPool`+`octaveOffsetPool` path instead (boom-bap/pop/lofi/afrobeats/reggaeton/techno, where the fixed 3-value `BassRhythm` enum has no matching shape — e.g. boom bap's swung root+octave alternation). Phase-critical `AllRhythmPoolOnsetsDivide960Exactly` sweep proves every onset/span in the entire registry is tick-exact against TPQN 960; `RegeneratePoolsOfferVariety` proves all 5 main genres have real regenerate material (>=3 of 5 slots with >=2 rhythm/octave variants). One real bug auto-fixed during TDD RED->GREEN: `PatternArchetype.kind` was never explicitly assigned per slot in the first draft, silently leaving every non-Sustained slot mis-tagged as `SustainedChords` (caught immediately by `RegistryShapeIsWellFormed`'s `patterns[i].kind == (PatternKind) i` invariant). Ran in parallel wave with 06.1-03 (PatternEngine.cpp body, disjoint files: Source/MidiGen/GenreRegistry.cpp + Tests/GenreRegistryTests.cpp only); full project suite green (175/175) after both landed, zero cross-plan conflicts. GEN-09/GEN-10 left unchecked in REQUIREMENTS.md — both are user-facing (genre selection, chips, panel display), this plan only supplies their backing data; full evidence needs 06.1-05 (row wiring) + 06.1-06 (selector UI).
 - [Phase 06.1-03]: generatePattern implemented: generic per-segment loop covering all 5 PatternKind slots from PatternArchetype data, harmony-preserving register clamp (octave-preserving, not truncating), BassLine delegation to generateBassRow, StabArp one-tone-per-onset arpeggiation, TopLineMotif diatonic-only ornaments via a boundary-exact hash; harmony preservation proven across 21 seed variations; GEN-09/GEN-11 left pending (engine proven in isolation, awaiting 06.1-04 genre data + 06.1-05 UI wiring for end-to-end evidence)
+- [Phase 06.1-05]: MidiRowBuilder::generateGenreRows/regenerateRow implemented over generatePattern (row identity assembled by one shared assembleGenreRow() helper: id "<genreId>-<slug>", label with an em-dash via CharPointer_UTF8 per the established non-ASCII-literal rule); PluginProcessor gained setActiveGenre/setMainGenres/regenerateRow(int)/getActiveGenreId/getMainGenreIds, all publishing through the same atomic_store+analysisBroadcaster path as triggerAnalysis's onDone (no partial-row-update shortcut, Pitfall D), with patternVariationCounters bumped BEFORE each regenerate call (Pitfall B) and every findGenre() call site null-checked with a "trap" fallback (Pitfall F). GenreState mirrors RegionState.h exactly, read in both the ctor and setStateInformation. Phase 5's fixed generators (generateAllRows/AsIsRowGenerator/StyleVoicingGenerators) fully retired from Source/ and CMakeLists.txt; every surviving test behavior migrated rather than dropped, including the explicit gap-closure port of StyleVoicingTests.RnbVoiceLeadingMinimizesMovement (the only test proving voice leading MINIMIZES movement, not merely register-clamps) into PatternEngineTests.VoiceLeadingMinimizesMovementAcrossTransition before Tests/StyleVoicingTests.cpp was deleted. One notable process deviation: deleting generateAllRows in Task 2 required also fixing Tests/PluginProcessorMidiGenTests.cpp's two call sites (originally scoped to Task 3) to keep the build green — pulled forward as a Rule 3 blocking fix. Full suite 170/170; pluginval strictness 5 SUCCESS on VST3+AU against a freshly rebuilt plugin bundle. GEN-09/GEN-11 marked complete in REQUIREMENTS.md (the plan's own objective text frames processor-level behavior as fully real, "06.1-06 only has to put buttons on it"); GEN-10 deliberately left pending — its own success-criteria text calls out only "the GEN-10 state half (main-5 validated + persisted via GenreState)" as done here, the chip/menu UI itself is 06.1-06's job.
 
 ### Pending Todos
 
@@ -157,6 +159,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T19:02:04.604Z
-Stopped at: Completed 06.1-04-PLAN.md
+Last session: 2026-07-13T19:21:46.000Z
+Stopped at: Completed 06.1-05-PLAN.md
 Resume file: None

@@ -31,9 +31,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Genre System (Phase 6.1 — user-requested 2026-07-13)
 
-- [ ] **GEN-09**: User selects an active genre; the MIDI panel shows 5 patterns of that genre fitting the detected progression/key/tempo (genre-authentic rhythm, voicing, registers, velocity shaping)
+- [x] **GEN-09**: User selects an active genre; the MIDI panel shows 5 patterns of that genre fitting the detected progression/key/tempo (genre-authentic rhythm, voicing, registers, velocity shaping)
 - [ ] **GEN-10**: 5 main-genre chips displayed near a narrower waveform strip; a menu lists ALL genres with checkboxes where exactly 5 can be picked as main
-- [ ] **GEN-11**: Each MIDI row has a regenerate (randomize) button producing a new variation of that pattern individually (deterministic seed increment; harmony preserved)
+- [x] **GEN-11**: Each MIDI row has a regenerate (randomize) button producing a new variation of that pattern individually (deterministic seed increment; harmony preserved)
 - [x] **UI-01**: Conveyor premium rework — idle belt is STOPPED with "drop song or melody here" text; belt animates on file drag-over and during analysis; upgraded pixel-art quality
 
 ### Preview
@@ -117,9 +117,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXP-01 | Phase 6 - Row Preview & Export | Complete |
 | EXP-02 | Phase 6 - Row Preview & Export | Complete |
 | EXP-03 | Phase 6 - Row Preview & Export | Complete |
-| GEN-09 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
+| GEN-09 | Phase 6.1 - Genre Patterns & Premium Conveyor | Complete |
 | GEN-10 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
-| GEN-11 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
+| GEN-11 | Phase 6.1 - Genre Patterns & Premium Conveyor | Complete |
 | UI-01 | Phase 6.1 - Genre Patterns & Premium Conveyor | Complete |
 | PLT-02 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
 | PLT-03 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
