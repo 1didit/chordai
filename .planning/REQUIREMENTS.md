@@ -31,7 +31,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Preview
 
-- [ ] **PRV-01**: User can audition any MIDI row with a built-in piano/pad sound before dragging it out
+- [x] **PRV-01**: User can audition any MIDI row with a built-in piano/pad sound before dragging it out
 
 ### Export
 
@@ -106,7 +106,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GEN-02 | Phase 5 - MIDI Conveyor Generation | Complete |
 | GEN-03 | Phase 5 - MIDI Conveyor Generation | Complete |
 | GEN-04 | Phase 5 - MIDI Conveyor Generation | Complete |
-| PRV-01 | Phase 6 - Row Preview & Export | Pending |
+| PRV-01 | Phase 6 - Row Preview & Export | Complete |
 | EXP-01 | Phase 6 - Row Preview & Export | Pending |
 | EXP-02 | Phase 6 - Row Preview & Export | Pending |
 | EXP-03 | Phase 6 - Row Preview & Export | Complete |

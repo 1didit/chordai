@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-07-13T14:14:00.000Z"
-last_activity: "2026-07-13 — Plan 06-01 complete (Wave 1): MidiFileWriter core landed -- buildMidiFile/writeToFile (format-1 SMF, TPQN 960, tempo+4/4 meta track, zero-length-note guard, atomic TemporaryFile replace) and suggestedFileName (MIDI-pack-style rowId_Key_NNNbpm.mid); 11 new [midifilewriter] tests, full suite 120/120 green; EXP-03 core evidenced by unit tests"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-07-13T14:27:12.000Z"
+last_activity: "2026-07-13 — Plan 06-02 complete (Wave 2): AuditionRenderer + AuditionVoice deterministic pre-renderer landed under new Source/Audio/ folder, plus RT-safe preallocated double-buffer handoff wired into processBlock (startAudition/stopAudition/isAuditionPlaying/getAuditionRowId); 12 new tests (7 [auditionrenderer] + 5 [processoraudition]), full suite 132/132 green, pluginval strictness 5 SUCCESS on VST3+AU (first processBlock-touching wave); PRV-01 engine half complete"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 27
-  completed_plans: 24
-  percent: 89
+  completed_plans: 25
+  percent: 93
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 6 - Row Preview & Export IN PROGRESS (1/4 plans) — MidiFileWriter core (06-01) landed: shared format-1 SMF writer both drag-out and save-dialog will call; next: 06-02 (audition renderer + RT-safe processBlock handoff)
+**Current focus:** Phase 6 - Row Preview & Export IN PROGRESS (2/4 plans) — MidiFileWriter core (06-01) + audition engine (06-02) landed: shared format-1 SMF writer, deterministic AuditionRenderer, and RT-safe processBlock playback all ready; next: 06-03 (UI wiring — click-to-audition, drag-out, save dialog)
 
 ## Current Position
 
 Phase: 6 of 7 (Row Preview & Export) — IN PROGRESS
-Plan: 1 of 4 complete
-Status: Plan 06-01 complete — MidiFileWriter core (buildMidiFile/writeToFile/suggestedFileName) implemented and unit-tested: format-1 SMF (TPQN 960), tempo+4/4 meta track derived from AnalysisResult.bpm (bpm<=0 falls back to 120), zero-length-note guard, atomic TemporaryFile-based overwrite, MIDI-pack-style file naming (rowId_Key_NNNbpm.mid). 11 new [midifilewriter] tests, full suite 120/120 green. EXP-03 core evidenced by unit tests (bar-2 tick assertion, tempo round-trip incl. non-integer bpm + fallback). No plugin-target change this plan — pluginval gate deferred to 06-02 (first processBlock-touching wave). Next: 06-02 (AuditionRenderer + RT-safe double-buffer handoff).
-Last activity: 2026-07-13 — Plan 06-01 complete (Wave 1, foundation plan): MidiFileWriter core landed via TDD red->green across 2 tasks; single shared MIDI-writer code path ready for both 06-03 export entry points (drag-out + save dialog); zero deviations, zero regressions
+Plan: 2 of 4 complete
+Status: Plan 06-02 complete — AuditionRenderer/AuditionVoice deterministic pre-renderer (Source/Audio/, new folder) + ChordAIAudioProcessor startAudition/stopAudition/isAuditionPlaying/getAuditionRowId RT-safe playback API implemented: preallocated double-buffer + plain std::atomic index/length/pos/playing handoff into processBlock (bounded, additive addFrom mix, auto-stop at buffer end), deliberately NOT the shared_ptr atomic_load/atomic_store idiom used elsewhere (unsafe on the audio thread). 12 new tests (7 [auditionrenderer] + 5 [processoraudition]), full suite 132/132 green. pluginval strictness 5 SUCCESS on VST3 and AU (first processBlock-touching wave, mandatory RT gate). PRV-01 engine half complete — UI play/stop wiring lands in 06-03. Next: 06-03 (UI wiring for audition/drag-out/save).
+Last activity: 2026-07-13 — Plan 06-02 complete (Wave 2): AuditionRenderer + AuditionVoice deterministic pre-renderer landed under new Source/Audio/ folder, plus RT-safe preallocated double-buffer handoff wired into processBlock; 12 new tests, full suite 132/132 green, pluginval strictness 5 SUCCESS on VST3+AU; one Rule 3 test-harness fix (setRateAndBufferSizeDetails before prepareToPlay, matching real host behavior)
 
-Progress: [█████████░] 89%
+Progress: [█████████░] 93%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: ~11 min
-- Total execution time: ~3.4 hours
+- Total execution time: ~3.6 hours
 
 **By Phase:**
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 89%
 | Phase 05 P05 | ~15min (recovery) | 3 tasks | 11 files |
 | Phase 05 P06 | ~13min | 2 tasks | 0 code files (docs-only) |
 | Phase 06 P01 | ~14min | 2 tasks | 4 files |
+| Phase 06 P02 | ~11min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,7 @@ Recent decisions affecting current work:
 - [Phase 05-06]: Phase 5 closing gate — fresh Release build/full suite (109/109)/pluginval strictness 5 (VST3+AU) all green on first re-run, zero code changes needed; human checkpoint on real track TOCK.mp3 in Release Standalone approved with zero defects ("супер я бачу ряди midi") — GEN-01/02/03/04 fully evidenced end-to-end; Phase 5 complete (6/6 plans)
 - [Phase 05-06 / user demand signal]: During the Phase 5 closing checkpoint, user confirmed Phase 6 scope exactly as roadmapped — drag the MIDI pattern out to the DAW piano roll + save .mid files to a folder, referencing the commercial "MIDI pack" workflow (drop a note pattern into piano roll, assign a sound, get an instant melody). User also proposed two v2 ideas, explicitly deferred step-by-step until after Phase 6 export ships: (a) suggest similar MIDI patterns for a generated row, (b) slight randomization/variation of a generated row's melody — logged as GEN-07/GEN-08 in REQUIREMENTS.md v2 backlog, no roadmap change, no implementation triggered now.
 - [Phase 06-01]: MidiFileWriter placed under Source/MidiGen/ (not a new Source/Audio/ folder) since it only needs juce_audio_basics MIDI types, not audio-buffer/DSP types — 06-RESEARCH.md's own noted fallback option; kNoteNames duplicated verbatim from ChordNameFormatter.h as a file-local constant per the plan's explicit v1 guidance (don't refactor the shared header this phase). Single shared buildMidiFile/writeToFile code path now ready for both 06-03 export entry points (drag-out temp file + save dialog) — the structural guarantee behind EXP-03. EXP-03 marked complete in REQUIREMENTS.md per the plan's own explicit framing ("proven by round-trip unit tests, not by manual DAW import alone") — bar-2 tick assertion + tempo round-trip (incl. non-integer bpm + bpm<=0 fallback) unit-tested; EXP-01/EXP-02's own manual DAW-drag/save-dialog checkpoints still land in 06-03/06-04.
+- [Phase 06-02]: New Source/Audio/ folder introduced for AuditionVoice/AuditionRenderer (juce::AudioBuffer/juce::ADSR types), keeping Source/MidiGen/'s "pure value types, no JUCE audio dependency" rule intact for MidiFileWriter — per 06-RESEARCH.md Open Question 2's own recommendation. Preallocated double-buffer + plain std::atomic<int>/<bool> handoff established as the sanctioned pattern for message-thread-render-into-processBlock features, deliberately distinct from the codebase's existing shared_ptr atomic_load/atomic_store publication idiom (unsafe on the audio thread per 06-RESEARCH.md Pitfall 2 — those free functions are not guaranteed lock-free). AuditionVoice's deterministic voice (0.6*triangle + 0.4*saw, one-pole ~2.5kHz lowpass, juce::ADSR 5ms/400ms/0.25/150ms) is bounded to [-1,1] at every stage by construction, no randomness. Playing-row identity lives on ChordAIAudioProcessor (getAuditionRowId), not on any MidiRowView, ready for 06-03's UI wiring since MidiSetsPanel::setRows() destroys every MidiRowView on regeneration (06-RESEARCH.md Pitfall 3). PRV-01 marked complete in REQUIREMENTS.md (engine half); pluginval strictness 5 SUCCESS on VST3+AU — first wave to touch processBlock beyond the Phase 1 no-op.
 
 ### Pending Todos
 
@@ -142,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T14:14:00.000Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-07-13T14:27:12.000Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
