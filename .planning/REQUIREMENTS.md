@@ -27,7 +27,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GEN-01**: One analysis pass simultaneously produces multiple MIDI rows: detected progression as-is + style-voicing variants + bass line
 - [x] **GEN-02**: Style variants v1 — Pop/Hip-hop/Trap (triads, dark minor), R&B/Neo-soul (7th/9th/11th, smooth voice leading), Electronic/House (stabs, rhythmic patterns) — applied to the *detected* progression, not preset lookups
 - [x] **GEN-03**: Bass row follows detected chord roots with style-appropriate rhythm
-- [ ] **GEN-04**: Rows regenerate when the user changes the analysis region or style settings
+- [x] **GEN-04**: Rows regenerate when the user changes the analysis region or style settings
 
 ### Preview
 
@@ -103,7 +103,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GEN-01 | Phase 5 - MIDI Conveyor Generation | Complete |
 | GEN-02 | Phase 5 - MIDI Conveyor Generation | Complete |
 | GEN-03 | Phase 5 - MIDI Conveyor Generation | Complete |
-| GEN-04 | Phase 5 - MIDI Conveyor Generation | Pending |
+| GEN-04 | Phase 5 - MIDI Conveyor Generation | Complete |
 | PRV-01 | Phase 6 - Row Preview & Export | Pending |
 | EXP-01 | Phase 6 - Row Preview & Export | Pending |
 | EXP-02 | Phase 6 - Row Preview & Export | Pending |

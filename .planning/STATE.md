@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-07-13T12:02:06.249Z"
-last_activity: "2026-07-13 — Plan 05-02 complete (Wave 2, parallel with 05-03): four chord-row generators (generateAsIsRow, generatePopTrapRow, generateRnbNeoSoulRow, generateElectronicHouseRow) implemented via TDD against Wave 1's frozen signatures; R&B seed-chord register clamp corrected from a truncating juce::jlimit to an octave-preserving clamp (Rule 1 bug fix, verified against the plan's own expected pitch-class values); cross-style content-distinctness and detected-progression-tracking proven via pitch-class/onset/register assertions; full suite 97/97 green; GEN-02 marked complete"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-07-13T12:16:39.746Z"
+last_activity: "2026-07-13 — Plan 05-04 complete (Wave 3): generateAllRows orchestrator fans one AnalysisResult into the fixed 5-row set (as-is, pop-trap, rnb-neosoul, house, bass), byte-deterministic and <1ms measured; wired synchronously into PluginProcessor's triggerAnalysis onDone before sendChangeMessage (rows and chord timeline published in the SAME analysisBroadcaster message, never staggered); region-change regeneration reused for free from Phase 4's generation-guarded trigger path; fresh load clears stale rows; full suite 106/106 green, pluginval strictness 5 green (VST3+AU); GEN-01/GEN-04 marked complete"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 23
-  completed_plans: 20
-  percent: 87
+  completed_plans: 21
+  percent: 91
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 5 - MIDI Conveyor Generation IN PROGRESS (3/6 plans) — MidiGen foundation (05-01), style voicing (05-02), and bass line (05-03) landed; next: 05-04 orchestrator wiring
+**Current focus:** Phase 5 - MIDI Conveyor Generation IN PROGRESS (4/6 plans) — MidiGen foundation (05-01), style voicing (05-02), bass line (05-03), and the generateAllRows orchestrator + PluginProcessor wiring (05-04) landed; next: 05-05 UI panel
 
 ## Current Position
 
 Phase: 5 of 7 (MIDI Conveyor Generation) — IN PROGRESS
-Plan: 3 of 6 complete
-Status: Plans 05-01/05-02/05-03 complete — MidiGen foundation, all four style-voiced chord rows (as-is, Pop/Trap, R&B/Neo-soul, Electronic/House), and the bass row generator all implemented and tested; full suite 97/97 green; GEN-01/02/03 marked complete. Ready for 05-04 (generateAllRows orchestrator + PluginProcessor/Editor wiring).
-Last activity: 2026-07-13 — Plan 05-02 complete (Wave 2, parallel with 05-03): four chord-row generators (generateAsIsRow, generatePopTrapRow, generateRnbNeoSoulRow, generateElectronicHouseRow) implemented via TDD against Wave 1's frozen signatures; R&B seed-chord register clamp corrected from a truncating juce::jlimit to an octave-preserving clamp (Rule 1 bug fix, verified against the plan's own expected pitch-class values); cross-style content-distinctness and detected-progression-tracking proven via pitch-class/onset/register assertions; full suite 97/97 green; GEN-02 marked complete
+Plan: 4 of 6 complete
+Status: Plans 05-01/05-02/05-03/05-04 complete — MidiGen foundation, all four style-voiced chord rows, the bass row generator, and the generateAllRows orchestrator wired synchronously into PluginProcessor (rows publish atomically with the chord timeline; region change regenerates rows for free) all implemented and tested; full suite 106/106 green, pluginval strictness 5 green (VST3+AU); GEN-01/02/03/04 marked complete. Ready for 05-05 (UI panel to render the 5 rows).
+Last activity: 2026-07-13 — Plan 05-04 complete (Wave 3): generateAllRows orchestrator fans one AnalysisResult into the fixed 5-row set (as-is, pop-trap, rnb-neosoul, house, bass), byte-deterministic and <1ms measured; wired synchronously into PluginProcessor's triggerAnalysis onDone before sendChangeMessage (rows and chord timeline published in the SAME analysisBroadcaster message, never staggered); region-change regeneration reused for free from Phase 4's generation-guarded trigger path; fresh load clears stale rows; full suite 106/106 green, pluginval strictness 5 green (VST3+AU); GEN-01/GEN-04 marked complete
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [█████████░] 87%
 
 *Updated after each plan completion*
 | Phase 05 P02 | ~11min | 3 tasks | 3 files |
+| Phase 05 P04 | ~6min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,7 @@ Recent decisions affecting current work:
 - [Phase 05-01]: MidiGen module foundation landed: beat-domain NoteEvent, frozen 5-row generator signatures, tested chord-tone/voice-leading/humanization helpers, self-consistency-tested fixtures, one-time CMake wiring for the whole phase
 - [Phase 05-03]: generateBassRow implemented (TrapSustain/RnbRootFifth/HouseFourOnFloor), root-following proven across all three rhythms, byte-deterministic; RnbRootFifth walks 4-beat spans (root then fifth via root+7 semitones, no %12 wrap) with a root-only sustain for any remainder under 4 beats; GEN-03 marked complete
 - [Phase 05-02]: Four style-voiced chord row generators implemented (as-is, Pop/Trap, R&B/Neo-soul, Electronic/House); R&B seed-chord register clamp corrected from truncating juce::jlimit to octave-preserving clamp (Rule 1 bug fix, verified against plan's own expected pitch-class values); GEN-02 marked complete
+- [Phase 05-04]: generateAllRows orchestrator wired synchronously into PluginProcessor's triggerAnalysis onDone, publishing midiSetRows via the same atomic-shared_ptr idiom as analysisResult, generated and stored BEFORE analysisBroadcaster.sendChangeMessage() so rows and the chord timeline can never be observed out of sync; region-change regeneration (GEN-04) required zero new wiring, reusing Phase 4's generation-guarded cancel-and-restart trigger path verbatim; shipped bass row defaults to BassRhythm::TrapSustain (Claude's-discretion call); GEN-01/GEN-04 marked complete
 
 ### Pending Todos
 
@@ -133,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T12:02:06.246Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-07-13T12:16:39.743Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
