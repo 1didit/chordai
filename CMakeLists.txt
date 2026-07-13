@@ -65,6 +65,8 @@ target_sources(ChordAI PRIVATE
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
+    Source/UI/GenreChipsBar.cpp
+    Source/UI/GenreSelectorOverlay.cpp
     Source/Analysis/AnalysisPipeline.cpp
     ${CHORDAI_ANALYSIS_SOURCES}
     ${CHORDAI_MIDIGEN_SOURCES}
@@ -173,6 +175,8 @@ target_sources(ChordAITests PRIVATE
     Tests/GenreStateTests.cpp
     Tests/MidiRowBuilderGenreTests.cpp
     Tests/PluginProcessorGenreTests.cpp
+    Tests/GenreSelectionLogicTests.cpp
+    Tests/GenreChipsBarLayoutTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
@@ -183,6 +187,8 @@ target_sources(ChordAITests PRIVATE
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
+    Source/UI/GenreChipsBar.cpp
+    Source/UI/GenreSelectorOverlay.cpp
     ${CHORDAI_ANALYSIS_SOURCES}
     ${CHORDAI_MIDIGEN_SOURCES}
     ${CHORDAI_AUDIO_SOURCES})
