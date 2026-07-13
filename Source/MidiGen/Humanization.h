@@ -8,8 +8,9 @@
 #include <cstdint>
 
 // Deterministic per-note velocity jitter. Pure function of noteIndex (a
-// stable, caller-assigned running count within one generateAllRows() call)
-// and a per-style seed constant -- NOT juce::Random with a time-based seed.
+// stable, caller-assigned running count within one row-generation call --
+// generateGenreRows()/regenerateRow() as of 06.1-05) and a per-style seed
+// constant -- NOT juce::Random with a time-based seed.
 // GEN-04 requires that regenerating the SAME AnalysisResult always produces
 // the SAME rows (the user must be able to trust that toggling the region
 // selector back to an identical range doesn't change how a row sounds) --
