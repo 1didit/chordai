@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 05-04-PLAN.md
-last_updated: "2026-07-13T12:16:39.746Z"
-last_activity: "2026-07-13 — Plan 05-04 complete (Wave 3): generateAllRows orchestrator fans one AnalysisResult into the fixed 5-row set (as-is, pop-trap, rnb-neosoul, house, bass), byte-deterministic and <1ms measured; wired synchronously into PluginProcessor's triggerAnalysis onDone before sendChangeMessage (rows and chord timeline published in the SAME analysisBroadcaster message, never staggered); region-change regeneration reused for free from Phase 4's generation-guarded trigger path; fresh load clears stale rows; full suite 106/106 green, pluginval strictness 5 green (VST3+AU); GEN-01/GEN-04 marked complete"
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-07-13T13:10:00.000Z"
+last_activity: "2026-07-13 — Plan 05-05 complete (Wave 4): MidiSetsPanel replaces MidiSetsPlaceholder in the 140px bottom band with 5 labeled mini piano-roll strips (MidiRowView), one shared beat-axis time scale, pixel-art palette; wired into the same analysisBroadcaster message as the chord timeline (blank on fresh load, restore on editor reopen); MidiSetsPlaceholder deleted from repo and both CMake targets; full suite 109/109 green, pluginval strictness 5 green (VST3+AU); GEN-01 fully evidenced (visible half)"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 23
-  completed_plans: 21
-  percent: 91
+  completed_plans: 22
+  percent: 96
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 5 - MIDI Conveyor Generation IN PROGRESS (4/6 plans) — MidiGen foundation (05-01), style voicing (05-02), bass line (05-03), and the generateAllRows orchestrator + PluginProcessor wiring (05-04) landed; next: 05-05 UI panel
+**Current focus:** Phase 5 - MIDI Conveyor Generation IN PROGRESS (5/6 plans) — MidiGen foundation (05-01), style voicing (05-02), bass line (05-03), the generateAllRows orchestrator + PluginProcessor wiring (05-04), and the MidiSetsPanel bottom-band UI (05-05) landed; next: 05-06 (Phase 5 closing plan)
 
 ## Current Position
 
 Phase: 5 of 7 (MIDI Conveyor Generation) — IN PROGRESS
-Plan: 4 of 6 complete
-Status: Plans 05-01/05-02/05-03/05-04 complete — MidiGen foundation, all four style-voiced chord rows, the bass row generator, and the generateAllRows orchestrator wired synchronously into PluginProcessor (rows publish atomically with the chord timeline; region change regenerates rows for free) all implemented and tested; full suite 106/106 green, pluginval strictness 5 green (VST3+AU); GEN-01/02/03/04 marked complete. Ready for 05-05 (UI panel to render the 5 rows).
-Last activity: 2026-07-13 — Plan 05-04 complete (Wave 3): generateAllRows orchestrator fans one AnalysisResult into the fixed 5-row set (as-is, pop-trap, rnb-neosoul, house, bass), byte-deterministic and <1ms measured; wired synchronously into PluginProcessor's triggerAnalysis onDone before sendChangeMessage (rows and chord timeline published in the SAME analysisBroadcaster message, never staggered); region-change regeneration reused for free from Phase 4's generation-guarded trigger path; fresh load clears stale rows; full suite 106/106 green, pluginval strictness 5 green (VST3+AU); GEN-01/GEN-04 marked complete
+Plan: 5 of 6 complete
+Status: Plans 05-01/05-02/05-03/05-04/05-05 complete — MidiGen foundation, all four style-voiced chord rows, the bass row generator, the generateAllRows orchestrator wired synchronously into PluginProcessor, and the MidiSetsPanel bottom-band UI (5 labeled mini piano-roll strips replacing MidiSetsPlaceholder, wired into the same analysisBroadcaster message as the chord timeline) all implemented and tested; full suite 109/109 green, pluginval strictness 5 green (VST3+AU); GEN-01/02/03/04 marked complete. Ready for 05-06.
+Last activity: 2026-07-13 — Plan 05-05 complete (Wave 4): MidiSetsPanel replaces MidiSetsPlaceholder in the 140px bottom band with 5 labeled mini piano-roll strips (MidiRowView), one shared beat-axis time scale, pixel-art palette; wired into the same analysisBroadcaster message as the chord timeline (blank on fresh load, restore on editor reopen); MidiSetsPlaceholder deleted from repo and both CMake targets; full suite 109/109 green, pluginval strictness 5 green (VST3+AU); GEN-01 fully evidenced (visible half)
 
-Progress: [█████████░] 91%
+Progress: [██████████] 96%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [█████████░] 91%
 *Updated after each plan completion*
 | Phase 05 P02 | ~11min | 3 tasks | 3 files |
 | Phase 05 P04 | ~6min | 3 tasks | 5 files |
+| Phase 05 P05 | ~15min (recovery) | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 05-03]: generateBassRow implemented (TrapSustain/RnbRootFifth/HouseFourOnFloor), root-following proven across all three rhythms, byte-deterministic; RnbRootFifth walks 4-beat spans (root then fifth via root+7 semitones, no %12 wrap) with a root-only sustain for any remainder under 4 beats; GEN-03 marked complete
 - [Phase 05-02]: Four style-voiced chord row generators implemented (as-is, Pop/Trap, R&B/Neo-soul, Electronic/House); R&B seed-chord register clamp corrected from truncating juce::jlimit to octave-preserving clamp (Rule 1 bug fix, verified against plan's own expected pitch-class values); GEN-02 marked complete
 - [Phase 05-04]: generateAllRows orchestrator wired synchronously into PluginProcessor's triggerAnalysis onDone, publishing midiSetRows via the same atomic-shared_ptr idiom as analysisResult, generated and stored BEFORE analysisBroadcaster.sendChangeMessage() so rows and the chord timeline can never be observed out of sync; region-change regeneration (GEN-04) required zero new wiring, reusing Phase 4's generation-guarded cancel-and-restart trigger path verbatim; shipped bass row defaults to BassRhythm::TrapSustain (Claude's-discretion call); GEN-01/GEN-04 marked complete
+- [Phase 05-05]: MidiSetsPanel replaces MidiSetsPlaceholder with 5 labeled MidiRowView mini piano-roll strips in the 140px bottom band; MidiRowLayout.h mirrors WaveformMath.h's pure-free-function extraction rationale (beatsToX/noteWidthPx/pitchToY, unit-tested without a Component); each row auto-zooms its own pitch register (+/-2 semitones) rather than sharing one global range; note velocity maps to accent-colour alpha, not size, keeping flat-rect pixel-art fidelity; setRows wired into both changeListenerCallback's analysisBroadcaster branch and handleLoadComplete alongside chordTimeline.setResult, so rows and the chord timeline can never desync; this was a recovery session (prior agent's untracked Task-1 skeleton files were assessed, kept where they matched spec, and completed) — one Rule 3 blocking fix (relative-include path in the recovered MidiRowView.h/MidiSetsPanel.h) applied before proceeding
 
 ### Pending Todos
 
@@ -135,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T12:16:39.743Z
-Stopped at: Completed 05-04-PLAN.md
+Last session: 2026-07-13T13:10:00.000Z
+Stopped at: Completed 05-05-PLAN.md
 Resume file: None
