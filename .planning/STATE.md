@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 06-04-PLAN.md
-last_updated: "2026-07-13T18:35:06.009Z"
-last_activity: "2026-07-13 — Plan 06-04 complete (Wave 4, Phase 6 closing plan): fresh Release build/suite/pluginval gate green (134/134, VST3+AU strictness 5 SUCCESS x2); human checkpoint approved on FL Studio + real track TOCK.mp3 after a stale-Standalone-instance troubleshooting detour; PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; Phase 6 complete (4/4 plans)"
+stopped_at: Completed 06.1-04-PLAN.md
+last_updated: "2026-07-13T19:02:10.879Z"
+last_activity: "2026-07-13 — Plan 06.1-04 complete (Wave 2): 10-genre PatternArchetype data library authored (GenreRegistry.cpp, 636 lines) with full research-table authenticity detail for the 5 main genres and solid tick-exact starters for the remaining 5; BassLine slot dual-path policy established (delegate to generateBassRow vs. generic toneSet+rhythmPool path); phase-critical 960-tick-exactness sweep green; full suite 175/175"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 34
-  completed_plans: 29
-  percent: 100
+  completed_plans: 31
+  percent: 91
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-07-12)
 
 ## Current Position
 
-Phase: 6 of 7 (Row Preview & Export) — COMPLETE
-Plan: 4 of 4 complete
-Status: Plan 06-04 complete — fresh Release build/full suite (134/134)/pluginval strictness 5 (VST3+AU) SUCCESS x2 all green; human checkpoint on real track TOCK.mp3 in FL Studio approved with zero code defects (one process-level checkpoint lesson: a stale pre-Phase-6 Standalone instance masked the fresh build until killed+relaunched — see Decisions). Audition play/stop/one-at-a-time/auto-stop/region-change-stop, drag-into-piano-roll (correct notes/bars/tempo, repeat-drag safe), and native save dialog (MIDI-pack naming, default folder, last-dir memory) all human-confirmed. PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; Phase 6 complete (4/4 plans). Next: Phase 7 (Persistence & Multi-DAW Verification) — likely preceded by an inserted Phase 6.1 for the user's new genre-system/regenerate/premium-conveyor/max-quality-MIDI demand signal.
-Last activity: 2026-07-13 — Plan 06-04 complete (Wave 4, Phase 6 closing plan): fresh Release build/suite/pluginval gate green (134/134, VST3+AU strictness 5 SUCCESS x2); human checkpoint approved on FL Studio + real track TOCK.mp3 after a stale-Standalone-instance troubleshooting detour; PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; Phase 6 complete (4/4 plans)
+Phase: 6.1 of 7+ (Genre Patterns & Premium Conveyor, inserted phase) — IN PROGRESS
+Plan: 04 of 07 complete (01, 02, 04 have landed SUMMARYs; 03 ran concurrently with 04 — its own SUMMARY/STATE update is tracked by its own execution thread)
+Status: Plan 06.1-04 complete — full 10-genre GenreRegistry.cpp library authored (trap, uk-drill, boom-bap, rnb-neosoul, house, pop, lofi, afrobeats, reggaeton, techno) over the frozen 06.1-01 contracts, with the phase-critical tick-exactness sweep (AllRhythmPoolOnsetsDivide960Exactly) green across every onset/span in the registry. Ran in parallel wave with 06.1-03 (PatternEngine.cpp body, disjoint files); full project suite green (175/175) after both landed. Next: 06.1-05 (MidiRowBuilder genre wiring + PluginProcessor), then 06.1-06 (genre selector UI) and 06.1-07 (ear-check checkpoint) before Phase 7 (Persistence & Multi-DAW Verification).
+Last activity: 2026-07-13 — Plan 06.1-04 complete (Wave 2): 10-genre PatternArchetype data library authored (GenreRegistry.cpp, 636 lines) with full research-table authenticity detail for the 5 main genres and solid tick-exact starters for the remaining 5; BassLine slot dual-path policy established (delegate to generateBassRow vs. generic toneSet+rhythmPool path); phase-critical 960-tick-exactness sweep green; full suite 175/175
 
-Progress: [██████████] 100%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -77,6 +77,8 @@ Progress: [██████████] 100%
 | Phase 06 P04 | ~58min (incl. checkpoint troubleshooting) | 3 tasks | 0 code files (docs-only) |
 | Phase 06.1 P02 | ~18min | 2 tasks | 2 files |
 | Phase 06.1 P01 | ~20min | 3 tasks | 24 files |
+| Phase 06.1 P03 | 24min | 2 tasks | 2 files |
+| Phase 06.1 P04 | 20min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -141,6 +143,8 @@ Recent decisions affecting current work:
 - [Phase 06-04 / user demand signal]: During the Phase 6 closing checkpoint, after approving with "супер", the user gave a large new forward-looking feature direction — explicitly not to be implemented now, recorded here as the driver for an upcoming inserted Phase 6.1: (1) a genre system — genre chips near a narrower waveform strip (trap, uk drill, rap, hip hop, electronic, etc.) with a menu of checkboxes to pick the 5 main genres shown, and the MIDI panel showing 5 patterns of the selected genre fitting the song's motif; (2) a per-row regenerate/randomize button; (3) a premium-quality conveyor rework — idle state shows "drop song or melody here" (stopped), animates only on drag/analysis; (4) maximum-quality MIDI generation algorithms (raising the bar on 05's existing generators). No roadmap/requirements change made in this plan — needs its own `/gsd:plan-phase` pass to scope as Phase 6.1 before or interleaved with Phase 7.
 - [Phase 06.1-02]: Premium conveyor rework (UI-01): belt gated STOPPED/animate on (dragHover || analyzing), persistent "drop song or melody here" pixel text drawn into the logical frame, roller-rotation/dither/two-tone belt texture and chunk arc+bounce all procedural (no juce::Random/assets); fixed a pre-existing scale bug that made the falling-chunk stub invisible since 04-03 (physics in full-resolution units, draw now divides by pixelScale). Ran in parallel with 06.1-01 (disjoint file sets: Source/UI/ConveyorBeltComponent.* only).
 - [Phase 06.1-01]: Genre-engine foundation landed: MidiSetRow reshaped RowStyle->PatternKind+patternIndex via a byte-preserving transitional migration (full pre-existing 134-test suite green throughout); every Wave 2/3 MidiGen contract frozen (GenreRegistry.h types + toneSetIntervals dispatcher, PatternEngine.h signature, GenreState.h); tick-exact GrooveEngine (swing constants/tileOnsets/isTickExact, empirically round-tripped through the real MidiFileWriter to an exact tick) and float-free deterministic PatternSeed (hashChordProgression/computeBaseSeed/combineSeedWithVariation) both TDD-implemented; Arpeggiator + ChordToneMapper diatonicScaleIntervals/powerChordIntervals added. One-time CMake wiring frozen for the whole phase's MidiGen sources + 8 test files. Ran in parallel with 06.1-02 (disjoint file sets: Source/MidiGen/*, Tests/*, CMakeLists.txt vs. Source/UI/ConveyorBeltComponent.*); recovered once from a shared-build-directory `libChordAI_SharedCode.a` link-archive race caused by both plans invoking `cmake --build build` concurrently (rebuilt the target in isolation, no source change needed) — documented as a process note for future parallel waves sharing one build dir.
+- [Phase 06.1-04]: Genre library data complete — all 10 `GenreSpec`s (trap, uk-drill, boom-bap, rnb-neosoul, house, pop, lofi, afrobeats, reggaeton, techno) authored in `GenreRegistry.cpp` over the frozen 06.1-01 contracts, each with 5 `PatternArchetype` slots. BassLine slot dual-path policy established: non-empty `bassRhythmPool` delegates to `generateBassRow` (trap/uk-drill/rnb-neosoul/house, reusing Phase 5 shapes verbatim); empty `bassRhythmPool` routes the slot through the generic `toneSet`+`rhythmPool`+`octaveOffsetPool` path instead (boom-bap/pop/lofi/afrobeats/reggaeton/techno, where the fixed 3-value `BassRhythm` enum has no matching shape — e.g. boom bap's swung root+octave alternation). Phase-critical `AllRhythmPoolOnsetsDivide960Exactly` sweep proves every onset/span in the entire registry is tick-exact against TPQN 960; `RegeneratePoolsOfferVariety` proves all 5 main genres have real regenerate material (>=3 of 5 slots with >=2 rhythm/octave variants). One real bug auto-fixed during TDD RED->GREEN: `PatternArchetype.kind` was never explicitly assigned per slot in the first draft, silently leaving every non-Sustained slot mis-tagged as `SustainedChords` (caught immediately by `RegistryShapeIsWellFormed`'s `patterns[i].kind == (PatternKind) i` invariant). Ran in parallel wave with 06.1-03 (PatternEngine.cpp body, disjoint files: Source/MidiGen/GenreRegistry.cpp + Tests/GenreRegistryTests.cpp only); full project suite green (175/175) after both landed, zero cross-plan conflicts. GEN-09/GEN-10 left unchecked in REQUIREMENTS.md — both are user-facing (genre selection, chips, panel display), this plan only supplies their backing data; full evidence needs 06.1-05 (row wiring) + 06.1-06 (selector UI).
+- [Phase 06.1-03]: generatePattern implemented: generic per-segment loop covering all 5 PatternKind slots from PatternArchetype data, harmony-preserving register clamp (octave-preserving, not truncating), BassLine delegation to generateBassRow, StabArp one-tone-per-onset arpeggiation, TopLineMotif diatonic-only ornaments via a boundary-exact hash; harmony preservation proven across 21 seed variations; GEN-09/GEN-11 left pending (engine proven in isolation, awaiting 06.1-04 genre data + 06.1-05 UI wiring for end-to-end evidence)
 
 ### Pending Todos
 
@@ -153,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T16:43:12+01:00
-Stopped at: Completed 06-04-PLAN.md
+Last session: 2026-07-13T19:02:04.604Z
+Stopped at: Completed 06.1-04-PLAN.md
 Resume file: None

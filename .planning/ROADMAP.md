@@ -141,11 +141,12 @@ Plans:
   3. Each row has a regenerate button producing a new variation of that pattern only (harmony preserved, deterministic seed increment)
   4. Idle conveyor is stopped and shows "drop song or melody here"; it animates on drag-over and during analysis; visual quality is noticeably upgraded
   5. Patterns are genre-authentic (rhythm/voicing/register/velocity) — quality validated by ear on a real track
-**Plans**: 2/7 plans executed
+**Plans**: 4/7 plans executed
 
 Plans:
 - [x] 06.1-01-PLAN.md — Genre-engine foundation: MidiSetRow reshape (RowStyle->PatternKind), frozen GenreRegistry/PatternEngine/GenreState contracts, tick-exact GrooveEngine + deterministic PatternSeed + Arpeggiator with tests, one-time CMake wiring (Wave 1) (completed 2026-07-13)
 - [x] 06.1-02-PLAN.md — Premium conveyor rework: idle-stopped state + "drop song or melody here", roller rotation/belt texture/chunk bounce (Wave 1, parallel) (completed 2026-07-13)
+- [x] 06.1-03-PLAN.md — Generic data-driven pattern engine: generatePattern covers all 5 PatternKind slots from PatternArchetype data, harmony preservation by construction, TDD RED->GREEN->REFACTOR (Wave 2, parallel) (completed 2026-07-13)
 
 ### Phase 7: Persistence & Multi-DAW Verification
 **Goal**: The plugin's work survives a full DAW project save/reload, and the drag-out mechanic is confirmed solid in every target host — the release gate for v1.
@@ -171,5 +172,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Analysis UI Integration | 4/4 | Complete   | 2026-07-13 |
 | 5. MIDI Conveyor Generation | 6/6 | Complete   | 2026-07-13 |
 | 6. Row Preview & Export | 4/4 | Complete   | 2026-07-13 |
-| 6.1. Genre Patterns & Premium Conveyor | 2/7 | In progress | - |
+| 6.1. Genre Patterns & Premium Conveyor | 4/7 | In Progress|  |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |
