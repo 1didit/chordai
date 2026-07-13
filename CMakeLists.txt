@@ -138,6 +138,7 @@ target_sources(ChordAITests PRIVATE
     Tests/ChordDecoderTests.cpp
     Tests/ClassicDspChordAnalyzerTests.cpp
     Tests/AnalysisPipelineTests.cpp
+    Tests/ChordNameFormatterTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
