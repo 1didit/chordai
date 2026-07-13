@@ -38,6 +38,12 @@ void MidiSetsPanel::resized()
 
 void MidiSetsPanel::setRows (std::shared_ptr<const std::vector<MidiSetRow>> newRows)
 {
+    // FIRST LINE, unconditionally: a regenerate always invalidates whatever
+    // was playing -- the old MidiSetRow object no longer exists, and every
+    // MidiRowView is about to be destroyed below (06-RESEARCH.md Pitfall 3).
+    if (onStopAudition)
+        onStopAudition();
+
     rows = std::move (newRows);
     rowViews.clear();
 
@@ -59,8 +65,39 @@ void MidiSetsPanel::setRows (std::shared_ptr<const std::vector<MidiSetRow>> newR
         auto* view = rowViews.add (new MidiRowView());
         addAndMakeVisible (view);
         view->setRow (row, totalBeats);
+
+        // Forward the row-level hooks -- MidiRowView never reaches into
+        // PluginProcessor directly.
+        view->getBpmForExport = getBpmForExport;
+        view->getKeyForExport = getKeyForExport;
+        view->isRowPlaying = isRowPlaying;
+        view->onAuditionToggle = [this] (const MidiSetRow& r)
+        {
+            if (onAuditionToggle)
+                onAuditionToggle (r);
+
+            // Playing-state repaint: icon glyphs read play state live from
+            // isRowPlaying (no cached booleans on views) -- the timer just
+            // has to keep repainting while something is (or might still be)
+            // playing, including auto-stop at buffer end.
+            startTimerHz (10);
+        };
     }
 
     resized();
     repaint();
+}
+
+void MidiSetsPanel::timerCallback()
+{
+    for (auto* view : rowViews)
+        view->repaint();
+
+    bool anyPlaying = false;
+    if (isRowPlaying && rows != nullptr)
+        for (auto& row : *rows)
+            anyPlaying = anyPlaying || isRowPlaying (row.id);
+
+    if (! anyPlaying)
+        stopTimer(); // one final repaint above already happened this call
 }

@@ -12,6 +12,33 @@ ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor&
     conveyor.onFileDropped = [this] (juce::File f) { processor.loadAudioFile (std::move (f)); };
     regionOverlay.onRegionChanged = [this] (juce::Range<double> r) { processor.setSelectedRegion (r); };
 
+    // Row audition/export hooks (PRV-01/EXP-01/EXP-02) -- assigned BEFORE the
+    // editor-reopen restore branch below, which may call setRows immediately.
+    // Capturing `this` is safe: midiSetsPanel is a member of this editor, so
+    // these hooks cannot outlive it.
+    midiSetsPanel.onStopAudition = [this] { processor.stopAudition(); };
+    midiSetsPanel.getBpmForExport = [this]
+    {
+        auto r = processor.getAnalysisResult();
+        return (r != nullptr && r->bpm > 0.0) ? r->bpm : 120.0;
+    };
+    midiSetsPanel.getKeyForExport = [this]
+    {
+        auto r = processor.getAnalysisResult();
+        return r != nullptr ? r->key : KeyResult {};
+    };
+    midiSetsPanel.onAuditionToggle = [this] (const MidiSetRow& row)
+    {
+        if (processor.isAuditionPlaying() && processor.getAuditionRowId() == row.id)
+            processor.stopAudition();
+        else
+            processor.startAudition (row);
+    };
+    midiSetsPanel.isRowPlaying = [this] (const juce::String& id)
+    {
+        return processor.isAuditionPlaying() && processor.getAuditionRowId() == id;
+    };
+
     processor.loadBroadcaster.addChangeListener (this);
     processor.analysisBroadcaster.addChangeListener (this);
 
