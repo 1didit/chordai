@@ -48,6 +48,13 @@ set(CHORDAI_MIDIGEN_SOURCES
     Source/MidiGen/MidiRowBuilder.cpp
     Source/MidiGen/MidiFileWriter.cpp)
 
+# Audio-thread-adjacent code (juce::AudioBuffer/juce::ADSR types) -- kept out
+# of Source/MidiGen/'s "pure value types, no JUCE audio dependency"
+# folder-boundary rule (06-RESEARCH.md Open Question 2).
+set(CHORDAI_AUDIO_SOURCES
+    Source/Audio/AuditionVoice.cpp
+    Source/Audio/AuditionRenderer.cpp)
+
 target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
@@ -60,7 +67,8 @@ target_sources(ChordAI PRIVATE
     Source/UI/ChordTimelineView.cpp
     Source/Analysis/AnalysisPipeline.cpp
     ${CHORDAI_ANALYSIS_SOURCES}
-    ${CHORDAI_MIDIGEN_SOURCES})
+    ${CHORDAI_MIDIGEN_SOURCES}
+    ${CHORDAI_AUDIO_SOURCES})
 
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
@@ -157,6 +165,8 @@ target_sources(ChordAITests PRIVATE
     Tests/PluginProcessorMidiGenTests.cpp
     Tests/MidiSetsPanelLayoutTests.cpp
     Tests/MidiFileWriterTests.cpp
+    Tests/AuditionRendererTests.cpp
+    Tests/ProcessorAuditionTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
@@ -168,7 +178,8 @@ target_sources(ChordAITests PRIVATE
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
     ${CHORDAI_ANALYSIS_SOURCES}
-    ${CHORDAI_MIDIGEN_SOURCES})
+    ${CHORDAI_MIDIGEN_SOURCES}
+    ${CHORDAI_AUDIO_SOURCES})
 
 target_include_directories(ChordAITests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR})
