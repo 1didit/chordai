@@ -39,6 +39,11 @@ public:
     // whole window accepts drops).
     void setExternalDragHover (bool shouldHighlight);
 
+    // Lets PluginEditor drive the belt-as-progress-indicator (04-03): a gold
+    // fill along the belt top edge plus a belt speed-up while `analyzing` is
+    // true. Message-thread only, like everything else here.
+    void setAnalysisProgress (double fraction, bool analyzing);
+
     // Falling-chunk visual STUB (locked scope: "at most a visual stub/
     // placeholder animation trigger"). Pushes one chunk that falls off the
     // right end of the belt. Nothing calls this yet in Phase 2 — Plan 02-03
@@ -58,6 +63,8 @@ private:
 
     int beltOffset = 0;
     bool dragHover = false;
+    double analysisFraction = 0.0;
+    bool analyzing = false;
 
     juce::Image frame; // small logical-resolution buffer, upscaled nearest-neighbour in paint()
     std::vector<FallingChunk> chunks;

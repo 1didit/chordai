@@ -10,6 +10,8 @@ namespace
     const juce::Colour rollerColour     { 0xff5a5a6e };
     const juce::Colour edgeHighlight    { 0x33ffffff };
     const juce::Colour dragOutline      { 0xffe8c547 };
+    const juce::Colour progressFill     { 0xffe8c547 }; // same gold accent as dragOutline
+    const juce::Colour progressTrack    { 0x33e8c547 }; // dim variant — 0% still reads as "armed"
     const juce::Colour chunkColour      { 0xff7ec850 };
 }
 
@@ -32,7 +34,7 @@ void ConveyorBeltComponent::resized()
 
 void ConveyorBeltComponent::timerCallback()
 {
-    beltOffset = (beltOffset + 1) % slatSpacing;
+    beltOffset = (beltOffset + (analyzing ? 2 : 1)) % slatSpacing;
 
     // Advance falling chunks (stub physics only).
     constexpr float gravity = 0.6f;
@@ -84,6 +86,20 @@ void ConveyorBeltComponent::paint (juce::Graphics& g)
     fg.drawHorizontalLine (beltTop, 0.0f, (float) logicalW);
     fg.drawHorizontalLine (beltTop + beltHeight - 1, 0.0f, (float) logicalW);
 
+    // Analysis progress fill: a flat gold bar sitting on the belt's top edge,
+    // painted inside the logical frame so it inherits the pixel-art
+    // chunkiness on upscale. Shown for the full duration of analysis, plus
+    // any brief tail where fraction hasn't yet reached 1.0.
+    if (analyzing || (analysisFraction > 0.0 && analysisFraction < 1.0))
+    {
+        constexpr int fillHeight = 2;
+        auto filledWidth = juce::roundToInt (logicalW * (float) juce::jlimit (0.0, 1.0, analysisFraction));
+        fg.setColour (progressTrack);
+        fg.fillRect (0, beltTop, logicalW, fillHeight);
+        fg.setColour (progressFill);
+        fg.fillRect (0, beltTop, filledWidth, fillHeight);
+    }
+
     // Falling-chunk stub: piano-roll note look.
     fg.setColour (chunkColour);
     for (auto& c : chunks)
@@ -123,6 +139,16 @@ void ConveyorBeltComponent::setExternalDragHover (bool shouldHighlight)
     if (dragHover != shouldHighlight)
     {
         dragHover = shouldHighlight;
+        repaint();
+    }
+}
+
+void ConveyorBeltComponent::setAnalysisProgress (double fraction, bool nowAnalyzing)
+{
+    if (analysisFraction != fraction || analyzing != nowAnalyzing)
+    {
+        analysisFraction = fraction;
+        analyzing = nowAnalyzing;
         repaint();
     }
 }
