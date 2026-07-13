@@ -2,6 +2,7 @@
 #include "PluginEditor.h"
 
 #include "Analysis/AnalysisPipeline.h"
+#include "Audio/AuditionRenderer.h"
 #include "Import/AudioFileLoader.h"
 #include "Import/RegionState.h"
 #include "MidiGen/MidiRowBuilder.h"
@@ -33,6 +34,11 @@ void ChordAIAudioProcessor::prepareToPlay (double, int)
     // All allocation happens here, not in processBlock. Nothing to allocate yet in
     // Phase 1 (no DSP state exists) — this function is the designated allocation site
     // for every future phase to use, establishing the discipline now.
+
+    // A sample-rate/block-size change invalidates any rendered audition buffer
+    // (it was rendered at the OLD sample rate) -- stop rather than risk
+    // playing it back at the wrong pitch/speed on the new rate.
+    stopAudition();
 }
 
 void ChordAIAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -40,11 +46,37 @@ void ChordAIAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     juce::ScopedNoDenormals noDenormals;
     juce::ignoreUnused (midiMessages);
 
-    // v1 does no live audio processing. Zero heap allocation, zero locks, zero file
-    // I/O, zero juce::String construction. This function must stay this simple until
-    // a later phase deliberately adds real-time DSP with its own lock-free handoff.
+    // v1 does no live audio processing beyond the PRV-01 audition mix below.
+    // Zero heap allocation, zero locks, zero file I/O, zero juce::String
+    // ops, zero shared_ptr/atomic_load/atomic_store -- this IS the
+    // deliberate real-time DSP addition the old comment warned future
+    // phases about; it uses its own lock-free plain-atomics double-buffer
+    // handoff (06-RESEARCH.md Pattern 3 / Pitfall 2), not the shared_ptr
+    // publication idiom used elsewhere in this file.
     for (int ch = getTotalNumOutputChannels(); ch < buffer.getNumChannels(); ++ch)
         buffer.clear (ch, 0, buffer.getNumSamples());
+
+    if (auditionPlaying.load (std::memory_order_acquire))
+    {
+        const int idx = auditionActiveIndex.load (std::memory_order_acquire);
+        const int len = auditionActiveLength.load (std::memory_order_relaxed);
+        const int pos = auditionReadPos.load (std::memory_order_relaxed);
+        auto& src = auditionBuffers[idx]; // audio thread NEVER writes/resizes this --
+                                           // message thread only ever touches the OTHER index
+
+        const int toCopy = juce::jmin (len - pos, buffer.getNumSamples());
+        if (toCopy > 0)
+        {
+            const int srcChannels = src.getNumChannels();
+            for (int ch = 0; ch < getTotalNumOutputChannels(); ++ch)
+                buffer.addFrom (ch, 0, src, juce::jmin (ch, srcChannels - 1), pos, toCopy);
+        }
+
+        const int newPos = pos + toCopy;
+        auditionReadPos.store (newPos, std::memory_order_relaxed);
+        if (newPos >= len)
+            auditionPlaying.store (false, std::memory_order_release); // auto-stop at end
+    }
 }
 
 juce::AudioProcessorEditor* ChordAIAudioProcessor::createEditor()
@@ -224,24 +256,37 @@ double ChordAIAudioProcessor::getAnalysisProgress() const
 
 void ChordAIAudioProcessor::startAudition (const MidiSetRow& row)
 {
-    juce::ignoreUnused (row);
-    // RED stub -- GREEN phase (Task 2) implements the real double-buffer
-    // render + publish sequence described in PluginProcessor.h.
+    // Message thread only: getAnalysisResult()'s atomic_load idiom is safe
+    // HERE (message-thread-to-message-thread), unlike inside processBlock.
+    auto result = getAnalysisResult();
+    const double bpm = (result != nullptr && result->bpm > 0.0) ? result->bpm : 120.0;
+
+    const int inactive = 1 - auditionActiveIndex.load (std::memory_order_relaxed);
+    auditionBuffers[inactive] = AuditionRenderer::render (row, bpm, getSampleRate());
+        // getSampleRate() is safe on the message thread here: by the time a
+        // user can click Play, prepareToPlay has already run at least once.
+
+    auditionRowId = row.id;
+
+    auditionReadPos.store (0, std::memory_order_relaxed);
+    auditionActiveLength.store (auditionBuffers[inactive].getNumSamples(), std::memory_order_relaxed);
+    auditionActiveIndex.store (inactive, std::memory_order_release);  // publish buffer swap...
+    auditionPlaying.store (true, std::memory_order_release);          // ...then arm playback
 }
 
 void ChordAIAudioProcessor::stopAudition()
 {
-    // RED stub.
+    auditionPlaying.store (false, std::memory_order_release);
 }
 
 bool ChordAIAudioProcessor::isAuditionPlaying() const
 {
-    return false; // RED stub.
+    return auditionPlaying.load (std::memory_order_relaxed);
 }
 
 juce::String ChordAIAudioProcessor::getAuditionRowId() const
 {
-    return {}; // RED stub.
+    return auditionRowId;
 }
 
 // This creates new instances of the plugin — required by every JUCE plugin, build

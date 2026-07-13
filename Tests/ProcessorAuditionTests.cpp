@@ -52,6 +52,12 @@ TEST_CASE ("ProcessorAuditionTests.PlaybackMixesAuditionAudioIntoProcessBlock", 
 {
     juce::ScopedJuceInitialiser_GUI guiInit;
     ChordAIAudioProcessor proc;
+    // Real hosts (VST3/AU/Standalone wrapper code) always call
+    // setRateAndBufferSizeDetails() before prepareToPlay() -- getSampleRate()
+    // is only valid inside/after prepareToPlay because of that host-side
+    // contract, so tests must replicate it rather than calling prepareToPlay
+    // bare.
+    proc.setRateAndBufferSizeDetails (44100.0, 512);
     proc.prepareToPlay (44100.0, 512);
 
     const auto row = makeRow ("as-is", 0.0, 1.0, 60, 0.8f);
@@ -72,6 +78,12 @@ TEST_CASE ("ProcessorAuditionTests.AutoStopsAtBufferEnd", "[processoraudition]")
 {
     juce::ScopedJuceInitialiser_GUI guiInit;
     ChordAIAudioProcessor proc;
+    // Real hosts (VST3/AU/Standalone wrapper code) always call
+    // setRateAndBufferSizeDetails() before prepareToPlay() -- getSampleRate()
+    // is only valid inside/after prepareToPlay because of that host-side
+    // contract, so tests must replicate it rather than calling prepareToPlay
+    // bare.
+    proc.setRateAndBufferSizeDetails (44100.0, 512);
     proc.prepareToPlay (44100.0, 512);
 
     // 1 beat @ default-bpm fallback 120 = 0.5s; no analysisResult set.
@@ -98,6 +110,12 @@ TEST_CASE ("ProcessorAuditionTests.StopAuditionSilencesImmediately", "[processor
 {
     juce::ScopedJuceInitialiser_GUI guiInit;
     ChordAIAudioProcessor proc;
+    // Real hosts (VST3/AU/Standalone wrapper code) always call
+    // setRateAndBufferSizeDetails() before prepareToPlay() -- getSampleRate()
+    // is only valid inside/after prepareToPlay because of that host-side
+    // contract, so tests must replicate it rather than calling prepareToPlay
+    // bare.
+    proc.setRateAndBufferSizeDetails (44100.0, 512);
     proc.prepareToPlay (44100.0, 512);
 
     const auto row = makeRow ("as-is", 0.0, 2.0, 60, 0.8f);
@@ -124,6 +142,12 @@ TEST_CASE ("ProcessorAuditionTests.RestartWhilePlayingSwapsToNewRow", "[processo
 {
     juce::ScopedJuceInitialiser_GUI guiInit;
     ChordAIAudioProcessor proc;
+    // Real hosts (VST3/AU/Standalone wrapper code) always call
+    // setRateAndBufferSizeDetails() before prepareToPlay() -- getSampleRate()
+    // is only valid inside/after prepareToPlay because of that host-side
+    // contract, so tests must replicate it rather than calling prepareToPlay
+    // bare.
+    proc.setRateAndBufferSizeDetails (44100.0, 512);
     proc.prepareToPlay (44100.0, 512);
 
     const auto rowA = makeRow ("as-is", 0.0, 2.0, 60, 0.8f);
@@ -157,12 +181,19 @@ TEST_CASE ("ProcessorAuditionTests.PrepareToPlayStopsStaleAudition", "[processor
 {
     juce::ScopedJuceInitialiser_GUI guiInit;
     ChordAIAudioProcessor proc;
+    // Real hosts (VST3/AU/Standalone wrapper code) always call
+    // setRateAndBufferSizeDetails() before prepareToPlay() -- getSampleRate()
+    // is only valid inside/after prepareToPlay because of that host-side
+    // contract, so tests must replicate it rather than calling prepareToPlay
+    // bare.
+    proc.setRateAndBufferSizeDetails (44100.0, 512);
     proc.prepareToPlay (44100.0, 512);
 
     const auto row = makeRow ("as-is", 0.0, 2.0, 60, 0.8f);
     proc.startAudition (row);
     REQUIRE (proc.isAuditionPlaying());
 
+    proc.setRateAndBufferSizeDetails (48000.0, 256);
     proc.prepareToPlay (48000.0, 256);
 
     CHECK_FALSE (proc.isAuditionPlaying());
