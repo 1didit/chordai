@@ -41,6 +41,12 @@ set(CHORDAI_ANALYSIS_SOURCES
     Source/Analysis/ChordDecoder.cpp
     Source/Analysis/ClassicDspChordAnalyzer.cpp)
 
+set(CHORDAI_MIDIGEN_SOURCES
+    Source/MidiGen/AsIsRowGenerator.cpp
+    Source/MidiGen/StyleVoicingGenerators.cpp
+    Source/MidiGen/BassLineGenerator.cpp
+    Source/MidiGen/MidiRowBuilder.cpp)
+
 target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
@@ -51,7 +57,8 @@ target_sources(ChordAI PRIVATE
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
     Source/Analysis/AnalysisPipeline.cpp
-    ${CHORDAI_ANALYSIS_SOURCES})
+    ${CHORDAI_ANALYSIS_SOURCES}
+    ${CHORDAI_MIDIGEN_SOURCES})
 
 target_link_libraries(ChordAI PRIVATE
     juce::juce_audio_utils
@@ -141,6 +148,11 @@ target_sources(ChordAITests PRIVATE
     Tests/AnalysisPipelineTests.cpp
     Tests/ChordNameFormatterTests.cpp
     Tests/ChordTimelineLayoutTests.cpp
+    Tests/ChordToneMapperTests.cpp
+    Tests/StyleVoicingTests.cpp
+    Tests/BassLineGeneratorTests.cpp
+    Tests/MidiRowBuilderTests.cpp
+    Tests/PluginProcessorMidiGenTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
@@ -150,7 +162,8 @@ target_sources(ChordAITests PRIVATE
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
-    ${CHORDAI_ANALYSIS_SOURCES})
+    ${CHORDAI_ANALYSIS_SOURCES}
+    ${CHORDAI_MIDIGEN_SOURCES})
 
 target_include_directories(ChordAITests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR})
