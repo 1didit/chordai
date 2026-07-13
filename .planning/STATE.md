@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-07-13T10:46:08.000Z"
-last_activity: "2026-07-13 — Plan 04-04 complete: one-time Release build (build-release/, -O2/-O3) with full 72/72 suite green; real-track RealTrackHarness timing on TOCK.mp3 (75s) measured 2.78s (ANL-04 'seconds not minutes' confirmed on Release, not the Debug PerformanceBudget proxy); user-verified Standalone UX checkpoint approved — progress fill + belt speed-up visible, UI responsive during region-drag/window-resize, chunk fell only on completion, chord timeline legible and aligned — zero Phase 4 defects; Phase 4 complete (4/4 plans), ANL-04/ANL-05 both evidenced"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-07-13T11:42:44.535Z"
+last_activity: "2026-07-13 — Plan 05-01 complete: Source/MidiGen/ pure-C++ module skeleton (beat-domain NoteEvent/MidiSetRow model, 5 frozen generator signatures), header-only ChordToneMapper/VoiceLeadingEngine/Humanization helpers implemented and unit-tested (6 TEST_CASEs via TDD RED/GREEN), Tests/MidiGenFixtures.h with 4 self-consistency-tested struct-literal fixtures, one-time CHORDAI_MIDIGEN_SOURCES CMake wiring into both targets; full suite 79/79 green; GEN-01 marked complete"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_plans: 23
+  completed_plans: 18
+  percent: 78
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 4 - Analysis UI Integration COMPLETE (4/4 plans) — Release timing + Standalone UX checkpoint approved; next: Phase 5 (MIDI Conveyor Generation)
+**Current focus:** Phase 5 - MIDI Conveyor Generation IN PROGRESS (1/6 plans) — MidiGen module foundation landed (05-01); next: 05-02/05-03 (Wave 2, style voicing + bass line generators, parallelizable)
 
 ## Current Position
 
-Phase: 4 of 7 (Analysis UI Integration) — COMPLETE
-Plan: 4 of 4 complete
-Status: Plan 04-04 (Release timing + Standalone UX checkpoint) complete — Release build measured 2.78s for a real 75s track (ANL-04 "seconds not minutes" evidenced on Release, not the Debug proxy); user approved Standalone UX with zero Phase 4 defects. Phase 4 done; ready for /gsd:verify-work then Phase 5 planning.
-Last activity: 2026-07-13 — Plan 04-04 complete: one-time Release build (build-release/, -O2/-O3) with full 72/72 suite green; real-track RealTrackHarness timing on TOCK.mp3 (75s) measured 2.78s (ANL-04 'seconds not minutes' confirmed on Release, not the Debug PerformanceBudget proxy); user-verified Standalone UX checkpoint approved — progress fill + belt speed-up visible, UI responsive during region-drag/window-resize, chunk fell only on completion, chord timeline legible and aligned — zero Phase 4 defects; Phase 4 complete (4/4 plans), ANL-04/ANL-05 both evidenced
+Phase: 5 of 7 (MIDI Conveyor Generation) — IN PROGRESS
+Plan: 1 of 6 complete
+Status: Plan 05-01 (MidiGen foundation) complete — Source/MidiGen/ pure-C++ module skeleton, 5 frozen generator signatures, tested header-only music-math helpers, 4 struct-literal fixtures, one-time CMake wiring; full suite 79/79 green; GEN-01 marked complete. Wave 2 (05-02 style voicing, 05-03 bass line) ready to run in parallel against the frozen signatures.
+Last activity: 2026-07-13 — Plan 05-01 complete: Source/MidiGen/ pure-C++ module skeleton (beat-domain NoteEvent/MidiSetRow model, 5 frozen generator signatures), header-only ChordToneMapper/VoiceLeadingEngine/Humanization helpers implemented and unit-tested (6 TEST_CASEs via TDD RED/GREEN), Tests/MidiGenFixtures.h with 4 self-consistency-tested struct-literal fixtures, one-time CHORDAI_MIDIGEN_SOURCES CMake wiring into both targets; full suite 79/79 green; GEN-01 marked complete
 
-Progress: [██████████] 100%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: ~12 min
-- Total execution time: ~3.3 hours
+- Total plans completed: 18
+- Average duration: ~11 min
+- Total execution time: ~3.4 hours
 
 **By Phase:**
 
@@ -60,6 +60,7 @@ Progress: [██████████] 100%
 | Phase 04 P02 | ~7min | 3 tasks | 8 files |
 | Phase 04 P03 | ~5min | 2 tasks | 4 files |
 | Phase 04 P04 | ~20min | 2 tasks | 1 file |
+| Phase 05 P01 | 6min | 3 tasks | 20 files |
 
 **Recent Trend:**
 - Last 5 plans: 20min, 23min+checkpoint, 20min, ~7min, ~5min
@@ -116,6 +117,7 @@ Recent decisions affecting current work:
 - [Phase 04-03]: Falling-chunk stub trigger moved from load-complete to the analyzing->idle transition (edge-detected via editor-local `wasAnalyzing`, guarded by a non-null published result) — a superseded/cancelled analysis run never fires a spurious chunk, per 04-01's generation-guard invariant.
 - [Phase 04-04]: One-time Release build (build-release/, git-ignored) measured the real ANL-04 timing claim: TOCK.mp3 (75s track) analyzed in 2.78s on Release vs. Debug's ~35s/180s PerformanceBudget proxy — confirms "seconds not minutes" is a Release-build claim, not evidenced by the Debug regression test alone. Phase 4 complete (4/4 plans); user checkpoint approved with zero defects.
 - [Phase 04-04 / user demand signal]: During the Phase 4 closing checkpoint, user's approval feedback pushed explicitly toward Phase 5/6 scope: "мені потрібні конкретні акорди для piano roll які я зможу зберегти як midi чи перетягнути до іншого інструменту" (concrete chords for piano roll, saveable as MIDI or draggable to another instrument). This maps directly to existing roadmap scope — Phase 5 GEN-01..04 (MIDI row generation) and Phase 6 EXP-01..03/PRV-01 (drag-out, .mid save, preview) — no roadmap change needed, but it validates and should weight Phase 5/6 planning toward shipping the drag-out/.mid-save path early rather than deferring it.
+- [Phase 05-01]: MidiGen module foundation landed: beat-domain NoteEvent, frozen 5-row generator signatures, tested chord-tone/voice-leading/humanization helpers, self-consistency-tested fixtures, one-time CMake wiring for the whole phase
 
 ### Pending Todos
 
@@ -128,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T10:46:08.000Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-07-13T11:42:44.532Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
