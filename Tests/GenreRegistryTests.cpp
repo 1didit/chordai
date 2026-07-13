@@ -9,16 +9,10 @@
 
 #include <set>
 
-namespace
-{
-    // Task 1: only the 5 main genres exist yet -- bumped to == 10 in Task 2.
-    constexpr size_t kExpectedGenreCountSoFar = 5; // TODO(Task 2): becomes 10
-}
-
 TEST_CASE ("GenreRegistryTests.RegistryShapeIsWellFormed", "[genreregistry]")
 {
     const auto& genres = allGenres();
-    REQUIRE (genres.size() >= kExpectedGenreCountSoFar);
+    REQUIRE (genres.size() == 10);
 
     for (const auto& genre : genres)
     {
@@ -94,4 +88,67 @@ TEST_CASE ("GenreRegistryTests.MainGenresAreDataDistinct", "[genreregistry]")
             INFO (ids[i] << " vs " << ids[j]);
             CHECK (prints[i] != prints[j]);
         }
+}
+
+// Phase-critical sweep (Pitfall C): every onset/span in every RhythmVariant
+// of every genre must land on an exact integer tick against TPQN 960 -- no
+// decimal swing anywhere in the data. Written FIRST as the guardrail while
+// authoring the remaining 5 genres; any authored constant that fails this
+// gets the CONSTANT fixed, never the test loosened.
+TEST_CASE ("GenreRegistryTests.AllRhythmPoolOnsetsDivide960Exactly", "[genreregistry]")
+{
+    constexpr int kTpqn = 960;
+
+    for (const auto& genre : allGenres())
+    {
+        for (const auto& p : genre.patterns)
+        {
+            for (const auto& rv : p.rhythmPool)
+            {
+                INFO ("genre: " << genre.id << " kind: " << (int) p.kind);
+                CHECK (rv.spanBeats > 0.0);
+                CHECK (isTickExact (rv.spanBeats, kTpqn));
+
+                double previousOnset = -1.0;
+                for (double onset : rv.onsetsBeats)
+                {
+                    CHECK (isTickExact (onset, kTpqn));
+                    CHECK (onset >= 0.0);
+                    CHECK (onset < rv.spanBeats);
+                    CHECK (onset > previousOnset);
+                    previousOnset = onset;
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE ("GenreRegistryTests.UniqueIdsAndUniqueShortLabels", "[genreregistry]")
+{
+    std::set<std::string> ids, shortLabels;
+
+    for (const auto& genre : allGenres())
+    {
+        INFO ("genre id: " << genre.id);
+        CHECK (ids.insert (genre.id.toStdString()).second);
+        CHECK (shortLabels.insert (genre.shortLabel.toStdString()).second);
+        CHECK (genre.shortLabel.length() <= 9);
+    }
+}
+
+TEST_CASE ("GenreRegistryTests.RegeneratePoolsOfferVariety", "[genreregistry]")
+{
+    for (const auto& id : kDefaultMainGenreIds)
+    {
+        const auto* g = findGenre (id);
+        REQUIRE (g != nullptr);
+
+        int variedSlots = 0;
+        for (const auto& p : g->patterns)
+            if (p.rhythmPool.size() >= 2 || p.octaveOffsetPool.size() >= 2)
+                ++variedSlots;
+
+        INFO ("genre: " << id);
+        CHECK (variedSlots >= 3);
+    }
 }

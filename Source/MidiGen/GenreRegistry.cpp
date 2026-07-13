@@ -333,6 +333,280 @@ namespace
 
         return spec;
     }
+
+    // ---- Remaining 5 starter genres (Task 2) --------------------------
+    // Solid starters per the research's starter-guidance row -- not given
+    // the same full multi-variant treatment as the 5 main genres, but every
+    // onset/span is still tick-exact against 960 (swept by
+    // AllRhythmPoolOnsetsDivide960Exactly, written first as the guardrail).
+
+    GenreSpec buildPopSpec()
+    {
+        GenreSpec spec;
+        spec.id = "pop"; spec.label = "Pop"; spec.shortLabel = "POP";
+
+        // Slot 0: SustainedChords -- full triad, warm register, straight grid.
+        auto& sustained = spec.patterns[(size_t) PatternKind::SustainedChords];
+        sustained.kind = PatternKind::SustainedChords;
+        sustained.toneSet = ToneSetKind::Triad;
+        sustained.registerAnchor = kAnchorAsIs; // 60
+        sustained.rhythmPool = { RhythmVariant { { 0.0 }, 4.0, 0.9 } };
+        sustained.baseVelocity = 0.72f; sustained.jitterRange = 0.05f;
+
+        // Slot 1: RhythmicChords -- straight-8th re-strike.
+        auto& rhythmic = spec.patterns[(size_t) PatternKind::RhythmicChords];
+        rhythmic.kind = PatternKind::RhythmicChords;
+        rhythmic.toneSet = ToneSetKind::Triad;
+        rhythmic.registerAnchor = kAnchorAsIs;
+        rhythmic.rhythmPool = {
+            RhythmVariant { { 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5 }, 4.0, 0.85 }, // variant A -- full straight 8ths
+            RhythmVariant { { 0.0, 0.5, 1.0, 1.5 }, 2.0, 0.85 },                      // variant B -- half density
+        };
+        rhythmic.baseVelocity = 0.76f; rhythmic.jitterRange = 0.06f;
+
+        // Slot 2: StabArp -- rising root-3rd-5th-octave arpeggio, straight 16ths.
+        auto& stab = spec.patterns[(size_t) PatternKind::StabArp];
+        stab.kind = PatternKind::StabArp;
+        stab.toneSet = ToneSetKind::Triad;
+        stab.registerAnchor = kAnchorAsIs;
+        stab.rhythmPool = {
+            RhythmVariant { { 0.0, 0.25, 0.5, 0.75 }, 1.0, 0.4 }, // variant A -- full straight 16ths
+            RhythmVariant { { 0.0, 0.25, 0.5 }, 1.0, 0.4 },       // variant B -- 3 of 4 sixteenths
+        };
+        stab.baseVelocity = 0.78f; stab.jitterRange = 0.07f;
+
+        // Slot 3: BassLine -- root on beats 1 and 3; no matching BassRhythm
+        // shape, uses the generic toneSet+rhythmPool path.
+        auto& bass = spec.patterns[(size_t) PatternKind::BassLine];
+        bass.kind = PatternKind::BassLine;
+        bass.toneSet = ToneSetKind::RootOnly;
+        bass.registerAnchor = kAnchorBass;
+        bass.rhythmPool = { RhythmVariant { { 0.0, 2.0 }, 4.0, 0.9 } };
+        bass.baseVelocity = 0.8f; bass.jitterRange = 0.05f;
+
+        // Slot 4: TopLineMotif -- stepwise chord-tone melody, straight.
+        auto& top = spec.patterns[(size_t) PatternKind::TopLineMotif];
+        top.kind = PatternKind::TopLineMotif;
+        top.toneSet = ToneSetKind::SingleTopTone;
+        top.registerAnchor = 72;
+        top.rhythmPool = {
+            RhythmVariant { { 0.0, 1.0, 2.0, 3.0 }, 4.0, 0.7 },                       // variant A -- quarter-note steps
+            RhythmVariant { { 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5 }, 4.0, 0.5 },    // variant B -- eighth-note steps
+        };
+        top.baseVelocity = 0.7f; top.jitterRange = 0.08f; top.ornamentProbability = 0.2f;
+
+        return spec;
+    }
+
+    GenreSpec buildLofiSpec()
+    {
+        GenreSpec spec;
+        spec.id = "lofi"; spec.label = "Lofi"; spec.shortLabel = "LOFI";
+
+        // Slot 0: SustainedChords -- warm extended chord, legato, soft.
+        auto& sustained = spec.patterns[(size_t) PatternKind::SustainedChords];
+        sustained.kind = PatternKind::SustainedChords;
+        sustained.toneSet = ToneSetKind::SeventhExtension;
+        sustained.registerAnchor = kAnchorRnbSeed;
+        sustained.rhythmPool = { RhythmVariant { { 0.0 }, 4.0, 1.0 } };
+        sustained.baseVelocity = 0.55f; sustained.jitterRange = 0.06f;
+
+        // Slot 1: RhythmicChords -- swung (kSwingLight) gentle re-strikes.
+        auto& rhythmic = spec.patterns[(size_t) PatternKind::RhythmicChords];
+        rhythmic.kind = PatternKind::RhythmicChords;
+        rhythmic.toneSet = ToneSetKind::SeventhExtension;
+        rhythmic.registerAnchor = kAnchorRnbSeed;
+        rhythmic.rhythmPool = { RhythmVariant { { 0.0, kSwingLight, 2.0, 2.0 + kSwingLight }, 4.0, 0.9 } };
+        rhythmic.baseVelocity = 0.56f; rhythmic.jitterRange = 0.06f;
+
+        // Slot 2: StabArp -- gentle swung broken-chord arpeggio.
+        auto& stab = spec.patterns[(size_t) PatternKind::StabArp];
+        stab.kind = PatternKind::StabArp;
+        stab.toneSet = ToneSetKind::SeventhExtension;
+        stab.registerAnchor = kAnchorRnbSeed;
+        stab.rhythmPool = { RhythmVariant { { 0.0, kSwingLight }, 1.0, 0.6 } };
+        stab.baseVelocity = 0.58f; stab.jitterRange = 0.08f;
+
+        // Slot 3: BassLine -- root sustain with an occasional sparse passing
+        // tone near the end of the bar (ornament-free, per plan); no
+        // matching BassRhythm shape, uses the generic path.
+        auto& bass = spec.patterns[(size_t) PatternKind::BassLine];
+        bass.kind = PatternKind::BassLine;
+        bass.toneSet = ToneSetKind::RootOnly;
+        bass.registerAnchor = kAnchorBass;
+        bass.rhythmPool = {
+            RhythmVariant { { 0.0 }, 4.0, 0.95 },      // variant A -- full sustain
+            RhythmVariant { { 0.0, 3.0 }, 4.0, 0.4 },  // variant B -- sparse passing-tone feel
+        };
+        bass.baseVelocity = 0.6f; bass.jitterRange = 0.05f;
+
+        // Slot 4: TopLineMotif -- slow sparse swung entrances.
+        auto& top = spec.patterns[(size_t) PatternKind::TopLineMotif];
+        top.kind = PatternKind::TopLineMotif;
+        top.toneSet = ToneSetKind::SingleTopTone;
+        top.registerAnchor = 72;
+        top.rhythmPool = {
+            RhythmVariant { { 0.0, 2.0 + kSwingLight }, 4.0, 0.5 },   // variant A
+            RhythmVariant { { kSwingLight, 3.0 }, 4.0, 0.5 },         // variant B
+        };
+        top.baseVelocity = 0.55f; top.jitterRange = 0.1f; top.ornamentProbability = 0.3f;
+
+        return spec;
+    }
+
+    GenreSpec buildAfrobeatsSpec()
+    {
+        GenreSpec spec;
+        spec.id = "afrobeats"; spec.label = "Afrobeats"; spec.shortLabel = "AFRO";
+
+        // Slot 0: SustainedChords -- 7th/9th-leaning chord.
+        auto& sustained = spec.patterns[(size_t) PatternKind::SustainedChords];
+        sustained.kind = PatternKind::SustainedChords;
+        sustained.toneSet = ToneSetKind::SeventhExtension;
+        sustained.registerAnchor = kAnchorRnbSeed;
+        sustained.rhythmPool = { RhythmVariant { { 0.0 }, 4.0, 0.85 } };
+        sustained.baseVelocity = 0.75f; sustained.jitterRange = 0.08f;
+
+        // Slot 1: RhythmicChords -- clave-ish re-strike, explicit onset list
+        // (straight grid, NOT swing), quarter-beat multiples.
+        auto& rhythmic = spec.patterns[(size_t) PatternKind::RhythmicChords];
+        rhythmic.kind = PatternKind::RhythmicChords;
+        rhythmic.toneSet = ToneSetKind::Triad;
+        rhythmic.registerAnchor = kAnchorRnbSeed;
+        rhythmic.rhythmPool = { RhythmVariant { { 0.0, 0.75, 1.5, 2.5, 3.25 }, 4.0, 0.6 } };
+        rhythmic.baseVelocity = 0.78f; rhythmic.jitterRange = 0.08f;
+
+        // Slot 2: StabArp -- log-drum-style plucks, syncopated, staccato,
+        // alternating strong/weak accent.
+        auto& stab = spec.patterns[(size_t) PatternKind::StabArp];
+        stab.kind = PatternKind::StabArp;
+        stab.toneSet = ToneSetKind::PowerChord;
+        stab.registerAnchor = kAnchorPopTrap;
+        stab.rhythmPool = { RhythmVariant { { 0.0, 0.75, 1.5, 2.5 }, 4.0, 0.28 } };
+        stab.accentPattern = { 1.0f, 0.7f };
+        stab.baseVelocity = 0.78f; stab.jitterRange = 0.08f;
+
+        // Slot 3: BassLine -- follows the clave onsets rather than a
+        // straight sustain; no matching BassRhythm shape, generic path.
+        auto& bass = spec.patterns[(size_t) PatternKind::BassLine];
+        bass.kind = PatternKind::BassLine;
+        bass.toneSet = ToneSetKind::RootOnly;
+        bass.registerAnchor = kAnchorBass;
+        bass.rhythmPool = { RhythmVariant { { 0.0, 0.75, 2.5 }, 4.0, 0.8 } };
+        bass.baseVelocity = 0.8f; bass.jitterRange = 0.05f;
+
+        // Slot 4: TopLineMotif -- call-response, clave-aligned.
+        auto& top = spec.patterns[(size_t) PatternKind::TopLineMotif];
+        top.kind = PatternKind::TopLineMotif;
+        top.toneSet = ToneSetKind::SingleTopTone;
+        top.registerAnchor = 72;
+        top.rhythmPool = { RhythmVariant { { 0.0, 1.5, 2.5, 3.25 }, 4.0, 0.6 } };
+        top.baseVelocity = 0.72f; top.jitterRange = 0.09f; top.ornamentProbability = 0.2f;
+
+        return spec;
+    }
+
+    GenreSpec buildReggaetonSpec()
+    {
+        GenreSpec spec;
+        spec.id = "reggaeton"; spec.label = "Reggaeton"; spec.shortLabel = "DEMBOW";
+
+        // Slot 0: SustainedChords -- minor-leaning triad pad.
+        auto& sustained = spec.patterns[(size_t) PatternKind::SustainedChords];
+        sustained.kind = PatternKind::SustainedChords;
+        sustained.toneSet = ToneSetKind::Triad;
+        sustained.registerAnchor = kAnchorAsIs;
+        sustained.rhythmPool = { RhythmVariant { { 0.0 }, 4.0, 0.9 } };
+        sustained.baseVelocity = 0.7f; sustained.jitterRange = 0.05f;
+
+        // Slot 1: RhythmicChords -- tresillo {0, 0.75, 1.5} per 2-beat span.
+        auto& rhythmic = spec.patterns[(size_t) PatternKind::RhythmicChords];
+        rhythmic.kind = PatternKind::RhythmicChords;
+        rhythmic.toneSet = ToneSetKind::Triad;
+        rhythmic.registerAnchor = kAnchorAsIs;
+        rhythmic.rhythmPool = { RhythmVariant { { 0.0, 0.75, 1.5 }, 2.0, 0.5 } };
+        rhythmic.baseVelocity = 0.8f; rhythmic.jitterRange = 0.08f;
+
+        // Slot 2: StabArp -- same tresillo rhythm, arpeggiated root-fifth
+        // (+octave via octaveOffsetPool).
+        auto& stab = spec.patterns[(size_t) PatternKind::StabArp];
+        stab.kind = PatternKind::StabArp;
+        stab.toneSet = ToneSetKind::PowerChord;
+        stab.registerAnchor = kAnchorAsIs;
+        stab.octaveOffsetPool = { 0, 12 };
+        stab.rhythmPool = { RhythmVariant { { 0.0, 0.75, 1.5 }, 2.0, 0.35 } };
+        stab.baseVelocity = 0.82f; stab.jitterRange = 0.1f;
+
+        // Slot 3: BassLine -- dembow-following: root on downbeat + tresillo
+        // "and"; no matching BassRhythm shape, generic path.
+        auto& bass = spec.patterns[(size_t) PatternKind::BassLine];
+        bass.kind = PatternKind::BassLine;
+        bass.toneSet = ToneSetKind::RootOnly;
+        bass.registerAnchor = kAnchorBass;
+        bass.rhythmPool = { RhythmVariant { { 0.0, 0.75, 1.5 }, 2.0, 0.85 } };
+        bass.baseVelocity = 0.82f; bass.jitterRange = 0.05f;
+
+        // Slot 4: TopLineMotif -- simple top melody following tresillo accents.
+        auto& top = spec.patterns[(size_t) PatternKind::TopLineMotif];
+        top.kind = PatternKind::TopLineMotif;
+        top.toneSet = ToneSetKind::SingleTopTone;
+        top.registerAnchor = 72;
+        top.rhythmPool = { RhythmVariant { { 0.0, 0.75, 1.5 }, 2.0, 0.5 } };
+        top.baseVelocity = 0.72f; top.jitterRange = 0.08f; top.ornamentProbability = 0.15f;
+
+        return spec;
+    }
+
+    GenreSpec buildTechnoSpec()
+    {
+        GenreSpec spec;
+        spec.id = "techno"; spec.label = "Techno"; spec.shortLabel = "TECHNO";
+
+        // Slot 0: SustainedChords -- power-voicing long pad, very static
+        // (minimal jitter by design).
+        auto& sustained = spec.patterns[(size_t) PatternKind::SustainedChords];
+        sustained.kind = PatternKind::SustainedChords;
+        sustained.toneSet = ToneSetKind::PowerChord;
+        sustained.registerAnchor = kAnchorPopTrap;
+        sustained.rhythmPool = { RhythmVariant { { 0.0 }, 4.0, 1.0 } };
+        sustained.baseVelocity = 0.65f; sustained.jitterRange = 0.03f;
+
+        // Slot 1: RhythmicChords -- pulsing quarter-note re-strike (root+fifth).
+        auto& rhythmic = spec.patterns[(size_t) PatternKind::RhythmicChords];
+        rhythmic.kind = PatternKind::RhythmicChords;
+        rhythmic.toneSet = ToneSetKind::PowerChord;
+        rhythmic.registerAnchor = kAnchorPopTrap;
+        rhythmic.rhythmPool = { RhythmVariant { { 0.0, 1.0, 2.0, 3.0 }, 4.0, 0.5 } };
+        rhythmic.baseVelocity = 0.75f; rhythmic.jitterRange = 0.04f;
+
+        // Slot 2: StabArp -- hypnotic repeating root-fifth 8th arpeggio.
+        auto& stab = spec.patterns[(size_t) PatternKind::StabArp];
+        stab.kind = PatternKind::StabArp;
+        stab.toneSet = ToneSetKind::PowerChord;
+        stab.registerAnchor = kAnchorRnbSeed;
+        stab.rhythmPool = { RhythmVariant { { 0.0, 0.5, 1.0, 1.5 }, 2.0, 0.45 } };
+        stab.baseVelocity = 0.78f; stab.jitterRange = 0.05f;
+
+        // Slot 3: BassLine -- straight quarter-note pulse, single pitch; no
+        // matching BassRhythm shape, generic path.
+        auto& bass = spec.patterns[(size_t) PatternKind::BassLine];
+        bass.kind = PatternKind::BassLine;
+        bass.toneSet = ToneSetKind::RootOnly;
+        bass.registerAnchor = kAnchorBass;
+        bass.rhythmPool = { RhythmVariant { { 0.0, 1.0, 2.0, 3.0 }, 4.0, 0.6 } };
+        bass.baseVelocity = 0.75f; bass.jitterRange = 0.03f;
+
+        // Slot 4: TopLineMotif -- simple 2-note hypnotic phrase, unchanging
+        // (ornamentProbability 0.0 -- static by design).
+        auto& top = spec.patterns[(size_t) PatternKind::TopLineMotif];
+        top.kind = PatternKind::TopLineMotif;
+        top.toneSet = ToneSetKind::SingleTopTone;
+        top.registerAnchor = 72;
+        top.rhythmPool = { RhythmVariant { { 0.0, 1.75 }, 4.0, 0.5 } };
+        top.baseVelocity = 0.7f; top.jitterRange = 0.02f; top.ornamentProbability = 0.0f;
+
+        return spec;
+    }
 }
 
 const std::vector<GenreSpec>& allGenres()
@@ -343,6 +617,11 @@ const std::vector<GenreSpec>& allGenres()
         buildBoomBapSpec(),
         buildRnbNeoSoulSpec(),
         buildHouseSpec(),
+        buildPopSpec(),
+        buildLofiSpec(),
+        buildAfrobeatsSpec(),
+        buildReggaetonSpec(),
+        buildTechnoSpec(),
     };
     return genres;
 }
