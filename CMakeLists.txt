@@ -53,6 +53,8 @@ target_sources(ChordAI PRIVATE
     Source/Import/AudioFileLoader.cpp
     Source/UI/ConveyorBeltComponent.cpp
     Source/UI/MidiSetsPlaceholder.cpp
+    Source/UI/MidiRowView.cpp
+    Source/UI/MidiSetsPanel.cpp
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
@@ -153,12 +155,15 @@ target_sources(ChordAITests PRIVATE
     Tests/BassLineGeneratorTests.cpp
     Tests/MidiRowBuilderTests.cpp
     Tests/PluginProcessorMidiGenTests.cpp
+    Tests/MidiSetsPanelLayoutTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
     Source/UI/ConveyorBeltComponent.cpp
     Source/UI/MidiSetsPlaceholder.cpp
+    Source/UI/MidiRowView.cpp
+    Source/UI/MidiSetsPanel.cpp
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
     Source/UI/ChordTimelineView.cpp
