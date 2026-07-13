@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-07-13T15:45:33+01:00"
-last_activity: "2026-07-13 — Plan 06-03 complete (Wave 3): MidiRowView interactive play/stop + save icons, drag-anywhere-on-row OS file drag (deferred temp cleanup, Ableton-safe), async .mid save dialog; hooks forwarded PluginEditor->MidiSetsPanel->MidiRowView; stopAudition-on-setRows guard; full suite 134/134 green, pluginval strictness 5 SUCCESS on VST3+AU; PRV-01/EXP-01/EXP-02 all marked complete"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-07-13T16:43:12+01:00"
+last_activity: "2026-07-13 — Plan 06-04 complete (Wave 4, Phase 6 closing plan): fresh Release build/suite/pluginval gate green (134/134, VST3+AU strictness 5 SUCCESS x2); human checkpoint approved on FL Studio + real track TOCK.mp3 — audition, drag-into-piano-roll, save dialog all confirmed (\"супер\") after a stale-Standalone-instance troubleshooting detour; PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; Phase 6 complete (4/4 plans)"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 27
-  completed_plans: 26
-  percent: 96
+  completed_plans: 27
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 6 - Row Preview & Export IN PROGRESS (3/4 plans) — MidiFileWriter core (06-01), audition engine (06-02), and interactive row UI (06-03) all landed: shared format-1 SMF writer, deterministic AuditionRenderer, RT-safe processBlock playback, and click-to-audition/drag-out/save-dialog wiring all ready; next: 06-04 (Release build + full manual DAW checkpoint)
+**Current focus:** Phase 6 - Row Preview & Export COMPLETE (4/4 plans) — MidiFileWriter core (06-01), audition engine (06-02), interactive row UI (06-03), and the closing phase gate + FL Studio human checkpoint (06-04) all landed; PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; next: Phase 7 (Persistence & Multi-DAW Verification), with a likely inserted Phase 6.1 first per the user's new demand signal (see Decisions)
 
 ## Current Position
 
-Phase: 6 of 7 (Row Preview & Export) — IN PROGRESS
-Plan: 3 of 4 complete
-Status: Plan 06-03 complete — MidiRowView interactive play/stop + save icons in the 92px gutter, drag-anywhere-on-row OS file drag (temp .mid written via 06-01's MidiFileWriter, deferred cleanup at next drag start per 06-RESEARCH.md Pitfall 1's Ableton fix, canMoveFiles=false + nullptr callback), async FileChooser save dialog (~/Documents/ChordAI MIDI/ default + session last-dir memory). MidiSetsPanel forwards hooks into every rebuilt MidiRowView, calls onStopAudition unconditionally as setRows()'s first statement (Pitfall 3 guard), and runs a self-stopping 10Hz Timer so icons reflect processor auto-stop within ~100ms. PluginEditor wires all 5 hooks to ChordAIAudioProcessor. Full suite 134/134 green, pluginval strictness 5 SUCCESS on VST3+AU. PRV-01/EXP-01/EXP-02 all marked complete — only manual DAW-drag/save-dialog/sound verification remains, in 06-04's checkpoint. Next: 06-04 (Release build + full suite + pluginval + human checkpoint).
-Last activity: 2026-07-13 — Plan 06-03 complete (Wave 3): MidiRowView interactive play/stop + save icons, drag-anywhere-on-row OS file drag (deferred temp cleanup, Ableton-safe), async .mid save dialog; hooks forwarded PluginEditor->MidiSetsPanel->MidiRowView; stopAudition-on-setRows guard; full suite 134/134 green, pluginval strictness 5 SUCCESS on VST3+AU
+Phase: 6 of 7 (Row Preview & Export) — COMPLETE
+Plan: 4 of 4 complete
+Status: Plan 06-04 complete — fresh Release build/full suite (134/134)/pluginval strictness 5 (VST3+AU) SUCCESS x2 all green; human checkpoint on real track TOCK.mp3 in FL Studio approved with zero code defects (one process-level checkpoint lesson: a stale pre-Phase-6 Standalone instance masked the fresh build until killed+relaunched — see Decisions). Audition play/stop/one-at-a-time/auto-stop/region-change-stop, drag-into-piano-roll (correct notes/bars/tempo, repeat-drag safe), and native save dialog (MIDI-pack naming, default folder, last-dir memory) all human-confirmed. PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; Phase 6 complete (4/4 plans). Next: Phase 7 (Persistence & Multi-DAW Verification) — likely preceded by an inserted Phase 6.1 for the user's new genre-system/regenerate/premium-conveyor/max-quality-MIDI demand signal.
+Last activity: 2026-07-13 — Plan 06-04 complete (Wave 4, Phase 6 closing plan): fresh Release build/suite/pluginval gate green (134/134, VST3+AU strictness 5 SUCCESS x2); human checkpoint approved on FL Studio + real track TOCK.mp3 after a stale-Standalone-instance troubleshooting detour; PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end; Phase 6 complete (4/4 plans)
 
-Progress: [█████████░] 96%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [█████████░] 96%
 | Phase 06 P01 | ~14min | 2 tasks | 4 files |
 | Phase 06 P02 | ~11min | 2 tasks | 9 files |
 | Phase 06 P03 | ~12min | 3 tasks | 7 files |
+| Phase 06 P04 | ~58min (incl. checkpoint troubleshooting) | 3 tasks | 0 code files (docs-only) |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Recent decisions affecting current work:
 - [Phase 06-01]: MidiFileWriter placed under Source/MidiGen/ (not a new Source/Audio/ folder) since it only needs juce_audio_basics MIDI types, not audio-buffer/DSP types — 06-RESEARCH.md's own noted fallback option; kNoteNames duplicated verbatim from ChordNameFormatter.h as a file-local constant per the plan's explicit v1 guidance (don't refactor the shared header this phase). Single shared buildMidiFile/writeToFile code path now ready for both 06-03 export entry points (drag-out temp file + save dialog) — the structural guarantee behind EXP-03. EXP-03 marked complete in REQUIREMENTS.md per the plan's own explicit framing ("proven by round-trip unit tests, not by manual DAW import alone") — bar-2 tick assertion + tempo round-trip (incl. non-integer bpm + bpm<=0 fallback) unit-tested; EXP-01/EXP-02's own manual DAW-drag/save-dialog checkpoints still land in 06-03/06-04.
 - [Phase 06-02]: New Source/Audio/ folder introduced for AuditionVoice/AuditionRenderer (juce::AudioBuffer/juce::ADSR types), keeping Source/MidiGen/'s "pure value types, no JUCE audio dependency" rule intact for MidiFileWriter — per 06-RESEARCH.md Open Question 2's own recommendation. Preallocated double-buffer + plain std::atomic<int>/<bool> handoff established as the sanctioned pattern for message-thread-render-into-processBlock features, deliberately distinct from the codebase's existing shared_ptr atomic_load/atomic_store publication idiom (unsafe on the audio thread per 06-RESEARCH.md Pitfall 2 — those free functions are not guaranteed lock-free). AuditionVoice's deterministic voice (0.6*triangle + 0.4*saw, one-pole ~2.5kHz lowpass, juce::ADSR 5ms/400ms/0.25/150ms) is bounded to [-1,1] at every stage by construction, no randomness. Playing-row identity lives on ChordAIAudioProcessor (getAuditionRowId), not on any MidiRowView, ready for 06-03's UI wiring since MidiSetsPanel::setRows() destroys every MidiRowView on regeneration (06-RESEARCH.md Pitfall 3). PRV-01 marked complete in REQUIREMENTS.md (engine half); pluginval strictness 5 SUCCESS on VST3+AU — first wave to touch processBlock beyond the Phase 1 no-op.
 - [Phase 06-03]: MidiRowView flips setInterceptsMouseClicks(true, false) and gains a mouseDown/mouseDrag/mouseUp gesture split — a real drag (e.mouseWasDraggedSinceMouseDown(), anywhere on the row body including icons) writes a fresh temp .mid via 06-01's MidiFileWriter and calls performExternalDragDropOfFiles(canMoveFiles=false, nullptr callback); the previous drag's temp file(s) are swept at the START of the next drag, never in a completion callback — the verified Ableton "could not be opened" fix (06-RESEARCH.md Pitfall 1). Save dialog's juce::FileChooser is a unique_ptr member (outlives launchAsync's callback); the callback captures row/bpm by value, never `this`, so a mid-dialog MidiSetsPanel::setRows() regeneration can destroy the owning MidiRowView safely (chooser dies with it, callback simply never fires). Playing-row identity stays on ChordAIAudioProcessor exclusively — MidiSetsPanel::setRows() calls onStopAudition unconditionally as its first statement before every rebuild (Pitfall 3), and MidiSetsPanel is now a private juce::Timer (10Hz, self-stopping) so icons reflect processor-driven auto-stop live rather than from any cached view-local boolean. PRV-01/EXP-01/EXP-02 marked complete in REQUIREMENTS.md — only the inherently-manual OS drag/native-dialog/audible-sound verification remains, in 06-04's human checkpoint. pluginval strictness 5 SUCCESS on VST3+AU (first wave to exercise the Editor Automation pass against real new mouse/paint code).
+- [Phase 06-04]: Phase 6 closing gate — fresh Release build (build-release/)/full suite (134/134)/pluginval strictness 5 (VST3+AU SUCCESS x2) all green; human checkpoint on real track TOCK.mp3 in FL Studio approved with zero code defects. Checkpoint-process lesson (not a code deviation): the user's first verification attempt failed ("нічого не грає, не перетягується") against a stale pre-Phase-6 Standalone instance (PID 55706, started 14:19) that macOS `open` had merely refocused instead of replacing — `open App.app` on an already-running process does not exec a new process from a freshly rebuilt bundle. Killing the stale PID and relaunching the fresh 15:51-built binary (confirmed fresh PID 62976 started 16:19) resolved it immediately; user then confirmed full pass ("супер"). **Lesson for future checkpoint instructions: always kill any running instance of the app under test before presenting an `open`/launch step to the user for a human-verify checkpoint.** PRV-01/EXP-01/EXP-02/EXP-03 fully evidenced end-to-end (all four were already `[x]` from 06-01/06-02/06-03; this plan supplied the missing manual DAW/audition evidence, no REQUIREMENTS.md edit needed). Phase 6 complete (4/4 plans).
+- [Phase 06-04 / user demand signal]: During the Phase 6 closing checkpoint, after approving with "супер", the user gave a large new forward-looking feature direction — explicitly not to be implemented now, recorded here as the driver for an upcoming inserted Phase 6.1: (1) a genre system — genre chips near a narrower waveform strip (trap, uk drill, rap, hip hop, electronic, etc.) with a menu of checkboxes to pick the 5 main genres shown, and the MIDI panel showing 5 patterns of the selected genre fitting the song's motif; (2) a per-row regenerate/randomize button; (3) a premium-quality conveyor rework — idle state shows "drop song or melody here" (stopped), animates only on drag/analysis; (4) maximum-quality MIDI generation algorithms (raising the bar on 05's existing generators). No roadmap/requirements change made in this plan — needs its own `/gsd:plan-phase` pass to scope as Phase 6.1 before or interleaved with Phase 7.
 
 ### Pending Todos
 
@@ -141,11 +144,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 6 (Row Preview & Export) drag-and-drop has documented DAW-specific fragility (Ableton/FL Studio) — recommend a research/spike pass before considering the phase done.
+- Drag-and-drop DAW-specific fragility: FL Studio now human-confirmed working end-to-end (06-04 checkpoint, incl. repeat-drag). Ableton Live and Logic Pro remain unverified — the documented Ableton temp-file-cleanup fix (06-RESEARCH.md Pitfall 1) is implemented but not yet human-tested on real Ableton; full per-DAW matrix is Phase 7's PLT-03.
 - Legal gate: DSP dependencies must be MIT/BSD/Apache/zlib only (no GPL/AGPL) — enforced for constant-q-cpp (MIT-style) + bundled KissFFT (BSD-3-Clause) in Plan 03-01; continue enforcing per-dependency for remaining Phase 3 plans (all in-house algorithm code, no further third-party deps expected).
 
 ## Session Continuity
 
-Last session: 2026-07-13T15:45:33+01:00
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-07-13T16:43:12+01:00
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None

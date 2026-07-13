@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Core Chord-Detection Engine** - Headless engine detects key, tempo, and bar-aligned chord progression behind a swappable interface (completed 2026-07-13)
 - [x] **Phase 4: Analysis UI Integration** - Detected key/tempo/chords appear live on the waveform timeline without freezing the UI (completed 2026-07-13)
 - [x] **Phase 5: MIDI Conveyor Generation** - One analysis produces multiple simultaneous MIDI rows: as-is progression, style variants, and bass line (completed 2026-07-13)
-- [ ] **Phase 6: Row Preview & Export** - User auditions any row and gets it into the DAW via drag-out or .mid save
+- [x] **Phase 6: Row Preview & Export** - User auditions any row and gets it into the DAW via drag-out or .mid save (completed 2026-07-13)
 - [ ] **Phase 7: Persistence & Multi-DAW Verification** - Plugin state survives DAW project reload; drag-and-drop export verified per-DAW
 
 ## Phase Details
@@ -122,13 +122,13 @@ Plans:
   2. User can drag any MIDI row directly from the plugin into the DAW's piano roll
   3. User can save any MIDI row to disk as a standalone .mid file (fallback path)
   4. MIDI produced by either export path is bar-aligned and carries the detected tempo
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 Plans:
 - [x] 06-01-PLAN.md — MidiFileWriter: beat-domain rows → format-1 SMF (TPQN 960, tempo + 4/4 meta), atomic write, MIDI-pack file naming, round-trip tests (Wave 1) (completed 2026-07-13)
 - [x] 06-02-PLAN.md — Audition engine: deterministic AuditionVoice/Renderer pre-render + RT-safe double-buffer playback in processBlock, pluginval RT gate (Wave 2) (completed 2026-07-13)
 - [x] 06-03-PLAN.md — Interactive rows: play/save gutter icons, drag-out with Ableton-safe deferred temp cleanup, async save dialog, stop-audition-on-regenerate wiring (Wave 3) (completed 2026-07-13)
-- [ ] 06-04-PLAN.md — Phase gate (suite + pluginval) + human checkpoint: drag into FL Studio piano roll, audition all rows, save dialog (Wave 4)
+- [x] 06-04-PLAN.md — Phase gate (suite + pluginval) + human checkpoint: drag into FL Studio piano roll, audition all rows, save dialog (Wave 4) (completed 2026-07-13)
 
 ### Phase 7: Persistence & Multi-DAW Verification
 **Goal**: The plugin's work survives a full DAW project save/reload, and the drag-out mechanic is confirmed solid in every target host — the release gate for v1.
@@ -153,5 +153,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
 | 4. Analysis UI Integration | 4/4 | Complete   | 2026-07-13 |
 | 5. MIDI Conveyor Generation | 6/6 | Complete   | 2026-07-13 |
-| 6. Row Preview & Export | 3/4 | In Progress | - |
+| 6. Row Preview & Export | 4/4 | Complete   | 2026-07-13 |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |
