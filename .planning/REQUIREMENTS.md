@@ -29,6 +29,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GEN-03**: Bass row follows detected chord roots with style-appropriate rhythm
 - [x] **GEN-04**: Rows regenerate when the user changes the analysis region or style settings
 
+### Genre System (Phase 6.1 — user-requested 2026-07-13)
+
+- [ ] **GEN-09**: User selects an active genre; the MIDI panel shows 5 patterns of that genre fitting the detected progression/key/tempo (genre-authentic rhythm, voicing, registers, velocity shaping)
+- [ ] **GEN-10**: 5 main-genre chips displayed near a narrower waveform strip; a menu lists ALL genres with checkboxes where exactly 5 can be picked as main
+- [ ] **GEN-11**: Each MIDI row has a regenerate (randomize) button producing a new variation of that pattern individually (deterministic seed increment; harmony preserved)
+- [ ] **UI-01**: Conveyor premium rework — idle belt is STOPPED with "drop song or melody here" text; belt animates on file drag-over and during analysis; upgraded pixel-art quality
+
 ### Preview
 
 - [x] **PRV-01**: User can audition any MIDI row with a built-in piano/pad sound before dragging it out
@@ -110,12 +117,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXP-01 | Phase 6 - Row Preview & Export | Complete |
 | EXP-02 | Phase 6 - Row Preview & Export | Complete |
 | EXP-03 | Phase 6 - Row Preview & Export | Complete |
+| GEN-09 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
+| GEN-10 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
+| GEN-11 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
+| UI-01 | Phase 6.1 - Genre Patterns & Premium Conveyor | Pending |
 | PLT-02 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
 | PLT-03 | Phase 7 - Persistence & Multi-DAW Verification | Pending |
 
 **Coverage:**
-- v1 requirements: 20 total (corrected from initial count of 19 — recount at roadmap creation found 20 listed IDs)
-- Mapped to phases: 20
+- v1 requirements: 24 total (20 original + GEN-09/10/11 + UI-01 added 2026-07-13 for inserted Phase 6.1)
+- Mapped to phases: 24
 - Unmapped: 0 ✓
 
 ---

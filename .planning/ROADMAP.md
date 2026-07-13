@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Analysis UI Integration** - Detected key/tempo/chords appear live on the waveform timeline without freezing the UI (completed 2026-07-13)
 - [x] **Phase 5: MIDI Conveyor Generation** - One analysis produces multiple simultaneous MIDI rows: as-is progression, style variants, and bass line (completed 2026-07-13)
 - [x] **Phase 6: Row Preview & Export** - User auditions any row and gets it into the DAW via drag-out or .mid save (completed 2026-07-13)
+- [ ] **Phase 6.1: Genre Patterns & Premium Conveyor** (INSERTED 2026-07-13) - Genre chips + genre menu; MIDI panel shows 5 genre-authentic patterns fitting the song; per-row regenerate; premium conveyor rework
 - [ ] **Phase 7: Persistence & Multi-DAW Verification** - Plugin state survives DAW project reload; drag-and-drop export verified per-DAW
 
 ## Phase Details
@@ -129,6 +130,18 @@ Plans:
 - [x] 06-02-PLAN.md — Audition engine: deterministic AuditionVoice/Renderer pre-render + RT-safe double-buffer playback in processBlock, pluginval RT gate (Wave 2) (completed 2026-07-13)
 - [x] 06-03-PLAN.md — Interactive rows: play/save gutter icons, drag-out with Ableton-safe deferred temp cleanup, async save dialog, stop-audition-on-regenerate wiring (Wave 3) (completed 2026-07-13)
 - [x] 06-04-PLAN.md — Phase gate (suite + pluginval) + human checkpoint: drag into FL Studio piano roll, audition all rows, save dialog (Wave 4) (completed 2026-07-13)
+
+### Phase 6.1: Genre Patterns & Premium Conveyor (INSERTED)
+**Goal**: The generation model becomes genre-driven — the user picks a genre and gets 5 genre-authentic MIDI patterns fitting the analyzed song, each individually regenerable — and the conveyor gets a premium visual rework.
+**Depends on**: Phase 6 (rows, audition, export all reuse as-is per pattern row)
+**Requirements**: GEN-09, GEN-10, GEN-11, UI-01
+**Success Criteria** (what must be TRUE):
+  1. 5 main-genre chips sit near a narrower waveform strip; clicking a chip switches the active genre and the MIDI panel updates to 5 patterns of that genre fitting the detected progression
+  2. A genre menu lists all genres with checkboxes; exactly 5 can be selected as main and the chips update accordingly
+  3. Each row has a regenerate button producing a new variation of that pattern only (harmony preserved, deterministic seed increment)
+  4. Idle conveyor is stopped and shows "drop song or melody here"; it animates on drag-over and during analysis; visual quality is noticeably upgraded
+  5. Patterns are genre-authentic (rhythm/voicing/register/velocity) — quality validated by ear on a real track
+**Plans**: TBD
 
 ### Phase 7: Persistence & Multi-DAW Verification
 **Goal**: The plugin's work survives a full DAW project save/reload, and the drag-out mechanic is confirmed solid in every target host — the release gate for v1.
