@@ -147,6 +147,7 @@ Plans:
 - [x] 06.1-01-PLAN.md — Genre-engine foundation: MidiSetRow reshape (RowStyle->PatternKind), frozen GenreRegistry/PatternEngine/GenreState contracts, tick-exact GrooveEngine + deterministic PatternSeed + Arpeggiator with tests, one-time CMake wiring (Wave 1) (completed 2026-07-13)
 - [x] 06.1-02-PLAN.md — Premium conveyor rework: idle-stopped state + "drop song or melody here", roller rotation/belt texture/chunk bounce (Wave 1, parallel) (completed 2026-07-13)
 - [x] 06.1-03-PLAN.md — Generic data-driven pattern engine: generatePattern covers all 5 PatternKind slots from PatternArchetype data, harmony preservation by construction, TDD RED->GREEN->REFACTOR (Wave 2, parallel) (completed 2026-07-13)
+- [x] 06.1-04-PLAN.md — Genre library data: 10 GenreSpecs (5 main + 5 starters) authored over the frozen contracts, BassLine slot dual-path delegation policy, phase-critical tick-exactness sweep (Wave 2, parallel) (completed 2026-07-13)
 
 ### Phase 7: Persistence & Multi-DAW Verification
 **Goal**: The plugin's work survives a full DAW project save/reload, and the drag-out mechanic is confirmed solid in every target host — the release gate for v1.
