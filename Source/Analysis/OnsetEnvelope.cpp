@@ -193,6 +193,17 @@ OnsetEnvelopeResult computeOnsetEnvelope (const std::vector<float>& samples8k)
         }
     }
 
+    // Half-wave rectify AFTER smoothing: the HP filter produces large negative
+    // dips wherever a real mix drops to silence (measured -17 sigma on a real
+    // trap beat vs +0.4 sigma onsets) — those dips dominate the std-dev
+    // normalization AND the autocorrelation, and drive the DP beat-tracker's
+    // cumulative score to argmax near t=0 (=> zero beats, BPM 0). Onset
+    // *strength* is inherently non-negative (librosa's onset_strength clamps
+    // the same way); synthetic click fixtures are unaffected (their envelope
+    // is already positive-spiked).
+    for (auto& v : smoothed)
+        v = juce::jmax (0.0, v);
+
     // Normalize by dividing by the envelope's own standard deviation.
     double mean = 0.0;
     for (double v : smoothed)

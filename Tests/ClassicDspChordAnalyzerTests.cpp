@@ -2,6 +2,9 @@
 #include <catch2/catch_approx.hpp>
 
 #include "Source/Analysis/ClassicDspChordAnalyzer.h"
+#include "Source/Analysis/AudioPreprocessing.h"
+#include "Source/Analysis/OnsetEnvelope.h"
+#include "Source/Analysis/TempoBeatTracker.h"
 #include "Source/Import/AudioFileLoader.h"
 #include "Tests/SyntheticFixtures.h"
 
@@ -418,6 +421,40 @@ TEST_CASE ("ClassicDspChordAnalyzerTests.RealTrackHarness", "[.realtrack]")
     std::cout << "Chords:\n";
     for (const auto& segment : result.chords)
         std::cout << "  " << formatTime (segment.startSeconds) << "  " << chordName (segment.chord) << "\n";
+
+    // Stage-by-stage diagnostics (printed only when CHORDAI_DIAG is set) —
+    // isolates which pipeline stage degenerates on a real track when the
+    // end-to-end result looks wrong (e.g. BPM 0 / empty chords).
+    if (std::getenv ("CHORDAI_DIAG") != nullptr)
+    {
+        auto pre = preprocessForAnalysis (loaded->buffer, loaded->sampleRate, {});
+        std::cout << "[diag] onsetSamples: " << pre.onsetSamples.size()
+                  << " (rate " << pre.onsetRate << ")\n";
+        std::cout << "[diag] chromaSamples: " << pre.chromaSamples.size()
+                  << " (rate " << pre.chromaRate << ")\n";
+
+        auto onset = computeOnsetEnvelope (pre.onsetSamples);
+        double envMin = 0.0, envMax = 0.0, envAbsSum = 0.0;
+        for (double v : onset.envelope)
+        {
+            envMin = std::min (envMin, v);
+            envMax = std::max (envMax, v);
+            envAbsSum += std::abs (v);
+        }
+        std::cout << "[diag] envelope frames: " << onset.envelope.size()
+                  << " rate " << onset.rateHz
+                  << " min " << envMin << " max " << envMax
+                  << " meanAbs " << (onset.envelope.empty() ? 0.0 : envAbsSum / (double) onset.envelope.size())
+                  << "\n";
+
+        auto grid = trackBeats (onset);
+        std::cout << "[diag] beats: " << grid.beatTimesSeconds.size()
+                  << " bpm " << grid.bpm
+                  << " bars " << grid.barStartBeatIndices.size() << "\n";
+        if (grid.beatTimesSeconds.size() >= 2)
+            std::cout << "[diag] first beats: " << grid.beatTimesSeconds[0]
+                      << ", " << grid.beatTimesSeconds[1] << " ...\n";
+    }
 
     SUCCEED ("real-track analysis printed above");
 }
