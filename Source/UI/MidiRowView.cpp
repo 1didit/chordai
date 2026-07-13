@@ -10,16 +10,18 @@ namespace
     constexpr juce::uint32 kIconIdleColour = 0xff5a5a6e;
 
     // Per-row accent within the locked pixel-art palette (05-05-PLAN.md
-    // <interfaces>). Used for the gutter's left edge bar and note fills.
-    juce::Colour accentForStyle (RowStyle style)
+    // <interfaces>). Slot-stable colour mapping (06.1-01-PLAN.md Task 1 step
+    // 7): colour follows slot (PatternKind), not genre, so a row's visual
+    // identity stays consistent across a genre switch.
+    juce::Colour accentForKind (PatternKind kind)
     {
-        switch (style)
+        switch (kind)
         {
-            case RowStyle::DetectedAsIs:    return juce::Colour (0xffd8d8e0);
-            case RowStyle::PopHipHopTrap:   return juce::Colour (0xff3a4a6e);
-            case RowStyle::RnbNeoSoul:      return juce::Colour (0xff6e5a2f);
-            case RowStyle::ElectronicHouse: return juce::Colour (0xffe8c547);
-            case RowStyle::Bass:            return juce::Colour (0xff7ec850);
+            case PatternKind::SustainedChords: return juce::Colour (0xffd8d8e0);
+            case PatternKind::RhythmicChords:  return juce::Colour (0xff3a4a6e);
+            case PatternKind::StabArp:         return juce::Colour (0xff6e5a2f);
+            case PatternKind::BassLine:        return juce::Colour (0xff7ec850);
+            case PatternKind::TopLineMotif:    return juce::Colour (0xffe8c547);
         }
 
         return juce::Colour (0xffd8d8e0);
@@ -109,7 +111,7 @@ void MidiRowView::paint (juce::Graphics& g)
     auto gutterBounds = gutter; // full gutter, before any removeFrom* mutation below
     auto noteArea = bounds;
 
-    auto accent = accentForStyle (row.style);
+    auto accent = accentForKind (row.kind);
 
     // Label gutter.
     g.setColour (juce::Colour (0xff16161e));

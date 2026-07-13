@@ -17,7 +17,8 @@ namespace
         MidiSetRow row;
         row.id = "as-is";
         row.label = "Detected";
-        row.style = RowStyle::DetectedAsIs;
+        row.kind = PatternKind::SustainedChords;
+        row.patternIndex = 0;
         row.notes = {
             { 0.0, 1.0, 60, 0.8f },
             { 1.5, 0.25, 64, 0.8f },

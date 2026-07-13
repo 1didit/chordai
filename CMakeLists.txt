@@ -46,7 +46,9 @@ set(CHORDAI_MIDIGEN_SOURCES
     Source/MidiGen/StyleVoicingGenerators.cpp
     Source/MidiGen/BassLineGenerator.cpp
     Source/MidiGen/MidiRowBuilder.cpp
-    Source/MidiGen/MidiFileWriter.cpp)
+    Source/MidiGen/MidiFileWriter.cpp
+    Source/MidiGen/GenreRegistry.cpp
+    Source/MidiGen/PatternEngine.cpp)
 
 # Audio-thread-adjacent code (juce::AudioBuffer/juce::ADSR types) -- kept out
 # of Source/MidiGen/'s "pure value types, no JUCE audio dependency"
@@ -167,6 +169,14 @@ target_sources(ChordAITests PRIVATE
     Tests/MidiFileWriterTests.cpp
     Tests/AuditionRendererTests.cpp
     Tests/ProcessorAuditionTests.cpp
+    Tests/GrooveEngineTests.cpp
+    Tests/PatternSeedTests.cpp
+    Tests/ArpeggiatorTests.cpp
+    Tests/PatternEngineTests.cpp
+    Tests/GenreRegistryTests.cpp
+    Tests/GenreStateTests.cpp
+    Tests/MidiRowBuilderGenreTests.cpp
+    Tests/PluginProcessorGenreTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp

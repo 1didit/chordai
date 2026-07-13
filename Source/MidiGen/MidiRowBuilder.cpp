@@ -19,11 +19,15 @@ std::vector<MidiSetRow> generateAllRows (const AnalysisResult& result, const Gen
     // future per-row style/rhythm control (05-RESEARCH.md Open Question 1);
     // `settings` is threaded through unused (v1 no-op) so that future control
     // can call this same entry point without a shape change.
+    //
+    // Transitional mapping (RowStyle -> PatternKind + patternIndex) until
+    // 06.1-05 replaces this function with generateGenreRows -- preserves row
+    // order/ids/labels/notes exactly (06.1-01-PLAN.md Task 1 step 7).
     return {
-        { "as-is",       "Detected",           RowStyle::DetectedAsIs,   generateAsIsRow (result) },
-        { "pop-trap",    "Pop / Trap",         RowStyle::PopHipHopTrap,  generatePopTrapRow (result, settings) },
-        { "rnb-neosoul", "R&B / Neo-Soul",     RowStyle::RnbNeoSoul,     generateRnbNeoSoulRow (result, settings) },
-        { "house",       "Electronic / House", RowStyle::ElectronicHouse, generateElectronicHouseRow (result, settings) },
-        { "bass",        "Bass",               RowStyle::Bass,           generateBassRow (result, BassRhythm::TrapSustain) },
+        { "as-is",       "Detected",           PatternKind::SustainedChords, 0, generateAsIsRow (result) },
+        { "pop-trap",    "Pop / Trap",         PatternKind::RhythmicChords,  1, generatePopTrapRow (result, settings) },
+        { "rnb-neosoul", "R&B / Neo-Soul",     PatternKind::StabArp,         2, generateRnbNeoSoulRow (result, settings) },
+        { "house",       "Electronic / House", PatternKind::TopLineMotif,    4, generateElectronicHouseRow (result, settings) },
+        { "bass",        "Bass",               PatternKind::BassLine,        3, generateBassRow (result, BassRhythm::TrapSustain) },
     };
 }

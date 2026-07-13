@@ -61,7 +61,7 @@ namespace
 
         for (size_t i = 0; i < a.size(); ++i)
         {
-            if (a[i].id != b[i].id || a[i].label != b[i].label || a[i].style != b[i].style)
+            if (a[i].id != b[i].id || a[i].label != b[i].label || a[i].kind != b[i].kind)
                 return false;
 
             if (a[i].notes.size() != b[i].notes.size())

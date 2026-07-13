@@ -83,3 +83,7 @@ inline int rootMidiNote (int pitchClass, int anchorOctaveBase)
 {
     return juce::jlimit (0, 127, anchorOctaveBase + pitchClass);
 }
+
+// Root + fifth only, quality-independent (Phase 6.1 GenreRegistry's
+// ToneSetKind::PowerChord -- trap/rock-style "5" voicing, no third).
+inline std::vector<int> powerChordIntervals() { return { 0, 7 }; }

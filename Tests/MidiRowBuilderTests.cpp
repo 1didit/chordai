@@ -72,23 +72,28 @@ TEST_CASE ("MidiRowBuilderTests.FiveRowsForKnownProgression", "[midirowbuilder]"
 
     CHECK (rows[0].id == "as-is");
     CHECK (rows[0].label == "Detected");
-    CHECK (rows[0].style == RowStyle::DetectedAsIs);
+    CHECK (rows[0].kind == PatternKind::SustainedChords);
+    CHECK (rows[0].patternIndex == 0);
 
     CHECK (rows[1].id == "pop-trap");
     CHECK (rows[1].label == "Pop / Trap");
-    CHECK (rows[1].style == RowStyle::PopHipHopTrap);
+    CHECK (rows[1].kind == PatternKind::RhythmicChords);
+    CHECK (rows[1].patternIndex == 1);
 
     CHECK (rows[2].id == "rnb-neosoul");
     CHECK (rows[2].label == "R&B / Neo-Soul");
-    CHECK (rows[2].style == RowStyle::RnbNeoSoul);
+    CHECK (rows[2].kind == PatternKind::StabArp);
+    CHECK (rows[2].patternIndex == 2);
 
     CHECK (rows[3].id == "house");
     CHECK (rows[3].label == "Electronic / House");
-    CHECK (rows[3].style == RowStyle::ElectronicHouse);
+    CHECK (rows[3].kind == PatternKind::TopLineMotif);
+    CHECK (rows[3].patternIndex == 4);
 
     CHECK (rows[4].id == "bass");
     CHECK (rows[4].label == "Bass");
-    CHECK (rows[4].style == RowStyle::Bass);
+    CHECK (rows[4].kind == PatternKind::BassLine);
+    CHECK (rows[4].patternIndex == 3);
 
     for (const auto& row : rows)
         CHECK_FALSE (row.notes.empty());
