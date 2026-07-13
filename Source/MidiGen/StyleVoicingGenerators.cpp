@@ -137,8 +137,51 @@ std::vector<NoteEvent> generateRnbNeoSoulRow (const AnalysisResult& result, cons
     return notes;
 }
 
-// body: plan 05-02
-std::vector<NoteEvent> generateElectronicHouseRow (const AnalysisResult&, const GenerationSettings&)
+// Electronic/House: plain tight triads (extensions are not this style's
+// job -- same triadIntervals truncation as Pop/Trap), bright/tight register
+// (C5 anchor). Off-beat 16th-note stabs: 4 stabs per 4-beat span, relative
+// to the segment's OWN start (05-RESEARCH.md Pattern 3 -- segment-relative,
+// not global-bar-grid-relative). A span offset that would land at or past
+// the segment's end is dropped entirely (no partial/truncated stab).
+std::vector<NoteEvent> generateElectronicHouseRow (const AnalysisResult& result, const GenerationSettings&)
 {
-    return {};
+    std::vector<NoteEvent> notes;
+    uint32_t noteIndex = 0;
+    constexpr double epsilon = 1e-9;
+
+    for (const auto& segment : result.chords)
+    {
+        // Pitfall 1: NoChord segments emit zero notes.
+        if (segment.chord.quality == ChordQuality::NoChord)
+            continue;
+
+        auto intervals = triadIntervals (segment.chord.quality);
+        if (intervals.size() > 3)
+            intervals.resize (3);
+
+        const int root = rootMidiNote (segment.chord.pitchClass, kAnchorHouse);
+        const auto pitches = intervalsToMidiNotes (root, intervals);
+
+        const double segStartBeats = (double) segment.startBeatIndex;
+        const double segLengthBeats = (double) (segment.endBeatIndex - segment.startBeatIndex);
+
+        for (double span = 0.0; span < segLengthBeats; span += 4.0)
+        {
+            for (double stabOffset : kHouseStabOffsetsBeats)
+            {
+                const double absoluteOffset = span + stabOffset;
+                if (absoluteOffset + epsilon >= segLengthBeats)
+                    continue;
+
+                for (int pitch : pitches)
+                {
+                    const float velocity = juce::jlimit (0.0f, 1.0f,
+                        kVelHouse + deterministicJitter (noteIndex++, kSeedHouse, kJitterHouse));
+                    notes.push_back ({ segStartBeats + absoluteOffset, kHouseStabLengthBeats, pitch, velocity });
+                }
+            }
+        }
+    }
+
+    return notes;
 }
