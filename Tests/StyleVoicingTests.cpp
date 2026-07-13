@@ -323,3 +323,215 @@ TEST_CASE ("StyleVoicingTests.RnbVelocitySoftAndDeterministic", "[stylevoicing]"
         CHECK (notesA[i].velocity == notesB[i].velocity);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Task 3: House stabs + cross-style distinctness + progression-tracking
+// ---------------------------------------------------------------------------
+
+namespace
+{
+    // Single 6-beat segment -- exercises the House stab pattern's second
+    // 4-beat span truncation (offsets 4.5/5.5 kept, 6.5/7.5 dropped).
+    AnalysisResult makeSixBeatSegmentFixture()
+    {
+        AnalysisResult result;
+        result.sampleRate = 44100.0;
+        result.bpm = 120.0;
+        result.beatTimesSeconds = { 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0 };
+        result.barStartBeatIndices = { 0, 4 };
+        result.analyzedRegionSeconds = juce::Range<double> (0.0, 3.0);
+        result.key.tonicPitchClass = 9;
+        result.key.isMajor = false;
+        result.key.confidence = 0.8f;
+        result.wasCancelled = false;
+
+        ChordSegment segment;
+        segment.chord.pitchClass = 9;
+        segment.chord.quality = ChordQuality::Minor;
+        segment.startBeatIndex = 0;
+        segment.endBeatIndex = 6;
+        segment.startSeconds = 0.0;
+        segment.endSeconds = 3.0;
+        segment.confidence = 0.9f;
+        result.chords = { segment };
+
+        return result;
+    }
+
+    std::set<double> onsetsInRange (const std::vector<NoteEvent>& notes, double lo, double hi)
+    {
+        std::set<double> onsets;
+        for (const auto& n : notes)
+            if (n.startBeats >= lo && n.startBeats < hi)
+                onsets.insert (n.startBeats);
+        return onsets;
+    }
+
+    bool notesEqual (const std::vector<NoteEvent>& a, const std::vector<NoteEvent>& b)
+    {
+        if (a.size() != b.size())
+            return false;
+        for (size_t i = 0; i < a.size(); ++i)
+            if (a[i].startBeats != b[i].startBeats || a[i].lengthBeats != b[i].lengthBeats
+                || a[i].pitch != b[i].pitch || a[i].velocity != b[i].velocity)
+                return false;
+        return true;
+    }
+}
+
+TEST_CASE ("StyleVoicingTests.HouseStabPatternExactTiming", "[stylevoicing]")
+{
+    SECTION ("4-beat Am segment: stabs at 0.5/1.5/2.5/3.5, each a 3-note triad, length 0.25")
+    {
+        const auto fixture = midigen_fixtures::makeFourChordFixture();
+        const auto notes = generateElectronicHouseRow (fixture, GenerationSettings {});
+
+        const auto onsets = onsetsInRange (notes, 0.0, 4.0);
+        CHECK (onsets == std::set<double> { 0.5, 1.5, 2.5, 3.5 });
+
+        for (double onset : onsets)
+        {
+            int count = 0;
+            for (const auto& n : notes)
+                if (n.startBeats == onset)
+                {
+                    CHECK (n.lengthBeats == 0.25);
+                    ++count;
+                }
+            CHECK (count == 3);
+        }
+    }
+
+    SECTION ("3-beat segment (start beat 2): stabs at 2.5/3.5/4.5 only")
+    {
+        const auto fixture = midigen_fixtures::makeShortSegmentFixture();
+        const auto notes = generateElectronicHouseRow (fixture, GenerationSettings {});
+
+        const auto onsets = onsetsInRange (notes, 2.0, 5.0);
+        CHECK (onsets == std::set<double> { 2.5, 3.5, 4.5 });
+    }
+
+    SECTION ("6-beat segment: first span full, second span truncated to 4.5/5.5")
+    {
+        const auto fixture = makeSixBeatSegmentFixture();
+        const auto notes = generateElectronicHouseRow (fixture, GenerationSettings {});
+
+        const auto onsets = onsetsInRange (notes, 0.0, 6.0);
+        CHECK (onsets == std::set<double> { 0.5, 1.5, 2.5, 3.5, 4.5, 5.5 });
+    }
+}
+
+TEST_CASE ("StyleVoicingTests.HouseBrightRegister", "[stylevoicing]")
+{
+    const auto fixture = midigen_fixtures::makeFourChordFixture();
+    const auto notes = generateElectronicHouseRow (fixture, GenerationSettings {});
+
+    std::set<int> pitchesInSeg1;
+    for (const auto& n : notes)
+        if (n.startBeats >= 0.0 && n.startBeats < 4.0)
+            pitchesInSeg1.insert (n.pitch);
+
+    CHECK (pitchesInSeg1 == std::set<int> { 81, 84, 88 });
+
+    const int expectedRoot = rootMidiNote (9, kAnchorHouse);
+    CHECK (expectedRoot == 81);
+}
+
+TEST_CASE ("StyleVoicingTests.ThreeStylesProduceDistinctContent", "[stylevoicing]")
+{
+    const auto fixture = midigen_fixtures::makeFourChordFixture();
+
+    const auto asIsNotes = generateAsIsRow (fixture);
+    const auto popTrapNotes = generatePopTrapRow (fixture, GenerationSettings {});
+    const auto rnbNotes = generateRnbNeoSoulRow (fixture, GenerationSettings {});
+    const auto houseNotes = generateElectronicHouseRow (fixture, GenerationSettings {});
+
+    auto pitchClassMultiset = [] (const std::vector<NoteEvent>& notes, double lo, double hi)
+    {
+        std::vector<int> classes;
+        for (const auto& n : notes)
+            if (n.startBeats >= lo && n.startBeats < hi)
+                classes.push_back (((n.pitch % 12) + 12) % 12);
+        std::sort (classes.begin(), classes.end());
+        return classes;
+    };
+
+    auto meanPitchInRange = [] (const std::vector<NoteEvent>& notes, double lo, double hi)
+    {
+        double sum = 0.0;
+        int count = 0;
+        for (const auto& n : notes)
+            if (n.startBeats >= lo && n.startBeats < hi)
+            {
+                sum += n.pitch;
+                ++count;
+            }
+        return count > 0 ? sum / count : 0.0;
+    };
+
+    SECTION ("R&B pitch-class multiset differs from Pop/Trap's and House's")
+    {
+        const auto rnbClasses = pitchClassMultiset (rnbNotes, 0.0, 4.0);
+        const auto popClasses = pitchClassMultiset (popTrapNotes, 0.0, 4.0);
+        const auto houseClasses = pitchClassMultiset (houseNotes, 0.0, 4.0);
+
+        CHECK (rnbClasses != popClasses);
+        CHECK (rnbClasses != houseClasses);
+    }
+
+    SECTION ("House onset-beat multiset differs from Pop/Trap's")
+    {
+        const auto houseOnsets = onsetsInRange (houseNotes, 0.0, 4.0);
+        const auto popOnsets = onsetsInRange (popTrapNotes, 0.0, 4.0);
+
+        CHECK (houseOnsets == std::set<double> { 0.5, 1.5, 2.5, 3.5 });
+        CHECK (popOnsets == std::set<double> { 0.0, 2.0 });
+        CHECK (houseOnsets != popOnsets);
+    }
+
+    SECTION ("mean pitch register separation: House > As-is > Pop/Trap")
+    {
+        const double houseMean = meanPitchInRange (houseNotes, 0.0, 4.0);
+        const double asIsMean = meanPitchInRange (asIsNotes, 0.0, 4.0);
+        const double popMean = meanPitchInRange (popTrapNotes, 0.0, 4.0);
+
+        CHECK (houseMean > asIsMean);
+        CHECK (asIsMean > popMean);
+    }
+}
+
+TEST_CASE ("StyleVoicingTests.OutputTracksInputProgression", "[stylevoicing]")
+{
+    auto original = midigen_fixtures::makeFourChordFixture();
+    auto modified = original;
+    modified.chords[1].chord.pitchClass = 2;               // was F Major (pc 5)
+    modified.chords[1].chord.quality = ChordQuality::Minor; // now D Minor (pc 2)
+
+    auto notesInRange = [] (const std::vector<NoteEvent>& notes, double lo, double hi)
+    {
+        std::vector<NoteEvent> result;
+        for (const auto& n : notes)
+            if (n.startBeats >= lo && n.startBeats < hi)
+                result.push_back (n);
+        return result;
+    };
+
+    auto checkGenerator = [&] (auto generatorFn)
+    {
+        const auto originalNotes = generatorFn (original);
+        const auto modifiedNotes = generatorFn (modified);
+
+        const auto originalFirst = notesInRange (originalNotes, 0.0, 4.0);
+        const auto modifiedFirst = notesInRange (modifiedNotes, 0.0, 4.0);
+        CHECK (notesEqual (originalFirst, modifiedFirst));
+
+        const auto originalSecond = notesInRange (originalNotes, 4.0, 8.0);
+        const auto modifiedSecond = notesInRange (modifiedNotes, 4.0, 8.0);
+        CHECK_FALSE (notesEqual (originalSecond, modifiedSecond));
+    };
+
+    checkGenerator ([] (const AnalysisResult& r) { return generateAsIsRow (r); });
+    checkGenerator ([] (const AnalysisResult& r) { return generatePopTrapRow (r, GenerationSettings {}); });
+    checkGenerator ([] (const AnalysisResult& r) { return generateRnbNeoSoulRow (r, GenerationSettings {}); });
+    checkGenerator ([] (const AnalysisResult& r) { return generateElectronicHouseRow (r, GenerationSettings {}); });
+}
