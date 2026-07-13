@@ -45,7 +45,8 @@ set(CHORDAI_MIDIGEN_SOURCES
     Source/MidiGen/AsIsRowGenerator.cpp
     Source/MidiGen/StyleVoicingGenerators.cpp
     Source/MidiGen/BassLineGenerator.cpp
-    Source/MidiGen/MidiRowBuilder.cpp)
+    Source/MidiGen/MidiRowBuilder.cpp
+    Source/MidiGen/MidiFileWriter.cpp)
 
 target_sources(ChordAI PRIVATE
     Source/PluginProcessor.cpp
@@ -155,6 +156,7 @@ target_sources(ChordAITests PRIVATE
     Tests/MidiRowBuilderTests.cpp
     Tests/PluginProcessorMidiGenTests.cpp
     Tests/MidiSetsPanelLayoutTests.cpp
+    Tests/MidiFileWriterTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
