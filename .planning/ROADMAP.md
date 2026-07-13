@@ -103,11 +103,11 @@ Plans:
   3. Style variants are built from the user's actual detected progression, not from static preset lookups
   4. The bass row follows the detected chord roots with style-appropriate rhythm
   5. Rows regenerate automatically when the user changes the analysis region or style settings
-**Plans**: 2/6 plans executed
+**Plans**: 3/6 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — MidiGen foundation: beat-domain NoteEvent/MidiSetRow model, frozen generator contracts, music-math helpers, struct-literal fixtures, one-time CMake wiring (Wave 1) (completed 2026-07-13)
-- [ ] 05-02-PLAN.md — As-is row + three style voicing engines (Pop/Trap triads, R&B extensions with voice leading, House off-beat stabs) with distinctness proofs (Wave 2)
+- [x] 05-02-PLAN.md — As-is row + three style voicing engines (Pop/Trap triads, R&B extensions with voice leading, House off-beat stabs) with distinctness proofs (Wave 2) (completed 2026-07-13)
 - [x] 05-03-PLAN.md — Bass line generator: root-following with trap sustain / R&B root-fifth walk / house four-on-the-floor rhythms (Wave 2) (completed 2026-07-13)
 - [ ] 05-04-PLAN.md — generateAllRows orchestrator (5 rows, determinism, <1ms budget) + synchronous PluginProcessor wiring with regenerate-on-region-change (Wave 3)
 - [ ] 05-05-PLAN.md — MidiSetsPanel + MidiRowView mini piano-roll strips in the bottom band; MidiSetsPlaceholder deleted (Wave 4)
@@ -146,6 +146,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 2. Audio Import & Waveform | 4/4 | Complete   | 2026-07-12 |
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
 | 4. Analysis UI Integration | 4/4 | Complete   | 2026-07-13 |
-| 5. MIDI Conveyor Generation | 1/6 | In Progress | - |
+| 5. MIDI Conveyor Generation | 3/6 | In Progress | -          |
 | 6. Row Preview & Export | 0/TBD | Not started | - |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |
