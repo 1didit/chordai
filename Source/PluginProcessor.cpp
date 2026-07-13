@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "Analysis/AnalysisPipeline.h"
 #include "Import/AudioFileLoader.h"
 #include "Import/RegionState.h"
 
@@ -83,6 +84,11 @@ void ChordAIAudioProcessor::loadAudioFile (const juce::File& file)
             selectedRegion = { 0.0, result->lengthSeconds }; // whole-file default, IMP-03
             lastLoadError.clear();
             RegionState::write (apvts.state, result->sourceFile, selectedRegion);
+
+            // A new song must never briefly show the old song's chords --
+            // clear before broadcasting so the Editor never observes a stale
+            // result alongside the new waveform.
+            std::atomic_store (&analysisResult, std::shared_ptr<const AnalysisResult>());
         }
         else
         {
@@ -90,6 +96,9 @@ void ChordAIAudioProcessor::loadAudioFile (const juce::File& file)
         }
 
         loadBroadcaster.sendChangeMessage();
+
+        if (result != nullptr)
+            triggerAnalysis();
     };
 
     loaderPool.addJob (new AudioFileLoadJob (file, formatManager, callback), true);
@@ -111,9 +120,16 @@ void ChordAIAudioProcessor::setSelectedRegion (juce::Range<double> regionSeconds
     if (audio == nullptr)
         return; // no-op if nothing loaded
 
-    selectedRegion = RegionState::clampRegion (regionSeconds.getStart(), regionSeconds.getEnd(), audio->lengthSeconds);
+    auto clamped = RegionState::clampRegion (regionSeconds.getStart(), regionSeconds.getEnd(), audio->lengthSeconds);
+    if (clamped == selectedRegion)
+        return; // no-op guard: RegionSelectorOverlay::setTotalLength refires the whole-file
+                // default on every editor reopen -- don't re-trigger analysis for that.
+
+    selectedRegion = clamped;
     RegionState::write (apvts.state, audio->sourceFile, selectedRegion);
     // Do NOT broadcast — the UI initiated this change.
+
+    triggerAnalysis();
 }
 
 juce::String ChordAIAudioProcessor::getLastLoadError() const
@@ -121,26 +137,73 @@ juce::String ChordAIAudioProcessor::getLastLoadError() const
     return lastLoadError;
 }
 
-// --- Background chord analysis API (Wave 0 stubs -- Task 2 implements) -----
+// --- Background chord analysis API ------------------------------------------
 
 void ChordAIAudioProcessor::triggerAnalysis()
 {
-    // Stub: Task 2 wires in analysisPool + generation-guarded AnalysisPipeline.
+    auto audio = getLoadedAudio();
+    if (audio == nullptr)
+        return;
+
+    // Non-blocking cooperative-cancel signal for any in-flight analysis job.
+    // The pool holds at most one analysis job by design -- removeAllJobs
+    // avoids ever tracking a raw ThreadPoolJob* that could dangle/ABA if the
+    // job already self-finished. Cancellation is cooperative, not instant
+    // (see AnalysisPipeline.cpp's shouldExit() checks inside analyse()): the
+    // generation guard below is what actually prevents a late-finishing
+    // superseded job from corrupting published state.
+    analysisPool.removeAllJobs (true, 0);
+
+    const uint64_t generation = ++analysisGeneration;
+
+    // Set busy state synchronously -- no visible gap between supersede and
+    // the new job's first callback, even though the old job hasn't actually
+    // stopped running yet on a size-1 pool.
+    analyzingFlag = true;
+    analysisProgress = 0.0;
+    analysisBroadcaster.sendChangeMessage();
+
+    std::weak_ptr<int> weakAlive (aliveToken);
+
+    AnalysisPipeline::ProgressCallback onProgress =
+        [this, weakAlive] (uint64_t gen, double fraction, const juce::String& stage)
+    {
+        if (weakAlive.expired() || gen != analysisGeneration.load())
+            return; // stale -- discard
+
+        juce::ignoreUnused (stage);
+        analysisProgress = fraction;
+        analysisBroadcaster.sendChangeMessage();
+    };
+
+    AnalysisPipeline::CompletionCallback onDone =
+        [this, weakAlive] (uint64_t gen, std::shared_ptr<const AnalysisResult> result)
+    {
+        if (weakAlive.expired() || gen != analysisGeneration.load())
+            return; // superseded -- keep the last good result on screen
+
+        std::atomic_store (&analysisResult, result);
+        analyzingFlag = false;
+        analysisProgress = 1.0;
+        analysisBroadcaster.sendChangeMessage();
+    };
+
+    analysisPool.addJob (new AnalysisPipeline (audio, selectedRegion, generation, onProgress, onDone), true);
 }
 
 std::shared_ptr<const AnalysisResult> ChordAIAudioProcessor::getAnalysisResult() const
 {
-    return nullptr;
+    return std::atomic_load (&analysisResult);
 }
 
 bool ChordAIAudioProcessor::isAnalyzing() const
 {
-    return false;
+    return analyzingFlag;
 }
 
 double ChordAIAudioProcessor::getAnalysisProgress() const
 {
-    return 0.0;
+    return analysisProgress;
 }
 
 // This creates new instances of the plugin — required by every JUCE plugin, build

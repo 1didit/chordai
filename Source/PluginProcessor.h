@@ -57,9 +57,6 @@ public:
     juce::ChangeBroadcaster loadBroadcaster;
 
     // --- Background chord analysis API (message-thread only) ---------------
-    // Wave 0 (Task 1): stub bodies only, just enough for the test file/editor
-    // to compile against the final public shape. Task 2 wires in the real
-    // AnalysisPipeline + generation-guarded cancel-and-restart plumbing.
 
     // Cancels any in-flight analysis and starts a new one over the current
     // loadedAudio/selectedRegion. Called internally after a successful load
@@ -88,9 +85,33 @@ private:
     // happens (member destruction runs in reverse declaration order).
     juce::ThreadPool loaderPool { 1 };
 
+    // Separate size-1 pool for analysis jobs -- NOT shared with loaderPool.
+    // A new-file-drop mid-re-analysis must not queue behind a still-cancelling
+    // analysis job (and vice versa); keeping the pools separate also keeps
+    // removeAllJobs's cancellation scope from ever touching an unrelated
+    // decode job. Same destruction-order rationale as loaderPool above: grouped
+    // together, declared AFTER apvts/formatManager so both pools are destroyed
+    // (and any in-flight jobs waited for/cancelled) before formatManager. The
+    // analysis job itself only reads its own captured snapshots (no live
+    // formatManager reference), but the pools stay grouped/documented together.
+    juce::ThreadPool analysisPool { 1 };
+
     // Access ONLY via std::atomic_load/std::atomic_store — NOT
     // std::atomic<std::shared_ptr<T>>, which is incomplete on Apple libc++.
     std::shared_ptr<const LoadedAudio> loadedAudio;
+
+    // Same atomic_load/atomic_store discipline as loadedAudio above.
+    std::shared_ptr<const AnalysisResult> analysisResult;
+
+    // Bumped by every triggerAnalysis() call; progress/completion callbacks
+    // compare their captured generation against this to detect supersession.
+    std::atomic<uint64_t> analysisGeneration { 0 };
+
+    // Message-thread only (like selectedRegion below) -- not touched from any
+    // analysis-thread code; callbacks marshal back via callAsync before
+    // writing these.
+    bool analyzingFlag = false;
+    double analysisProgress = 0.0;
 
     juce::Range<double> selectedRegion; // message-thread only
     juce::String lastLoadError;
