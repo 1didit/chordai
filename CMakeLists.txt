@@ -49,6 +49,7 @@ target_sources(ChordAI PRIVATE
     Source/UI/MidiSetsPlaceholder.cpp
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
+    Source/UI/ChordTimelineView.cpp
     Source/Analysis/AnalysisPipeline.cpp
     ${CHORDAI_ANALYSIS_SOURCES})
 
@@ -139,6 +140,7 @@ target_sources(ChordAITests PRIVATE
     Tests/ClassicDspChordAnalyzerTests.cpp
     Tests/AnalysisPipelineTests.cpp
     Tests/ChordNameFormatterTests.cpp
+    Tests/ChordTimelineLayoutTests.cpp
     Source/Import/AudioFileLoader.cpp
     Source/Analysis/AnalysisPipeline.cpp
     Source/PluginProcessor.cpp
@@ -147,6 +149,7 @@ target_sources(ChordAITests PRIVATE
     Source/UI/MidiSetsPlaceholder.cpp
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
+    Source/UI/ChordTimelineView.cpp
     ${CHORDAI_ANALYSIS_SOURCES})
 
 target_include_directories(ChordAITests PRIVATE
