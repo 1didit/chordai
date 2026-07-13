@@ -42,8 +42,6 @@ set(CHORDAI_ANALYSIS_SOURCES
     Source/Analysis/ClassicDspChordAnalyzer.cpp)
 
 set(CHORDAI_MIDIGEN_SOURCES
-    Source/MidiGen/AsIsRowGenerator.cpp
-    Source/MidiGen/StyleVoicingGenerators.cpp
     Source/MidiGen/BassLineGenerator.cpp
     Source/MidiGen/MidiRowBuilder.cpp
     Source/MidiGen/MidiFileWriter.cpp
@@ -161,9 +159,7 @@ target_sources(ChordAITests PRIVATE
     Tests/ChordNameFormatterTests.cpp
     Tests/ChordTimelineLayoutTests.cpp
     Tests/ChordToneMapperTests.cpp
-    Tests/StyleVoicingTests.cpp
     Tests/BassLineGeneratorTests.cpp
-    Tests/MidiRowBuilderTests.cpp
     Tests/PluginProcessorMidiGenTests.cpp
     Tests/MidiSetsPanelLayoutTests.cpp
     Tests/MidiFileWriterTests.cpp

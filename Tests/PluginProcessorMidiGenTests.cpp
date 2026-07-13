@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "Source/MidiGen/GenreRegistry.h"
 #include "Source/MidiGen/MidiRowBuilder.h"
 #include "Source/PluginProcessor.h"
 
@@ -140,7 +141,9 @@ TEST_CASE ("PluginProcessorMidiGenTests.RowsPublishedSynchronouslyWithAnalysisRe
     REQUIRE (rows != nullptr);
     REQUIRE (result != nullptr);
 
-    const auto expected = generateAllRows (*result);
+    const auto* genre = findGenre (proc.getActiveGenreId());
+    REQUIRE (genre != nullptr);
+    const auto expected = generateGenreRows (*result, *genre);
     CHECK (rowsDeepEqual (*rows, expected));
 
     file.deleteFile();
@@ -173,7 +176,9 @@ TEST_CASE ("PluginProcessorMidiGenTests.RowsRegenerateOnRegionChange", "[process
     CHECK (rows1 != rows0);
     CHECK (rows1->size() == 5);
 
-    const auto expected = generateAllRows (*newResult);
+    const auto* genre = findGenre (proc.getActiveGenreId());
+    REQUIRE (genre != nullptr);
+    const auto expected = generateGenreRows (*newResult, *genre);
     CHECK (rowsDeepEqual (*rows1, expected));
 
     file.deleteFile();

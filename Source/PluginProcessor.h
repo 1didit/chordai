@@ -6,6 +6,8 @@
 #include "Analysis/AnalysisResult.h"
 #include "MidiGen/MidiSetRow.h"
 
+#include <array>
+
 class ChordAIAudioProcessor : public juce::AudioProcessor
 {
 public:
@@ -105,6 +107,34 @@ public:
     // must AND this with isAuditionPlaying() to know "is THIS row playing".
     juce::String getAuditionRowId() const;
 
+    // --- Genre engine API (GEN-09/GEN-10/GEN-11; message-thread only) ------
+
+    // Full 5-row rebuild for the new genre over the CURRENT AnalysisResult
+    // (no re-analysis), variation counters reset, persisted via GenreState,
+    // published via the same atomic_store + analysisBroadcaster path as
+    // triggerAnalysis's onDone. No-op if genreId is unknown (Pitfall F) or
+    // already active.
+    void setActiveGenre (const juce::String& genreId);
+
+    // Validates exactlyFive.size() == 5, every id resolves via findGenre(),
+    // and no duplicates -- else no-op. Persists via GenreState and
+    // broadcasts; does NOT regenerate rows UNLESS the currently active genre
+    // was evicted from the new five, in which case the newest-added genre
+    // (index 4) becomes active (documented discretion call), which itself
+    // triggers a row rebuild via setActiveGenre().
+    void setMainGenres (const juce::StringArray& exactlyFive);
+
+    // Bumps patternVariationCounters[patternIndex] BEFORE regenerating
+    // (Pitfall B), splices ONE row into a COPY of the current row vector,
+    // publishes via the same atomic_store + analysisBroadcaster path (
+    // Pitfall D: no partial-update shortcut exists or is added). Safe no-op
+    // (no crash, no broadcast) if patternIndex is out of [0,4], or if there
+    // is no current analysis result/rows yet.
+    void regenerateRow (int patternIndex);
+
+    juce::String getActiveGenreId() const;    // message-thread only
+    juce::StringArray getMainGenreIds() const; // message-thread only
+
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
@@ -171,6 +201,19 @@ private:
 
     juce::Range<double> selectedRegion; // message-thread only
     juce::String lastLoadError;
+
+    // Message-thread only (same discipline as selectedRegion above). Bumped
+    // by regenerateRow(int) BEFORE each row-rebuild call (Pitfall B); reset
+    // to {} on every setActiveGenre (a fresh genre starts every slot back at
+    // its baseline variant).
+    std::array<uint32_t, 5> patternVariationCounters {};
+
+    // Message-thread only. Restored from GenreState in the ctor and again in
+    // setStateInformation (RegionState precedent) so an editor-reopen/DAW
+    // project reload lands coherent even before Phase 7's own persistence
+    // verification.
+    juce::String activeGenreId;
+    juce::StringArray mainGenreIds;
 
     // The background job's completion callback runs later, asynchronously, via
     // MessageManager::callAsync — possibly after this processor has already

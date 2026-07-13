@@ -1,7 +1,9 @@
 #pragma once
 
-// Frozen generator signature (Wave 2 implements the body only, in plan
-// 05-04). The one public entry point PluginProcessor calls.
+// The one public MidiGen entry point PluginProcessor calls (GEN-01/GEN-09/
+// GEN-11). Phase 5's fixed generateAllRows (AsIsRowGenerator/
+// StyleVoicingGenerators) is retired as of 06.1-05 -- generateGenreRows/
+// regenerateRow over the genre-data-driven PatternEngine replace it.
 
 #include "../Analysis/AnalysisResult.h"
 #include "GenerationSettings.h"
@@ -10,12 +12,6 @@
 
 #include <cstdint>
 #include <vector>
-
-// Pure function: same AnalysisResult (+ settings) always produces
-// byte-identical output (GEN-04 determinism requirement, see 05-RESEARCH.md
-// Pitfall 2). Empty AnalysisResult.chords (or all-NoChord) produces 5 rows
-// with empty notes vectors, never a crash.
-std::vector<MidiSetRow> generateAllRows (const AnalysisResult& result, const GenerationSettings& settings = {});
 
 // Genre-aware row API (06.1-05, GEN-09/GEN-11): builds all 5 slots of one
 // genre over the PatternEngine, at the baseline (variationCounter == 0)

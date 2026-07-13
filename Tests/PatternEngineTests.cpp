@@ -88,6 +88,27 @@ namespace
                 onsets.insert (n.startBeats);
         return onsets;
     }
+
+    // Ported from the retired Tests/StyleVoicingTests.cpp's
+    // RnbVoiceLeadingMinimizesMovement (same helper names/shapes).
+    std::vector<int> pitchesStartingAt (const std::vector<NoteEvent>& notes, double startBeats)
+    {
+        std::vector<int> pitches;
+        for (const auto& n : notes)
+            if (n.startBeats == startBeats)
+                pitches.push_back (n.pitch);
+        return pitches;
+    }
+
+    double meanPitch (const std::vector<int>& pitches)
+    {
+        if (pitches.empty())
+            return 0.0;
+        double sum = 0.0;
+        for (int p : pitches)
+            sum += (double) p;
+        return sum / (double) pitches.size();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -496,4 +517,56 @@ TEST_CASE ("PatternEngineTests.GenerationPerformanceBudget", "[patternengine]")
 
     CHECK (totalNotes > 0);
     CHECK (minElapsedMs < 1.0);
+}
+
+// ---------------------------------------------------------------------------
+// 13. Voice leading minimizes total movement across a chord transition
+// (EXPLICIT GAP CLOSURE, 06.1-05-PLAN.md: ported from the retired
+// Tests/StyleVoicingTests.cpp's RnbVoiceLeadingMinimizesMovement -- the only
+// test asserting voice-leading MINIMIZES total movement, not merely
+// register-clamps. Exercises VoiceLeadingEngine::nearestOctaveNote through
+// generatePattern's useVoiceLeading path, same assertion shape: total
+// semitone movement across a transition under voice leading is <= the naive
+// re-anchor-at-register-60 baseline.)
+// ---------------------------------------------------------------------------
+
+TEST_CASE ("PatternEngineTests.VoiceLeadingMinimizesMovementAcrossTransition", "[patternengine]")
+{
+    const auto fixture = midigen_fixtures::makeFourChordFixture();
+
+    auto archetype = makeArchetype (PatternKind::SustainedChords, ToneSetKind::SeventhExtension);
+    archetype.useVoiceLeading = true;
+    archetype.registerAnchor = 60;
+    archetype.registerLow = 48;
+    archetype.registerHigh = 72;
+
+    const auto notes = generatePattern (fixture, archetype, 0u);
+
+    const std::vector<double> segmentStarts = { 0.0, 4.0, 8.0, 12.0 };
+    bool foundStrictlyLess = false;
+
+    for (size_t i = 1; i < segmentStarts.size(); ++i)
+    {
+        const auto previousPitches = pitchesStartingAt (notes, segmentStarts[i - 1]);
+        const auto actualPitches = pitchesStartingAt (notes, segmentStarts[i]);
+        const double previousChordMeanPitch = meanPitch (previousPitches);
+
+        double voiceLedMovement = 0.0;
+        for (int p : actualPitches)
+            voiceLedMovement += std::abs ((double) p - previousChordMeanPitch);
+
+        const auto& segment = fixture.chords[i];
+        const int naiveRoot = rootMidiNote (segment.chord.pitchClass, 60);
+        const auto naivePitches = intervalsToMidiNotes (naiveRoot, rnbExtensionIntervals (segment.chord.quality));
+
+        double naiveMovement = 0.0;
+        for (int p : naivePitches)
+            naiveMovement += std::abs ((double) p - previousChordMeanPitch);
+
+        CHECK (voiceLedMovement <= naiveMovement);
+        if (voiceLedMovement < naiveMovement)
+            foundStrictlyLess = true;
+    }
+
+    CHECK (foundStrictlyLess);
 }

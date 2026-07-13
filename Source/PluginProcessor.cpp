@@ -5,6 +5,8 @@
 #include "Audio/AuditionRenderer.h"
 #include "Import/AudioFileLoader.h"
 #include "Import/RegionState.h"
+#include "MidiGen/GenreRegistry.h"
+#include "MidiGen/GenreState.h"
 #include "MidiGen/MidiRowBuilder.h"
 
 ChordAIAudioProcessor::ChordAIAudioProcessor()
@@ -19,6 +21,13 @@ ChordAIAudioProcessor::ChordAIAudioProcessor()
     , apvts (*this, nullptr, "PARAMETERS", createParameterLayout())
 {
     formatManager.registerBasicFormats();
+
+    // Editor-reopen/state-restore defense (RegionState precedent): a fresh
+    // ctor has an empty apvts.state, so these fall back to "trap"/the
+    // default main-5 -- setStateInformation re-reads the same way once a DAW
+    // project actually loads.
+    activeGenreId = GenreState::readActiveGenre (apvts.state, "trap");
+    mainGenreIds = GenreState::readMainGenres (apvts.state, kDefaultMainGenreIds);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout ChordAIAudioProcessor::createParameterLayout()
@@ -97,6 +106,14 @@ void ChordAIAudioProcessor::setStateInformation (const void* data, int sizeInByt
     if (auto xml = getXmlFromBinary (data, sizeInBytes))
         if (xml->hasTagName (apvts.state.getType()))
             apvts.replaceState (juce::ValueTree::fromXml (*xml));
+
+    // Re-read GenreState (same fallbacks as the ctor) so a DAW project
+    // reload's genre selection is reflected in the message-thread cache --
+    // Phase 7 verifies the full persistence story end-to-end, this plan just
+    // doesn't strand it. UnknownActiveGenreIdFallsBackSafely (Pitfall F)
+    // covers a corrupt/foreign "activeGenreId" property landing here.
+    activeGenreId = GenreState::readActiveGenre (apvts.state, "trap");
+    mainGenreIds = GenreState::readMainGenres (apvts.state, kDefaultMainGenreIds);
 }
 
 void ChordAIAudioProcessor::loadAudioFile (const juce::File& file)
@@ -218,15 +235,27 @@ void ChordAIAudioProcessor::triggerAnalysis()
 
         std::atomic_store (&analysisResult, result);
 
+        // A fresh analysis starts every slot back at its baseline variant --
+        // matches setActiveGenre's own counter reset.
+        patternVariationCounters = {};
+
+        // Pitfall F: NEVER dereference findGenre() unchecked. activeGenreId
+        // may be stale/corrupt/foreign (setStateInformation restored it from
+        // a DAW project written by a future version, or by hand-edited XML);
+        // fall back to "trap" rather than crash or publish empty rows.
+        const auto* genre = findGenre (activeGenreId);
+        if (genre == nullptr)
+            genre = findGenre ("trap");
+
         // Row generation is pure math over a few dozen chords, measured
         // sub-millisecond even on the ~150-segment real-track-scale fixture
-        // (MidiRowBuilderTests.GenerationPerformanceBudget) -- safe to call
+        // (PatternEngineTests.GenerationPerformanceBudget) -- safe to call
         // synchronously right here, on the message thread, before the
         // broadcast (05-RESEARCH.md Pattern 6). This ordering -- BEFORE
         // sendChangeMessage() -- IS the "same broadcast" guarantee (GEN-01):
         // rows and the chord timeline can never be observed out of sync.
         auto rows = std::make_shared<const std::vector<MidiSetRow>> (
-            result != nullptr ? generateAllRows (*result) : std::vector<MidiSetRow>{});
+            (result != nullptr && genre != nullptr) ? generateGenreRows (*result, *genre) : std::vector<MidiSetRow>{});
         std::atomic_store (&midiSetRows, rows);
 
         analyzingFlag = false;
@@ -287,6 +316,99 @@ bool ChordAIAudioProcessor::isAuditionPlaying() const
 juce::String ChordAIAudioProcessor::getAuditionRowId() const
 {
     return auditionRowId;
+}
+
+// --- Genre engine API (GEN-09/GEN-10/GEN-11) ----------------------------
+
+void ChordAIAudioProcessor::setActiveGenre (const juce::String& genreId)
+{
+    if (genreId == activeGenreId)
+        return; // no-op: already active
+
+    const auto* genre = findGenre (genreId);
+    if (genre == nullptr)
+        return; // no-op: unknown id (Pitfall F -- never dereference unchecked)
+
+    activeGenreId = genreId;
+    GenreState::write (apvts.state, activeGenreId, mainGenreIds);
+    patternVariationCounters = {}; // fresh genre -- every slot starts back at its baseline variant
+
+    auto result = getAnalysisResult();
+    auto rows = std::make_shared<const std::vector<MidiSetRow>> (
+        result != nullptr ? generateGenreRows (*result, *genre) : std::vector<MidiSetRow>{});
+    std::atomic_store (&midiSetRows, rows);
+
+    analysisBroadcaster.sendChangeMessage();
+}
+
+void ChordAIAudioProcessor::setMainGenres (const juce::StringArray& exactlyFive)
+{
+    if (exactlyFive.size() != 5)
+        return; // no-op: wrong size
+
+    juce::StringArray seen;
+    for (const auto& id : exactlyFive)
+    {
+        if (findGenre (id) == nullptr || seen.contains (id))
+            return; // no-op: unknown id or duplicate -- defensive validate
+        seen.add (id);
+    }
+
+    mainGenreIds = exactlyFive;
+    GenreState::write (apvts.state, activeGenreId, mainGenreIds);
+    analysisBroadcaster.sendChangeMessage();
+
+    // FIFO eviction: the currently active genre fell out of the new five --
+    // the newest-added genre (index 4) becomes active (documented discretion
+    // call). setActiveGenre() performs its own write/broadcast/row rebuild.
+    if (! mainGenreIds.contains (activeGenreId))
+        setActiveGenre (mainGenreIds[4]);
+}
+
+void ChordAIAudioProcessor::regenerateRow (int patternIndex)
+{
+    if (patternIndex < 0 || patternIndex >= 5)
+        return; // no-op: out-of-range index, safe (no crash)
+
+    auto result = getAnalysisResult();
+    if (result == nullptr)
+        return; // no-op: nothing analyzed yet
+
+    auto rows = std::atomic_load (&midiSetRows);
+    if (rows == nullptr || rows->size() != 5)
+        return; // no-op: rows not published yet (defensive -- shouldn't happen once result is non-null)
+
+    const auto* genre = findGenre (activeGenreId);
+    if (genre == nullptr)
+        genre = findGenre ("trap"); // Pitfall F
+    if (genre == nullptr)
+        return; // unreachable in practice ("trap" is always registered), stay safe regardless
+
+    ++patternVariationCounters[(size_t) patternIndex]; // Pitfall B: increment BEFORE the call
+
+    // ::regenerateRow is the free MidiRowBuilder.h function -- qualified
+    // with :: because this member function's own name (regenerateRow)
+    // otherwise hides it from unqualified lookup.
+    const auto newRow = ::regenerateRow (*result, *genre, patternIndex, patternVariationCounters[(size_t) patternIndex]);
+
+    // Pitfall D: full vector copy + atomic_store + broadcast, same
+    // publication path as every other row update -- no partial-view/
+    // single-row-update shortcut exists or is added here.
+    std::vector<MidiSetRow> updatedRows = *rows;
+    updatedRows[(size_t) patternIndex] = newRow;
+
+    std::atomic_store (&midiSetRows, std::make_shared<const std::vector<MidiSetRow>> (std::move (updatedRows)));
+    analysisBroadcaster.sendChangeMessage();
+}
+
+juce::String ChordAIAudioProcessor::getActiveGenreId() const
+{
+    return activeGenreId;
+}
+
+juce::StringArray ChordAIAudioProcessor::getMainGenreIds() const
+{
+    return mainGenreIds;
 }
 
 // This creates new instances of the plugin — required by every JUCE plugin, build
