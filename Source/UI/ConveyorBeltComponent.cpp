@@ -34,7 +34,13 @@ void ConveyorBeltComponent::resized()
 
 void ConveyorBeltComponent::timerCallback()
 {
-    beltOffset = (beltOffset + (analyzing ? 2 : 1)) % slatSpacing;
+    // UI-01 (locked): the belt is a moving metaphor only while a file is
+    // dragged over the editor or while analysis is running. Idle, it is
+    // completely STOPPED — beltOffset freezes exactly where it was, so the
+    // slats (and, later, the roller rotation cue) stop dead too.
+    bool active = dragHover || analyzing;
+    if (active)
+        beltOffset = (beltOffset + (analyzing ? 2 : 1)) % slatSpacing;
 
     // Advance falling chunks (stub physics only).
     constexpr float gravity = 0.6f;
@@ -49,7 +55,13 @@ void ConveyorBeltComponent::timerCallback()
                                    [belowBounds] (const FallingChunk& c) { return c.y > belowBounds; }),
                   chunks.end());
 
-    repaint(); // dirties only this component's own bounds
+    // Nothing is moving (belt frozen, no chunks in flight) — skip the 30Hz
+    // repaint churn while fully idle/static. The state-change setters below
+    // (setExternalDragHover, setAnalysisProgress, fileDragEnter/Exit) still
+    // call repaint() directly, so transitions into/out of idle repaint
+    // immediately regardless of this guard.
+    if (active || ! chunks.empty())
+        repaint(); // dirties only this component's own bounds
 }
 
 void ConveyorBeltComponent::paint (juce::Graphics& g)
@@ -85,6 +97,20 @@ void ConveyorBeltComponent::paint (juce::Graphics& g)
     fg.setColour (edgeHighlight);
     fg.drawHorizontalLine (beltTop, 0.0f, (float) logicalW);
     fg.drawHorizontalLine (beltTop + beltHeight - 1, 0.0f, (float) logicalW);
+
+    // Idle invitation text (UI-01, locked): shown whenever the belt is
+    // stopped — i.e. no active drag-over and no analysis in progress — and
+    // persists between loads (it is not tied to "no file loaded yet").
+    // Drawn INTO the logical low-res frame so the existing nearest-neighbour
+    // upscale below turns it into the plugin's pixel-font look; zero new
+    // font/image assets. Disappears the moment the belt starts moving
+    // (drag-hover or analysis), letting the belt metaphor take over.
+    if (! dragHover && ! analyzing)
+    {
+        fg.setColour (juce::Colour (0xccd8d8e0)); // dim warm white — invitation, not an alert (gold is reserved)
+        fg.setFont (juce::Font (juce::FontOptions (7.0f)));
+        fg.drawFittedText ("drop song or melody here", beltRect, juce::Justification::centred, 1);
+    }
 
     // Analysis progress fill: a flat gold bar sitting on the belt's top edge,
     // painted inside the logical frame so it inherits the pixel-art
