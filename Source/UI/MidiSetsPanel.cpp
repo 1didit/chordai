@@ -7,8 +7,8 @@ void MidiSetsPanel::paint (juce::Graphics& g)
     if (rows != nullptr && ! rows->empty())
         return; // Rows paint themselves; nothing left for the panel to draw.
 
-    // Empty state -- keeps MidiSetsPlaceholder's exact idle look (string
-    // lifted verbatim so it doesn't change).
+    // Empty state -- keeps the original bottom-band placeholder's exact idle
+    // look (string lifted verbatim so it doesn't change).
     g.fillAll (juce::Colour (0xff101018));
 
     g.setColour (juce::Colour (0xff2a2a38));

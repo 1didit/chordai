@@ -7,7 +7,7 @@ ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor&
     addAndMakeVisible (chordTimeline);
     addAndMakeVisible (waveformView);
     addAndMakeVisible (regionOverlay); // on top of waveformView (z-order) — handles all mouse input
-    addAndMakeVisible (midiSetsPlaceholder);
+    addAndMakeVisible (midiSetsPanel);
 
     conveyor.onFileDropped = [this] (juce::File f) { processor.loadAudioFile (std::move (f)); };
     regionOverlay.onRegionChanged = [this] (juce::Range<double> r) { processor.setSelectedRegion (r); };
@@ -41,7 +41,7 @@ void ChordAIAudioProcessorEditor::resized()
     auto bounds = getLocalBounds();
 
     conveyor.setBounds (bounds.removeFromTop (120));
-    midiSetsPlaceholder.setBounds (bounds.removeFromBottom (140));
+    midiSetsPanel.setBounds (bounds.removeFromBottom (140));
 
     chordTimeline.setBounds (bounds.removeFromTop (28));
 
@@ -82,6 +82,7 @@ void ChordAIAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaste
         // re-analysis, so the last good chord timeline stays visible until a
         // fresher one lands.
         chordTimeline.setResult (processor.getAnalysisResult());
+        midiSetsPanel.setRows (processor.getMidiSetRows());
 
         const bool nowAnalyzing = processor.isAnalyzing();
         conveyor.setAnalysisProgress (processor.getAnalysisProgress(), nowAnalyzing);
@@ -113,6 +114,10 @@ void ChordAIAudioProcessorEditor::handleLoadComplete (const LoadedAudio& loaded)
     // blanks it on fresh load (processor cleared the result to nullptr
     // before broadcasting, per 04-01).
     chordTimeline.setResult (processor.getAnalysisResult());
+    // Same dual role as the timeline: restores rows on editor reopen (already
+    // published) and blanks them on fresh load (processor cleared to nullptr
+    // before broadcasting).
+    midiSetsPanel.setRows (processor.getMidiSetRows());
 
     // Editor reopened mid-analysis (or after one already ran): show the
     // belt's current busy state immediately instead of waiting for the next

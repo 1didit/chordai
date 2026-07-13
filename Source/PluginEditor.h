@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "UI/ConveyorBeltComponent.h"
-#include "UI/MidiSetsPlaceholder.h"
+#include "UI/MidiSetsPanel.h"
 #include "UI/WaveformView.h"
 #include "UI/RegionSelectorOverlay.h"
 #include "UI/ChordTimelineView.h"
@@ -47,7 +47,7 @@ private:
     ChordTimelineView chordTimeline;
     WaveformView waveformView;
     RegionSelectorOverlay regionOverlay;
-    MidiSetsPlaceholder midiSetsPlaceholder;
+    MidiSetsPanel midiSetsPanel;
 
     juce::Rectangle<int> waveformArea;
 

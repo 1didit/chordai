@@ -9,7 +9,7 @@
 #include <vector>
 
 // Bottom-band panel (140px) owning one MidiRowView per generated row.
-// Replaces MidiSetsPlaceholder once wired into PluginEditor (05-05 Task 3).
+// Replaces the bottom-band placeholder once wired into PluginEditor (05-05 Task 3).
 class MidiSetsPanel : public juce::Component
 {
 public:
