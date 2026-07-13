@@ -59,6 +59,32 @@ namespace
         g.fillRect (b.getX() + 1,         b.getY() + h / 3, w - 2, 2);           // arrowhead bar
         g.fillRect (b.getX(),             b.getBottom() - 2, w, 2);              // tray
     }
+
+    // Drag-out temp .mid (EXP-01). 06-RESEARCH.md Pitfall 1 (Ableton "could
+    // not be opened"): deleting the temp file in a performExternalDragDropOfFiles
+    // completion callback races the host's own async read of the file --
+    // Ableton loses that race and reports a read error, with no crash. The
+    // fix is to NEVER delete the file in that callback; instead sweep the
+    // PREVIOUS drag's file(s) at the START of the next drag, before writing
+    // the new one. Do not "optimize" this into a cleanup callback.
+    juce::File writeDragTempFile (const MidiSetRow& row, const KeyResult& key, double bpm)
+    {
+        auto subfolder = juce::File::getSpecialLocation (juce::File::tempDirectory).getChildFile ("ChordAI");
+
+        // Deferred cleanup of the PREVIOUS drag's temp file(s) -- see the
+        // Pitfall 1 comment above. This is the only place *.mid files in this
+        // subfolder are ever deleted.
+        for (auto& f : subfolder.findChildFiles (juce::File::findFiles, false, "*.mid"))
+            f.deleteFile();
+
+        subfolder.createDirectory();
+
+        auto target = subfolder.getChildFile (MidiFileWriter::suggestedFileName (row, key, bpm));
+        if (! MidiFileWriter::writeToFile (row, bpm, target))
+            return {}; // invalid File on write failure
+
+        return target;
+    }
 }
 
 MidiRowView::MidiRowView()
@@ -163,12 +189,29 @@ void MidiRowView::mouseDown (const juce::MouseEvent&)
 
 void MidiRowView::mouseDrag (const juce::MouseEvent& e)
 {
-    // Gesture guard only this task -- the drag-out body (temp .mid write +
-    // performExternalDragDropOfFiles) lands in the next task.
+    // Gesture guard: performExternalDragDropOfFiles must fire exactly once
+    // per gesture -- mouseDrag fires repeatedly while the mouse moves. A real
+    // drag overrides a click; the click only fires from mouseUp when no drag
+    // happened (satisfies "drag anywhere on the row body", icons included).
     if (dragStarted || ! e.mouseWasDraggedSinceMouseDown())
         return;
 
     dragStarted = true;
+
+    const double bpm = getBpmForExport ? getBpmForExport() : 120.0;
+    const auto key = getKeyForExport ? getKeyForExport() : KeyResult {};
+
+    auto tempFile = writeDragTempFile (row, key, bpm);
+    if (tempFile.existsAsFile())
+    {
+        // canMoveFiles MUST be false (the DAW copies bytes, never takes
+        // ownership of our temp file) and the callback MUST be nullptr (see
+        // the writeDragTempFile comment / 06-RESEARCH.md Pitfall 1) -- ANY
+        // cleanup callback here races Ableton's async read. Leave the file on
+        // disk; the next drag's cleanup (or OS temp hygiene) collects it.
+        juce::DragAndDropContainer::performExternalDragDropOfFiles (
+            { tempFile.getFullPathName() }, /*canMoveFiles*/ false, this, /*callback*/ nullptr);
+    }
 }
 
 void MidiRowView::mouseUp (const juce::MouseEvent& e)
@@ -195,5 +238,39 @@ void MidiRowView::mouseUp (const juce::MouseEvent& e)
 
 void MidiRowView::saveRow()
 {
-    // Stub -- the next task fills the real async FileChooser save flow.
+    // Session-lifetime last-used directory -- v1 pragmatic choice (06-
+    // RESEARCH.md Code Examples): promote to a persisted apvts-backed setting
+    // only if a later phase needs it to survive across sessions.
+    static juce::File lastUsedDirectory =
+        juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile ("ChordAI MIDI");
+
+    const double bpm = getBpmForExport ? getBpmForExport() : 120.0;
+    const auto key = getKeyForExport ? getKeyForExport() : KeyResult {};
+    const auto suggestedName = MidiFileWriter::suggestedFileName (row, key, bpm);
+
+    lastUsedDirectory.createDirectory();
+    auto initial = lastUsedDirectory.getChildFile (suggestedName);
+
+    // fileChooser is a member (MUST outlive launchAsync's callback per the
+    // FileChooser header's own doc comment).
+    fileChooser = std::make_unique<juce::FileChooser> ("Save MIDI row", initial, "*.mid");
+
+    // rowCopy/bpm captured BY VALUE, no `this` capture: MidiSetsPanel::setRows
+    // destroys every MidiRowView on every regeneration, and a save dialog may
+    // still be open when that happens. If this view dies, fileChooser dies
+    // with it and the callback simply never fires -- nothing dangles.
+    auto rowCopy = row;
+    fileChooser->launchAsync (
+        juce::FileBrowserComponent::saveMode
+            | juce::FileBrowserComponent::canSelectFiles
+            | juce::FileBrowserComponent::warnAboutOverwriting,
+        [rowCopy, bpm] (const juce::FileChooser& fc)
+        {
+            auto chosen = fc.getResult();
+            if (chosen == juce::File {})
+                return; // user cancelled
+
+            lastUsedDirectory = chosen.getParentDirectory();
+            MidiFileWriter::writeToFile (rowCopy, bpm, chosen);
+        });
 }
