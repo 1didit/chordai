@@ -84,7 +84,14 @@ Plans:
   2. A progress/busy indicator is visible for the duration of analysis
   3. A 3-minute song completes analysis in seconds, not minutes
   4. Detected chords appear as named chords (e.g., Am, Cmaj7, F/A) on a timeline positioned over the waveform
-**Plans**: TBD
+     (v1 display vocabulary: root-position maj/min/dom7/N.C. — the Cmaj7/F/A examples are illustrative; frozen Phase 3 ChordQuality contract, see 04-RESEARCH.md Open Question 1)
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — AnalysisPipeline ThreadPoolJob + generation-guarded cancel-and-restart on PluginProcessor (auto-trigger on load/region change) (Wave 1)
+- [ ] 04-02-PLAN.md — ChordNameFormatter + ChordTimelineView band over the waveform + editor wiring (Wave 2)
+- [ ] 04-03-PLAN.md — Conveyor progress fill + belt speed-up; chunk-fall moved to analysis-complete (Wave 3)
+- [ ] 04-04-PLAN.md — One-time Release build + human checkpoint: real-track timing, responsiveness, timeline legibility (Wave 4)
 
 ### Phase 5: MIDI Conveyor Generation
 **Goal**: A single analysis pass fans out into several ready-to-use MIDI outputs in different styles, the product's core differentiator.
@@ -130,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Plugin Foundation | 3/3 | Complete   | 2026-07-12 |
 | 2. Audio Import & Waveform | 4/4 | Complete   | 2026-07-12 |
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
-| 4. Analysis UI Integration | 0/TBD | Not started | - |
+| 4. Analysis UI Integration | 0/4 | Planned | - |
 | 5. MIDI Conveyor Generation | 0/TBD | Not started | - |
 | 6. Row Preview & Export | 0/TBD | Not started | - |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |
