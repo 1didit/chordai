@@ -56,7 +56,8 @@ private:
 
     struct FallingChunk
     {
-        float x, y, vy;
+        float x, y, vx, vy;
+        bool bounced = false;
     };
 
     static constexpr int slatSpacing = 8; // logical px between tread slats

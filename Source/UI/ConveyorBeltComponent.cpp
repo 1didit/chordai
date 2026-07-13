@@ -1,5 +1,7 @@
 #include "ConveyorBeltComponent.h"
 
+#include <cmath>
+
 namespace
 {
     constexpr int pixelScale = 4; // logical render is 1/4 resolution, upscaled nearest-neighbour
@@ -42,12 +44,22 @@ void ConveyorBeltComponent::timerCallback()
     if (active)
         beltOffset = (beltOffset + (analyzing ? 2 : 1)) % slatSpacing;
 
-    // Advance falling chunks (stub physics only).
+    // Advance falling chunks: gravity + horizontal carry, with a single
+    // small bounce off the "floor" before falling through and despawning.
     constexpr float gravity = 0.6f;
+    auto bounceY = (float) getHeight() * 0.92f;
     for (auto& c : chunks)
     {
         c.vy += gravity;
         c.y += c.vy;
+        c.x += c.vx;
+
+        if (! c.bounced && c.y >= bounceY)
+        {
+            c.vy = -c.vy * 0.35f;
+            c.vx *= 0.7f;
+            c.bounced = true;
+        }
     }
 
     auto belowBounds = (float) getHeight() + 8.0f;
@@ -79,24 +91,75 @@ void ConveyorBeltComponent::paint (juce::Graphics& g)
     auto beltTop = juce::roundToInt (logicalH * 0.2f);
     auto beltHeight = juce::roundToInt (logicalH * 0.6f);
     juce::Rectangle<int> beltRect (0, beltTop, logicalW, beltHeight);
-    fg.setColour (dragHover ? beltColour.brighter (0.3f) : beltColour);
-    fg.fillRect (beltRect);
+    auto beltBase = dragHover ? beltColour.brighter (0.3f) : beltColour;
 
-    // Tread slats travelling left->right (shifted by +beltOffset each frame).
-    fg.setColour (slatColour);
-    for (int x = -slatSpacing + beltOffset; x < logicalW; x += slatSpacing)
+    // Two-tone shading (lighter top half / darker bottom half) for depth.
+    auto topHalfHeight = beltHeight / 2;
+    fg.setColour (beltBase.brighter (0.12f));
+    fg.fillRect (0, beltTop, logicalW, topHalfHeight);
+    fg.setColour (beltBase.darker (0.12f));
+    fg.fillRect (0, beltTop + topHalfHeight, logicalW, beltHeight - topHalfHeight);
+
+    // Deterministic dither: sparse darker pixels indexed off (x + beltOffset)
+    // so the texture travels WITH the belt when moving and freezes when
+    // idle — a pure function of state, no randomness involved.
+    fg.setColour (beltBase.darker (0.35f));
+    for (int x = 0; x < logicalW; ++x)
+        for (int y = 0; y < beltHeight; ++y)
+            if ((x + beltOffset) % 4 == 0 && y % 3 == 1)
+                fg.fillRect (x, beltTop + y, 1, 1);
+
+    // Tread slats travelling left->right (shifted by +beltOffset each
+    // frame), alternating shade for relief plus a 1px highlight on each
+    // slat's leading (rightmost, direction-of-travel) edge.
+    int slatIndex = 0;
+    for (int x = -slatSpacing + beltOffset; x < logicalW; x += slatSpacing, ++slatIndex)
+    {
+        fg.setColour ((slatIndex % 2 == 0) ? slatColour.brighter (0.15f) : slatColour);
         fg.fillRect (x, beltTop, 2, beltHeight);
+        fg.setColour (edgeHighlight);
+        fg.fillRect (x + 1, beltTop, 1, beltHeight);
+    }
 
-    // Roller circles at the far left and right ends.
+    // Roller circles at the far left and right ends, each with a rotation
+    // cue (two notches + a static axle pixel) synced to belt motion via
+    // beltOffset — freezes dead when idle, same as the slats.
     auto rollerDiameter = beltHeight;
     fg.setColour (rollerColour);
     fg.fillEllipse ((float) 0, (float) beltTop, (float) rollerDiameter, (float) rollerDiameter);
     fg.fillEllipse ((float) (logicalW - rollerDiameter), (float) beltTop, (float) rollerDiameter, (float) rollerDiameter);
 
-    // 1-px top/bottom edge highlights for depth.
+    {
+        auto rollerPhase = (beltOffset / (double) slatSpacing) * juce::MathConstants<double>::twoPi;
+        auto rollerRadius = rollerDiameter * 0.5f;
+        auto notchRadius = rollerRadius * 0.7f;
+        auto notchColour = rollerColour.darker (0.5f);
+
+        auto drawRoller = [&] (float centreX)
+        {
+            auto centreY = (float) beltTop + rollerRadius;
+            fg.setColour (notchColour);
+            fg.fillRect (juce::Rectangle<float> (centreX - 0.5f, centreY - 0.5f, 1.0f, 1.0f)); // static axle
+
+            for (int i = 0; i < 2; ++i)
+            {
+                auto angle = rollerPhase + i * juce::MathConstants<double>::pi;
+                auto nx = centreX + notchRadius * (float) std::cos (angle);
+                auto ny = centreY + notchRadius * (float) std::sin (angle);
+                fg.fillRect (juce::Rectangle<float> (nx - 0.5f, ny - 0.5f, 1.0f, 1.0f));
+            }
+        };
+        drawRoller (rollerRadius);
+        drawRoller ((float) logicalW - rollerRadius);
+    }
+
+    // 1-px top/bottom edge highlights for depth, plus a drop-shadow line
+    // just under the belt band for lift off the background.
     fg.setColour (edgeHighlight);
     fg.drawHorizontalLine (beltTop, 0.0f, (float) logicalW);
     fg.drawHorizontalLine (beltTop + beltHeight - 1, 0.0f, (float) logicalW);
+    fg.setColour (juce::Colour (0x66000000));
+    fg.drawHorizontalLine (beltTop + beltHeight, 0.0f, (float) logicalW);
 
     // Idle invitation text (UI-01, locked): shown whenever the belt is
     // stopped — i.e. no active drag-over and no analysis in progress — and
@@ -126,10 +189,20 @@ void ConveyorBeltComponent::paint (juce::Graphics& g)
         fg.fillRect (0, beltTop, filledWidth, fillHeight);
     }
 
-    // Falling-chunk stub: piano-roll note look.
-    fg.setColour (chunkColour);
+    // Falling chunks: piano-roll note look, with a 1px darker outline row
+    // for read. Physics runs in full-component-resolution units (matches
+    // triggerChunkFallStub's spawn point at the real right roller edge), so
+    // positions are scaled down by pixelScale here to land correctly in the
+    // logical frame's own coordinate space.
+    auto outlineColour = chunkColour.darker (0.4f);
     for (auto& c : chunks)
-        fg.fillRect (juce::Rectangle<float> (c.x, c.y, 3.0f, 2.0f));
+    {
+        juce::Rectangle<float> r (c.x / (float) pixelScale, c.y / (float) pixelScale, 4.0f, 2.0f);
+        fg.setColour (chunkColour);
+        fg.fillRect (r);
+        fg.setColour (outlineColour);
+        fg.fillRect (juce::Rectangle<float> (r.getX(), r.getBottom() - 1.0f, r.getWidth(), 1.0f));
+    }
 
     // Blit the logical frame up to full component size — nearest-neighbour
     // upscale IS the pixel-art look.
@@ -203,5 +276,7 @@ void ConveyorBeltComponent::filesDropped (const juce::StringArray& files, int, i
 void ConveyorBeltComponent::triggerChunkFallStub()
 {
     auto beltTopPx = getHeight() * 0.2f;
-    chunks.push_back ({ (float) getWidth() - 4.0f, beltTopPx, 0.0f });
+    // Small horizontal carry (vx) so the chunk arcs off the belt's right
+    // roller instead of dropping straight down.
+    chunks.push_back ({ (float) getWidth() - 4.0f, beltTopPx, 1.5f, 0.0f, false });
 }
