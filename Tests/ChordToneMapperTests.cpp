@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "Source/MidiGen/ChordToneMapper.h"
+#include "Source/MidiGen/GenreRegistry.h"
 #include "Source/MidiGen/Humanization.h"
 #include "Source/MidiGen/VoiceLeadingEngine.h"
 
@@ -95,4 +96,42 @@ TEST_CASE ("ChordToneMapperTests.DeterministicJitterIsPureAndBounded", "[chordto
         }
         CHECK (foundDifference);
     }
+}
+
+TEST_CASE ("ChordToneMapperTests.DiatonicScaleIntervalsMajorMinor", "[chordtonemapper]")
+{
+    CHECK (diatonicScaleIntervals (true) == std::vector<int> { 0, 2, 4, 5, 7, 9, 11 });
+    CHECK (diatonicScaleIntervals (false) == std::vector<int> { 0, 2, 3, 5, 7, 8, 10 });
+}
+
+TEST_CASE ("ChordToneMapperTests.PowerChordIntervals", "[chordtonemapper]")
+{
+    CHECK (powerChordIntervals() == std::vector<int> { 0, 7 });
+}
+
+TEST_CASE ("ChordToneMapperTests.ToneSetIntervalsDispatch", "[chordtonemapper]")
+{
+    CHECK (toneSetIntervals (ToneSetKind::Triad, ChordQuality::Major, false) == std::vector<int> { 0, 4, 7 });
+    CHECK (toneSetIntervals (ToneSetKind::SeventhExtension, ChordQuality::Minor, false) == std::vector<int> { 0, 3, 7, 10, 14, 17 });
+    CHECK (toneSetIntervals (ToneSetKind::PowerChord, ChordQuality::Major, false) == std::vector<int> { 0, 7 });
+    CHECK (toneSetIntervals (ToneSetKind::RootOnly, ChordQuality::Major, false) == std::vector<int> { 0 });
+    CHECK (toneSetIntervals (ToneSetKind::SingleTopTone, ChordQuality::Major, false) == std::vector<int> { 7 }); // top of triad
+}
+
+TEST_CASE ("ChordToneMapperTests.ToneSetIntervalsNoChordAlwaysEmpty", "[chordtonemapper]")
+{
+    for (auto kind : { ToneSetKind::Triad, ToneSetKind::SeventhExtension, ToneSetKind::PowerChord,
+                        ToneSetKind::RootOnly, ToneSetKind::SingleTopTone })
+    {
+        CHECK (toneSetIntervals (kind, ChordQuality::NoChord, false).empty());
+        CHECK (toneSetIntervals (kind, ChordQuality::NoChord, true).empty());
+    }
+}
+
+TEST_CASE ("ChordToneMapperTests.DropRootRemovesRootKeepsRest", "[chordtonemapper]")
+{
+    CHECK (toneSetIntervals (ToneSetKind::Triad, ChordQuality::Major, true) == std::vector<int> { 4, 7 });
+
+    // Never drops below 1 tone.
+    CHECK (toneSetIntervals (ToneSetKind::RootOnly, ChordQuality::Major, true) == std::vector<int> { 0 });
 }

@@ -87,3 +87,13 @@ inline int rootMidiNote (int pitchClass, int anchorOctaveBase)
 // Root + fifth only, quality-independent (Phase 6.1 GenreRegistry's
 // ToneSetKind::PowerChord -- trap/rock-style "5" voicing, no third).
 inline std::vector<int> powerChordIntervals() { return { 0, 7 }; }
+
+// Natural minor / major -- matches AnalysisResult.h's KeyResult.isMajor
+// convention. Used by PatternEngine's TopLineMotif ornament step (the ONLY
+// place a note can be a non-chord-tone, and even then constrained to the
+// detected key's diatonic scale, never fully chromatic).
+inline std::vector<int> diatonicScaleIntervals (bool isMajor)
+{
+    return isMajor ? std::vector<int> { 0, 2, 4, 5, 7, 9, 11 }
+                   : std::vector<int> { 0, 2, 3, 5, 7, 8, 10 };
+}
