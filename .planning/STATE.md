@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-07-13T10:25:56.000Z"
-last_activity: "2026-07-13 — Plan 04-03 complete: ConveyorBeltComponent::setAnalysisProgress adds a gold progress fill + belt speed-up rendered inside the existing 30Hz pixel-art paint pipeline (no new Timer, no stock ProgressBar); PluginEditor forwards processor.getAnalysisProgress()/isAnalyzing() on every analysisBroadcaster message; falling piano-roll chunk moved from load-complete to the analyzing->idle transition (fires only with a published result, via wasAnalyzing edge-detection); ANL-04 evidenced, full suite 72/72 green, pluginval strictness 5 green (VST3+AU)"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-07-13T10:46:08.000Z"
+last_activity: "2026-07-13 — Plan 04-04 complete: one-time Release build (build-release/, -O2/-O3) with full 72/72 suite green; real-track RealTrackHarness timing on TOCK.mp3 (75s) measured 2.78s (ANL-04 'seconds not minutes' confirmed on Release, not the Debug PerformanceBudget proxy); user-verified Standalone UX checkpoint approved — progress fill + belt speed-up visible, UI responsive during region-drag/window-resize, chunk fell only on completion, chord timeline legible and aligned — zero Phase 4 defects; Phase 4 complete (4/4 plans), ANL-04/ANL-05 both evidenced"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
-  completed_plans: 16
-  percent: 94
+  completed_plans: 17
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 4 - Analysis UI Integration IN PROGRESS (3/4 plans) — Plan 04-03 (conveyor analysis progress) complete, next: Plan 04-04 (phase checkpoint)
+**Current focus:** Phase 4 - Analysis UI Integration COMPLETE (4/4 plans) — Release timing + Standalone UX checkpoint approved; next: Phase 5 (MIDI Conveyor Generation)
 
 ## Current Position
 
-Phase: 4 of 7 (Analysis UI Integration) — IN PROGRESS
-Plan: 3 of 4 complete
-Status: Plan 04-03 (conveyor analysis progress) complete — ANL-04 evidenced (progress shown via belt gold-fill + speed-up, chunk falls on analysis-complete instead of load-complete); remaining Phase 4 plan is the phase human-verification checkpoint (04-04)
-Last activity: 2026-07-13 — Plan 04-03 complete: ConveyorBeltComponent::setAnalysisProgress adds a gold progress fill + belt speed-up rendered inside the existing 30Hz pixel-art paint pipeline (no new Timer, no stock ProgressBar); PluginEditor forwards processor.getAnalysisProgress()/isAnalyzing() on every analysisBroadcaster message; falling piano-roll chunk moved from load-complete to the analyzing->idle transition (fires only with a published result, via wasAnalyzing edge-detection); ANL-04 evidenced, full suite 72/72 green, pluginval strictness 5 green (VST3+AU)
+Phase: 4 of 7 (Analysis UI Integration) — COMPLETE
+Plan: 4 of 4 complete
+Status: Plan 04-04 (Release timing + Standalone UX checkpoint) complete — Release build measured 2.78s for a real 75s track (ANL-04 "seconds not minutes" evidenced on Release, not the Debug proxy); user approved Standalone UX with zero Phase 4 defects. Phase 4 done; ready for /gsd:verify-work then Phase 5 planning.
+Last activity: 2026-07-13 — Plan 04-04 complete: one-time Release build (build-release/, -O2/-O3) with full 72/72 suite green; real-track RealTrackHarness timing on TOCK.mp3 (75s) measured 2.78s (ANL-04 'seconds not minutes' confirmed on Release, not the Debug PerformanceBudget proxy); user-verified Standalone UX checkpoint approved — progress fill + belt speed-up visible, UI responsive during region-drag/window-resize, chunk fell only on completion, chord timeline legible and aligned — zero Phase 4 defects; Phase 4 complete (4/4 plans), ANL-04/ANL-05 both evidenced
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: ~12 min
-- Total execution time: ~3 hours
+- Total execution time: ~3.3 hours
 
 **By Phase:**
 
@@ -59,10 +59,11 @@ Progress: [█████████░] 94%
 | Phase 04 P01 | 20min | 3 tasks | 6 files |
 | Phase 04 P02 | ~7min | 3 tasks | 8 files |
 | Phase 04 P03 | ~5min | 2 tasks | 4 files |
+| Phase 04 P04 | ~20min | 2 tasks | 1 file |
 
 **Recent Trend:**
-- Last 5 plans: 23min+checkpoint, 20min, ~7min, ~5min
-- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning. P06 (final Phase 3 plan) closed the phase: its checkpoint caught a real end-to-end defect (BPM 0/empty chords on real-mix silence) invisible to all 58 prior synthetic-fixture tests, fixed live in one surgical commit — validates the phase's decision to gate on human real-track listening rather than synthetic fixtures alone. Phase 4 P01 (first UI-integration plan) landed clean on the first attempt — every 04-RESEARCH.md pattern proved directly applicable, only one anticipated CMake link-dependency gap needed fixing. Phase 4 P02 (chord timeline display) was the fastest plan yet — every 04-RESEARCH.md Pattern 4/5 example applied verbatim, zero deviations, zero debugging iterations across both TDD cycles and the final integration task. Phase 4 P03 (conveyor analysis progress) was even faster — a small, tightly-scoped two-task plan reusing an existing Timer/paint pipeline with no new dependencies; zero deviations, both tasks + full verification (targeted tests, then full suite + pluginval VST3/AU) passed on the first attempt.
+- Last 5 plans: 20min, 23min+checkpoint, 20min, ~7min, ~5min
+- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning. P06 (final Phase 3 plan) closed the phase: its checkpoint caught a real end-to-end defect (BPM 0/empty chords on real-mix silence) invisible to all 58 prior synthetic-fixture tests, fixed live in one surgical commit — validates the phase's decision to gate on human real-track listening rather than synthetic fixtures alone. Phase 4 P01 (first UI-integration plan) landed clean on the first attempt — every 04-RESEARCH.md pattern proved directly applicable, only one anticipated CMake link-dependency gap needed fixing. Phase 4 P02 (chord timeline display) was the fastest plan yet — every 04-RESEARCH.md Pattern 4/5 example applied verbatim, zero deviations, zero debugging iterations across both TDD cycles and the final integration task. Phase 4 P03 (conveyor analysis progress) was even faster — a small, tightly-scoped two-task plan reusing an existing Timer/paint pipeline with no new dependencies; zero deviations, both tasks + full verification (targeted tests, then full suite + pluginval VST3/AU) passed on the first attempt. Phase 4 P04 (Release timing + Standalone UX checkpoint) closed the phase cleanly — one-time Release build/suite green on the first attempt, real-track timing (2.78s for 75s of audio) comfortably inside the "seconds not minutes" claim, and the human checkpoint approved with zero Phase 4 defects; the user's approval feedback doubled as a forward-looking demand signal for Phase 5/6 scope (see Decisions).
 
 *Updated after each plan completion*
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 04-02]: ChordTimelineView given its own dedicated 28px band above the waveform (not overlaid) to avoid any z-order/mouse-interception conflict with RegionSelectorOverlay
 - [Phase 04-03]: Analysis progress expressed via the belt itself (gold fill on the belt top edge + 2x beltOffset speed-up) rather than a stock juce::ProgressBar, painted inside the existing logical-frame/30Hz Timer pipeline — no new Timer, no look-and-feel-clashing widget, consistent with the locked pixel-art identity (02-CONTEXT.md).
 - [Phase 04-03]: Falling-chunk stub trigger moved from load-complete to the analyzing->idle transition (edge-detected via editor-local `wasAnalyzing`, guarded by a non-null published result) — a superseded/cancelled analysis run never fires a spurious chunk, per 04-01's generation-guard invariant.
+- [Phase 04-04]: One-time Release build (build-release/, git-ignored) measured the real ANL-04 timing claim: TOCK.mp3 (75s track) analyzed in 2.78s on Release vs. Debug's ~35s/180s PerformanceBudget proxy — confirms "seconds not minutes" is a Release-build claim, not evidenced by the Debug regression test alone. Phase 4 complete (4/4 plans); user checkpoint approved with zero defects.
+- [Phase 04-04 / user demand signal]: During the Phase 4 closing checkpoint, user's approval feedback pushed explicitly toward Phase 5/6 scope: "мені потрібні конкретні акорди для piano roll які я зможу зберегти як midi чи перетягнути до іншого інструменту" (concrete chords for piano roll, saveable as MIDI or draggable to another instrument). This maps directly to existing roadmap scope — Phase 5 GEN-01..04 (MIDI row generation) and Phase 6 EXP-01..03/PRV-01 (drag-out, .mid save, preview) — no roadmap change needed, but it validates and should weight Phase 5/6 planning toward shipping the drag-out/.mid-save path early rather than deferring it.
 
 ### Pending Todos
 
@@ -125,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-13T10:25:56.000Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-07-13T10:46:08.000Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
