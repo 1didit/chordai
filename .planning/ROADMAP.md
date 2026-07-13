@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Plugin Foundation** - Empty VST3/AU/Standalone plugin loads cleanly in all target hosts with real-time-safety and state-persistence patterns established (completed 2026-07-12)
 - [x] **Phase 2: Audio Import & Waveform** - User drags a song in, sees its waveform, and picks what to analyze (completed 2026-07-12)
-- [ ] **Phase 3: Core Chord-Detection Engine** - Headless engine detects key, tempo, and bar-aligned chord progression behind a swappable interface
+- [x] **Phase 3: Core Chord-Detection Engine** - Headless engine detects key, tempo, and bar-aligned chord progression behind a swappable interface (completed 2026-07-13)
 - [ ] **Phase 4: Analysis UI Integration** - Detected key/tempo/chords appear live on the waveform timeline without freezing the UI
 - [ ] **Phase 5: MIDI Conveyor Generation** - One analysis produces multiple simultaneous MIDI rows: as-is progression, style variants, and bass line
 - [ ] **Phase 6: Row Preview & Export** - User auditions any row and gets it into the DAW via drag-out or .mid save
@@ -65,7 +65,7 @@ Plans:
   2. Given a loaded song/region, the engine outputs a detected tempo (BPM) and bar grid
   3. Given a loaded song/region, the engine outputs a chord progression aligned to the bar grid
   4. Detection is invocable and verifiable through a `ChordAnalyzer` interface via a standalone test harness, independent of any UI
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 - [x] 03-01-PLAN.md — Foundation: frozen ChordAnalyzer/AnalysisResult contracts, module skeletons + CMake wiring, constant-q-cpp (MIT, pinned) + THIRD_PARTY_LICENSES.md, synthetic fixtures, dual-rate preprocessing (Wave 1) (completed 2026-07-12)
@@ -73,7 +73,7 @@ Plans:
 - [x] 03-03-PLAN.md — Tempo/beat path: Ellis 2007 onset envelope + weighted-autocorrelation tempo + DP beat backtrace + 4/4 bar grid (Wave 2) (completed 2026-07-12)
 - [x] 03-04-PLAN.md — Key detection: Krumhansl-Kessler 24-profile correlation + audio-integration tests (Wave 3) (completed 2026-07-12)
 - [x] 03-05-PLAN.md — Chord recognition: 36 binary templates, beat-sync averaging, bass-root bias, log-Viterbi, beat-aligned segments (Wave 3) (completed 2026-07-12)
-- [ ] 03-06-PLAN.md — ClassicDspChordAnalyzer facade (progress/cancel), performance budget test, real-track listening checkpoint (Wave 4)
+- [x] 03-06-PLAN.md — ClassicDspChordAnalyzer facade (progress/cancel), performance budget test, real-track listening checkpoint (Wave 4) (completed 2026-07-13)
 
 ### Phase 4: Analysis UI Integration
 **Goal**: User sees the engine's results live in the plugin, with the interface staying responsive throughout analysis.
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Plugin Foundation | 3/3 | Complete   | 2026-07-12 |
 | 2. Audio Import & Waveform | 4/4 | Complete   | 2026-07-12 |
-| 3. Core Chord-Detection Engine | 3/6 | In Progress | - |
+| 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
 | 4. Analysis UI Integration | 0/TBD | Not started | - |
 | 5. MIDI Conveyor Generation | 0/TBD | Not started | - |
 | 6. Row Preview & Export | 0/TBD | Not started | - |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-07-12T23:18:33.000Z"
-last_activity: "2026-07-12 — Plan 03-05 (Chord recognition: 36-class binary templates, beat-sync chroma averaging, cosine+bass-bias scoring, log-Viterbi, N-state silence override, segment merge) complete: ChordTemplates.h + ChordDecoder::decodeChords TDD'd RED→GREEN against hand-built unit-level chroma and real synthetic-audio fixtures (4-chord progression, bass-root-bias both directions, silence→NoChord, 1-chord-per-beat); kSelfTransition empirically retuned 0.85→0.04 after literature value badly oversmoothed real audio; ran in parallel with Plan 03-04 (Wave 3), disjoint file sets, both now complete"
+status: verifying
+stopped_at: Completed 03-06-PLAN.md
+last_updated: "2026-07-13T09:39:18+01:00"
+last_activity: "2026-07-13 — Plan 03-06 (ClassicDspChordAnalyzer orchestrator) complete: synchronous, headless, cancellable analyse() wires preprocess->beat->chroma->key->chords behind the ChordAnalyzer interface; performance budget test green (180s synthetic song well under 10s Debug); checkpoint-discovered real defect (onset envelope's negative HP-filter dips at real-mix silence drove beat tracking to BPM 0/empty chords) fixed live (half-wave rectify post-smoothing, commit d4eced3); human-verified on a real 75s trap beat (BPM 170.455, key G# minor, coherent diatonic progression) — Phase 3 complete, all 4 requirements (ANL-01/02/03/06) evidenced"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-12)
 
 **Core value:** Продюсер закидає пісню-референс і за секунди отримує кілька готових до використання MIDI-акордових наборів у схожому стилі — без знання теорії музики і без ручного підбору на слух.
-**Current focus:** Phase 3 - Core Chord-Detection Engine (5/6 plans, Wave 1+2+3 complete) — next: 03-06 (classic-DSP orchestrator, Wave 4, final Phase 3 plan)
+**Current focus:** Phase 3 - Core Chord-Detection Engine COMPLETE (6/6 plans) — next: Phase 4 (Analysis UI Integration, needs planning)
 
 ## Current Position
 
-Phase: 3 of 7 (Core Chord-Detection Engine) — IN PROGRESS
-Plan: 5 of 6 complete
-Status: Plans 03-01/03-02/03-03/03-04/03-05 complete (foundation + chroma path + tempo/beat path + key detection + chord recognition) — Wave 1+2+3 done, next: Wave 4 (03-06 orchestrator, wires real TempoBeatTracker BeatGrid + bar grid + decodeChords end-to-end, closes out ANL-03)
-Last activity: 2026-07-12 — Plan 03-05 complete: ChordTemplates.h (36 binary L2-normalized templates, index<->ChordSymbol convention) + ChordDecoder (beat-sync chroma averaging, cosine+bass-root-bias L1-normalized scoring, log-domain Viterbi, deterministic N-state silence override, half-open segment merge) — TDD'd RED→GREEN against hand-built unit-level chroma (template shapes, bass-bias tie-break) and real synthetic-audio fixtures (4-chord progression decodes exactly, beat-aligned/gap-free segments, bass-bias verified both directions at audio level, silence→NoChord, 1-chord-per-beat not oversmoothed); kSelfTransition empirically retuned from research's 0.85 starting point down to 0.04 after real-audio observation scores proved far less peaked than literature assumes; ran in parallel with 03-04 (Wave 3), disjoint file sets, both now complete; full suite 58/58 green
+Phase: 3 of 7 (Core Chord-Detection Engine) — COMPLETE
+Plan: 6 of 6 complete
+Status: Plans 03-01 through 03-06 complete (foundation + chroma path + tempo/beat path + key detection + chord recognition + orchestrator) — all 4 phase requirements (ANL-01, ANL-02, ANL-03, ANL-06) evidenced end-to-end and human-verified on real audio; Phase 3 done, Phase 4 not yet planned
+Last activity: 2026-07-13 — Plan 03-06 complete: ClassicDspChordAnalyzer (synchronous, headless, cancellable, progress-reporting orchestration behind the ChordAnalyzer interface: preprocess->beat->chroma->key->chords, region-relative times shifted to absolute source-file time, computeCqt gained a per-feed-chunk cancel hook) — 5 orchestration tests + PerformanceBudget green (180s synthetic song well under the 10s Debug budget); real-track checkpoint caught a genuine defect no synthetic fixture across 5 prior plans exposed (onset envelope's negative HP-filter dips at real-mix silence drove the DP beat-tracker to BPM 0/empty chords), root-caused via new CHORDAI_DIAG diagnostics and fixed live (half-wave rectify post-smoothing, matching librosa's onset_strength convention, commit d4eced3); re-verified on user's own 75s trap beat post-fix (BPM 170.455, key G# minor, coherent diatonic progression) and approved; full suite 64/64 green (11288 assertions)
 
-Progress: [█████████░] 92%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 12 min
-- Total execution time: ~2.7 hours
+- Total plans completed: 13
+- Average duration: ~13 min
+- Total execution time: ~3 hours
 
 **By Phase:**
 
@@ -55,10 +55,11 @@ Progress: [█████████░] 92%
 | Phase 03 P03 | (see 03-03-SUMMARY.md) | - | - |
 | Phase 03 P04 | ~10min | 2 tasks | 3 files |
 | Phase 03 P05 | 23min | 2 tasks | 4 files |
+| Phase 03 P06 | ~23min (Tasks 1-2) + checkpoint fix session | 3 tasks | 6 files |
 
 **Recent Trend:**
-- Last 5 plans: 12min, 20min, 14min, ~10min, 23min
-- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning (real-audio observation scores proving much flatter than the literature's HMM-tuned values assume), not build/wiring overhead.
+- Last 5 plans: 20min, 14min, ~10min, 23min, ~23min+checkpoint
+- Trend: Phase 3 P01 took longer (DSP dependency wiring + TDD cycle) — expected for foundation plans; Wave 2 plans (P02/P03) trended back down as expected since CMake/build wiring was already complete, and ran concurrently against disjoint file sets with zero conflicts. P05 took longer than P04 despite running concurrently — most of the extra time was empirical Viterbi self-transition-beta tuning. P06 (final Phase 3 plan) closed the phase: its checkpoint caught a real end-to-end defect (BPM 0/empty chords on real-mix silence) invisible to all 58 prior synthetic-fixture tests, fixed live in one surgical commit — validates the phase's decision to gate on human real-track listening rather than synthetic fixtures alone.
 
 *Updated after each plan completion*
 
@@ -97,6 +98,8 @@ Recent decisions affecting current work:
 - [Phase 03-04]: Cross-agent git index race with concurrently-executing Plan 03-05 (shared repo, disjoint file sets): one commit (`fd68f4a`) picked up 03-05's already-staged `ChordDecoder.cpp` alongside this plan's `KeyDetector.cpp` change, since both agents share one git index. No code lost (full suite stayed green throughout); mitigated for all later commits by checking `git status --short` immediately before every add/commit. Documented in 03-04-SUMMARY.md "Issues Encountered" for transparency.
 - [Phase 03-05]: `kSelfTransition` (Viterbi self-transition beta) retuned from research's 0.85 starting point down to 0.04, empirically: this project's L1-normalized cosine+bass-bias observation matrix is far flatter than a typical trained-HMM emission model (best-vs-second-best per-beat likelihood ratio ~2-3x on real synthetic audio, not orders of magnitude), so literature betas (0.8-0.99) badly oversmoothed both a 1-chord-per-beat fixture (8 distinct chords collapsed to 1-2 segments) and a chord-silence-chord fixture (second chord's path never won against the first). 0.03 was the first value to pass every fixture; 0.04 keeps a small safety margin, still just above the uniform/no-bias baseline (1/36 ≈ 0.0278) — full root-cause analysis and empirical sweep documented in-code (`Source/Analysis/ChordDecoder.cpp`).
 - [Phase 03-05]: ANL-03 remains unchecked in REQUIREMENTS.md — `decodeChords` is proven against hand-built beat grids by design ("a decoder test, not a tracker test" per the plan's own scope); 03-06's orchestrator still needs to demonstrate the full real-pipeline, bar-grid-aligned output before ANL-03's "aligned to the bar grid" criterion is fully evidenced (matching 03-01/03-02's own documented precedent).
+- [Phase 03-06]: `ClassicDspChordAnalyzer::analyse` implemented as a pure synchronous sequence (no threads/MessageManager/GUI includes) wiring every prior plan's module behind the frozen `ChordAnalyzer` interface; `computeCqt` gained a backward-compatible optional `shouldCancel` hook checked per feed chunk (the only stage long enough to need sub-stage cancel latency); BeatGrid/ChromaSequence region-relative times shifted by `regionStartSeconds` at the orchestrator boundary so `AnalysisResult` always carries absolute source-file time. ANL-01/02/03/06 all marked complete — Phase 3 done.
+- [Phase 03-06]: Real-track checkpoint caught a genuine defect invisible to all 58 prior synthetic-fixture tests: on a real 75s trap beat, the onset envelope's HP-filter negative dips at silence (-17.6 sigma vs +0.44 sigma onsets) dominated normalization/autocorrelation and drove the DP beat-tracker to zero beats (BPM 0, empty chords), because synthetic click fixtures are always positive-spiked by construction. Fixed by half-wave rectifying the onset envelope after smoothing, before normalization (matches librosa's `onset_strength`) — commit `d4eced3`. Full suite stayed green (64/64, 11288 assertions); user-confirmed plausible re-run (BPM 170.455, key G# minor, coherent diatonic progression) on the same track. Validates gating phase completion on human real-track listening, not synthetic fixtures alone.
 
 ### Pending Todos
 
@@ -109,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-12T23:18:33.000Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-07-13T09:39:18+01:00
+Stopped at: Completed 03-06-PLAN.md (Phase 3 complete)
 Resume file: None
