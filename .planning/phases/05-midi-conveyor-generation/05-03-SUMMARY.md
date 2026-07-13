@@ -82,6 +82,7 @@ None - plan executed exactly as written. `RootPitchClassMatchesDetectedChord` wa
 
 ## Issues Encountered
 - Initial RED-state build failed on a Catch2 static_assert (`CHECK_FALSE (a >= x && a < y)` -- chained comparisons inside an unparenthesized assertion aren't supported by Catch2's expression decomposer). Fixed by wrapping the expression in parentheses (`CHECK_FALSE ((a >= x && a < y))`) before the RED run; not a deviation from plan scope, just a Catch2 syntax fix required to get the intended RED state compiling.
+- Cross-agent git index race with concurrently-executing Plan 05-02 (shared repo, disjoint file sets, same pattern as the documented 03-04 precedent): this file was staged (`git add`) immediately before the 05-02 agent ran `git commit`, and since both agents share one git index, this SUMMARY.md was picked up into 05-02's commit `11eb597` ("feat(05-02): R&B/Neo-soul extended voicings...") alongside its own `StyleVoicingGenerators.cpp` change. No content lost -- the file itself is unaffected, only its commit attribution; `git log --follow` confirms it landed in `11eb597`. STATE.md/ROADMAP.md/REQUIREMENTS.md updates for this plan are committed separately below.
 
 ## User Setup Required
 
