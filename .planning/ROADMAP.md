@@ -88,8 +88,8 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — AnalysisPipeline ThreadPoolJob + generation-guarded cancel-and-restart on PluginProcessor (auto-trigger on load/region change) (Wave 1)
-- [ ] 04-02-PLAN.md — ChordNameFormatter + ChordTimelineView band over the waveform + editor wiring (Wave 2)
+- [x] 04-01-PLAN.md — AnalysisPipeline ThreadPoolJob + generation-guarded cancel-and-restart on PluginProcessor (auto-trigger on load/region change) (Wave 1) (completed 2026-07-13)
+- [x] 04-02-PLAN.md — ChordNameFormatter + ChordTimelineView band over the waveform + editor wiring (Wave 2) (completed 2026-07-13)
 - [ ] 04-03-PLAN.md — Conveyor progress fill + belt speed-up; chunk-fall moved to analysis-complete (Wave 3)
 - [ ] 04-04-PLAN.md — One-time Release build + human checkpoint: real-track timing, responsiveness, timeline legibility (Wave 4)
 
@@ -137,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 1. Plugin Foundation | 3/3 | Complete   | 2026-07-12 |
 | 2. Audio Import & Waveform | 4/4 | Complete   | 2026-07-12 |
 | 3. Core Chord-Detection Engine | 6/6 | Complete   | 2026-07-13 |
-| 4. Analysis UI Integration | 1/4 | In Progress|  |
+| 4. Analysis UI Integration | 2/4 | In Progress|  |
 | 5. MIDI Conveyor Generation | 0/TBD | Not started | - |
 | 6. Row Preview & Export | 0/TBD | Not started | - |
 | 7. Persistence & Multi-DAW Verification | 0/TBD | Not started | - |

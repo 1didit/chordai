@@ -19,7 +19,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ANL-02**: Tempo (BPM) and bar grid are detected automatically
 - [x] **ANL-03**: Chord progression is detected (chromagram + template matching + Viterbi smoothing) and aligned to the bar grid
 - [x] **ANL-04**: Analysis runs on a background thread — UI stays responsive, progress is shown; a 3-minute song analyzes in seconds
-- [ ] **ANL-05**: Detected chords are displayed as named chords (Am, Cmaj7, F/A) on a timeline over the waveform
+- [x] **ANL-05**: Detected chords are displayed as named chords (Am, Cmaj7, F/A) on a timeline over the waveform
 - [x] **ANL-06**: Detection engine sits behind a `ChordAnalyzer` interface so an ML (ONNX) backend can replace the DSP backend in v2 without UI/generation changes
 
 ### Conveyor Generation
@@ -99,7 +99,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANL-03 | Phase 3 - Core Chord-Detection Engine | Complete |
 | ANL-06 | Phase 3 - Core Chord-Detection Engine | Complete |
 | ANL-04 | Phase 4 - Analysis UI Integration | Complete |
-| ANL-05 | Phase 4 - Analysis UI Integration | Pending |
+| ANL-05 | Phase 4 - Analysis UI Integration | Complete |
 | GEN-01 | Phase 5 - MIDI Conveyor Generation | Pending |
 | GEN-02 | Phase 5 - MIDI Conveyor Generation | Pending |
 | GEN-03 | Phase 5 - MIDI Conveyor Generation | Pending |
