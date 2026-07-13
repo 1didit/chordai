@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <memory>
+#include <vector>
 
 namespace
 {
@@ -250,4 +251,91 @@ TEST_CASE ("MidiFileWriterTests.EmptyRowProducesValidMinimalFile", "[midifilewri
     REQUIRE (MidiFileWriter::writeToFile (row, 120.0, destination));
     REQUIRE (destination.existsAsFile());
     destination.getParentDirectory().deleteRecursively();
+}
+
+TEST_CASE ("MidiFileWriterTests.SuggestedFileNameMinorKey", "[midifilewriter]")
+{
+    MidiSetRow row;
+    row.id = "pop-trap";
+
+    KeyResult key;
+    key.tonicPitchClass = 8; // G#
+    key.isMajor = false;
+
+    CHECK (MidiFileWriter::suggestedFileName (row, key, 128.2) == "pop-trap_G#m_128bpm.mid");
+}
+
+TEST_CASE ("MidiFileWriterTests.SuggestedFileNameMajorKey", "[midifilewriter]")
+{
+    MidiSetRow row;
+    row.id = "as-is";
+
+    KeyResult key;
+    key.tonicPitchClass = 0; // C
+    key.isMajor = true;
+
+    CHECK (MidiFileWriter::suggestedFileName (row, key, 90.0) == "as-is_C_90bpm.mid");
+}
+
+TEST_CASE ("MidiFileWriterTests.SuggestedFileNameBpmFallback", "[midifilewriter]")
+{
+    MidiSetRow row;
+    row.id = "bass";
+
+    KeyResult key;
+    key.tonicPitchClass = 0;
+    key.isMajor = true;
+
+    for (double bpm : { 0.0, -5.0 })
+        CHECK (MidiFileWriter::suggestedFileName (row, key, bpm) == "bass_C_120bpm.mid");
+}
+
+TEST_CASE ("MidiFileWriterTests.SuggestedFileNameIsFilesystemSafe", "[midifilewriter]")
+{
+    const juce::String forbiddenChars = "/\\:*?\"<>|";
+    const std::vector<juce::String> rowIds = { "as-is", "pop-trap", "rnb-neosoul", "house", "bass" };
+
+    for (const auto& rowId : rowIds)
+    {
+        MidiSetRow row;
+        row.id = rowId;
+
+        for (int pitchClass = 0; pitchClass < 12; ++pitchClass)
+        {
+            for (bool isMajor : { true, false })
+            {
+                KeyResult key;
+                key.tonicPitchClass = pitchClass;
+                key.isMajor = isMajor;
+
+                const auto name = MidiFileWriter::suggestedFileName (row, key, 128.2);
+
+                for (auto forbidden : forbiddenChars)
+                    CHECK_FALSE (name.containsChar (forbidden));
+
+                CHECK_FALSE (name.containsAnyOf (" \t\n"));
+            }
+        }
+    }
+}
+
+TEST_CASE ("MidiFileWriterTests.SuggestedFileNameUniquePerRow", "[midifilewriter]")
+{
+    const std::vector<juce::String> rowIds = { "as-is", "pop-trap", "rnb-neosoul", "house", "bass" };
+
+    KeyResult key;
+    key.tonicPitchClass = 8;
+    key.isMajor = false;
+
+    std::vector<juce::String> names;
+    for (const auto& rowId : rowIds)
+    {
+        MidiSetRow row;
+        row.id = rowId;
+        names.push_back (MidiFileWriter::suggestedFileName (row, key, 128.2));
+    }
+
+    for (size_t i = 0; i < names.size(); ++i)
+        for (size_t j = i + 1; j < names.size(); ++j)
+            CHECK (names[i] != names[j]);
 }
