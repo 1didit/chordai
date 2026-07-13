@@ -49,6 +49,7 @@ target_sources(ChordAI PRIVATE
     Source/UI/MidiSetsPlaceholder.cpp
     Source/UI/WaveformView.cpp
     Source/UI/RegionSelectorOverlay.cpp
+    Source/Analysis/AnalysisPipeline.cpp
     ${CHORDAI_ANALYSIS_SOURCES})
 
 target_link_libraries(ChordAI PRIVATE
@@ -136,7 +137,15 @@ target_sources(ChordAITests PRIVATE
     Tests/KeyDetectorTests.cpp
     Tests/ChordDecoderTests.cpp
     Tests/ClassicDspChordAnalyzerTests.cpp
+    Tests/AnalysisPipelineTests.cpp
     Source/Import/AudioFileLoader.cpp
+    Source/Analysis/AnalysisPipeline.cpp
+    Source/PluginProcessor.cpp
+    Source/PluginEditor.cpp
+    Source/UI/ConveyorBeltComponent.cpp
+    Source/UI/MidiSetsPlaceholder.cpp
+    Source/UI/WaveformView.cpp
+    Source/UI/RegionSelectorOverlay.cpp
     ${CHORDAI_ANALYSIS_SOURCES})
 
 target_include_directories(ChordAITests PRIVATE
@@ -146,13 +155,16 @@ target_compile_definitions(ChordAITests PRIVATE
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_MODAL_LOOPS_PERMITTED=1
+    JucePlugin_Name="ChordAI"
     CHORDAI_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Tests/fixtures")
 
 target_link_libraries(ChordAITests PRIVATE
     Catch2::Catch2WithMain
     juce::juce_audio_formats
+    juce::juce_audio_processors
     juce::juce_audio_utils
     juce::juce_gui_basics
+    juce::juce_gui_extra
     juce::juce_dsp
     constant_q_cpp)
 

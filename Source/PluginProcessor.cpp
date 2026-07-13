@@ -121,6 +121,28 @@ juce::String ChordAIAudioProcessor::getLastLoadError() const
     return lastLoadError;
 }
 
+// --- Background chord analysis API (Wave 0 stubs -- Task 2 implements) -----
+
+void ChordAIAudioProcessor::triggerAnalysis()
+{
+    // Stub: Task 2 wires in analysisPool + generation-guarded AnalysisPipeline.
+}
+
+std::shared_ptr<const AnalysisResult> ChordAIAudioProcessor::getAnalysisResult() const
+{
+    return nullptr;
+}
+
+bool ChordAIAudioProcessor::isAnalyzing() const
+{
+    return false;
+}
+
+double ChordAIAudioProcessor::getAnalysisProgress() const
+{
+    return 0.0;
+}
+
 // This creates new instances of the plugin — required by every JUCE plugin, build
 // fails at link without it.
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

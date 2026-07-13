@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 
 #include "Import/LoadedAudio.h"
+#include "Analysis/AnalysisResult.h"
 
 class ChordAIAudioProcessor : public juce::AudioProcessor
 {
@@ -54,6 +55,27 @@ public:
 
     // Fires on load complete AND on load failure.
     juce::ChangeBroadcaster loadBroadcaster;
+
+    // --- Background chord analysis API (message-thread only) ---------------
+    // Wave 0 (Task 1): stub bodies only, just enough for the test file/editor
+    // to compile against the final public shape. Task 2 wires in the real
+    // AnalysisPipeline + generation-guarded cancel-and-restart plumbing.
+
+    // Cancels any in-flight analysis and starts a new one over the current
+    // loadedAudio/selectedRegion. Called internally after a successful load
+    // and after a real (non-no-op) region change -- never call this from the
+    // Editor directly.
+    void triggerAnalysis();
+
+    // Atomic-load publication pattern, same idiom as getLoadedAudio(). nullptr
+    // while nothing has completed yet (or was just cleared by a new load).
+    std::shared_ptr<const AnalysisResult> getAnalysisResult() const;
+
+    bool isAnalyzing() const;
+    double getAnalysisProgress() const;
+
+    // Fires on analysis start / progress / completion.
+    juce::ChangeBroadcaster analysisBroadcaster;
 
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
