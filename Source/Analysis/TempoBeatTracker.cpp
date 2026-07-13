@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <cmath>
 #include <vector>
 
@@ -123,9 +125,81 @@ BeatGrid trackBeats (const OnsetEnvelopeResult& onset)
         }
     }
 
-    const double periodFrames = (double) bestLag;
+    // Metrical-level disambiguation: the TPS winner can lock onto a related
+    // metrical level instead of the perceptual quarter-note — measured on a
+    // real trap beat where triplet/dotted-eighth hi-hats made the 4/3x level
+    // (170 BPM) beat the true 128 BPM. Ellis's own 2x/3x composites can't see
+    // 4/3 or 3/4 relatives. So: build candidate periods at the common metrical
+    // ratios of the TPS winner, snap each to the nearest local TPS peak, run
+    // the (cheap) DP tracker on each, and keep the grid whose beats actually
+    // land on the strongest onsets — weighted by the same perceptual W(tau)
+    // so ~120 BPM interpretations win ties.
+    auto snapToLocalPeak = [&] (int lag) -> int
+    {
+        int best = lag;
+        double bestTps = tpsAt (lag);
+        for (int d = -5; d <= 5; ++d)
+        {
+            const int cand = lag + d;
+            if (tpsAt (cand) > bestTps)
+            {
+                bestTps = tpsAt (cand);
+                best = cand;
+            }
+        }
+        return best;
+    };
 
-    auto beatFrames = dpBeatTrack (envelope, periodFrames, kBeatTightness);
+    constexpr double kMetricalRatios[] = { 1.0, 0.75, 4.0 / 3.0, 0.5, 2.0, 1.0 / 3.0, 3.0 };
+
+    std::vector<int> candidateLags;
+    for (double ratio : kMetricalRatios)
+    {
+        const int lag = snapToLocalPeak ((int) std::llround ((double) bestLag * ratio));
+        if (lag < minLag || lag > maxLag)
+            continue;
+        if (std::find (candidateLags.begin(), candidateLags.end(), lag) == candidateLags.end())
+            candidateLags.push_back (lag);
+    }
+
+    std::vector<int> beatFrames;
+    double bestGridScore = -1e300;
+    for (int lag : candidateLags)
+    {
+        auto candidateBeats = dpBeatTrack (envelope, (double) lag, kBeatTightness);
+        if (candidateBeats.size() < 2)
+            continue;
+
+        // Mean onset strength at the chosen beats (how well the grid "hits").
+        double onsetSum = 0.0;
+        for (int frame : candidateBeats)
+            onsetSum += envelope[(size_t) juce::jlimit (0, n - 1, frame)];
+        const double meanOnset = onsetSum / (double) candidateBeats.size();
+
+        const double tauSeconds = (double) lag / rateHz;
+        const double logRatio = std::log2 (tauSeconds / kTau0Seconds);
+        const double weight = std::exp (-0.5 * (logRatio * logRatio) / (kSigmaTauOctaves * kSigmaTauOctaves));
+
+        // Density compensation: a sparser grid "cherry-picks" only the
+        // loudest onsets, so raw meanOnset grows ~sqrt(period) regardless of
+        // metrical correctness (measured on a real 128 BPM trap beat:
+        // meanOnset 2.07@170BPM, 2.42@127, 2.76@86, 3.40@57 — monotone in
+        // period). Dividing by sqrt(periodFrames) removes that bias; the
+        // perceptual W(tau) then breaks ties toward ~120 BPM readings.
+        const double score = weight * meanOnset / std::sqrt ((double) lag);
+
+        if (std::getenv ("CHORDAI_DIAG") != nullptr)
+            std::fprintf (stderr, "[diag/tempo] lag %d (%.2f BPM) tps %.1f meanOnset %.3f W %.3f score %.3f beats %d\n",
+                          lag, 60.0 * rateHz / (double) lag, tpsAt (lag), meanOnset, weight, score,
+                          (int) candidateBeats.size());
+
+        if (score > bestGridScore)
+        {
+            bestGridScore = score;
+            beatFrames = std::move (candidateBeats);
+        }
+    }
+
     if (beatFrames.size() < 2)
         return grid; // not enough beats recovered for a usable grid
 
