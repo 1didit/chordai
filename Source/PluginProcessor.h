@@ -4,6 +4,7 @@
 
 #include "Import/LoadedAudio.h"
 #include "Analysis/AnalysisResult.h"
+#include "MidiGen/MidiSetRow.h"
 
 class ChordAIAudioProcessor : public juce::AudioProcessor
 {
@@ -74,6 +75,13 @@ public:
     // Fires on analysis start / progress / completion.
     juce::ChangeBroadcaster analysisBroadcaster;
 
+    // Atomic-load publication pattern, same idiom as getAnalysisResult().
+    // Published in the SAME analysisBroadcaster message as analysisResult
+    // (GEN-01) -- rows and the chord timeline can never be observed out of
+    // sync. nullptr while nothing has completed yet (or was just cleared by
+    // a new load).
+    std::shared_ptr<const std::vector<MidiSetRow>> getMidiSetRows() const { return std::atomic_load (&midiSetRows); }
+
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
@@ -102,6 +110,13 @@ private:
 
     // Same atomic_load/atomic_store discipline as loadedAudio above.
     std::shared_ptr<const AnalysisResult> analysisResult;
+
+    // Same atomic_load/atomic_store discipline as loadedAudio/analysisResult
+    // above (incomplete std::atomic<shared_ptr> on Apple libc++). Published
+    // synchronously alongside analysisResult, in the same onDone callback,
+    // BEFORE analysisBroadcaster.sendChangeMessage() -- that ordering is the
+    // "same broadcast" guarantee (GEN-01).
+    std::shared_ptr<const std::vector<MidiSetRow>> midiSetRows;
 
     // Bumped by every triggerAnalysis() call; progress/completion callbacks
     // compare their captured generation against this to detect supersession.

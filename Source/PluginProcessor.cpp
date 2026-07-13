@@ -4,6 +4,7 @@
 #include "Analysis/AnalysisPipeline.h"
 #include "Import/AudioFileLoader.h"
 #include "Import/RegionState.h"
+#include "MidiGen/MidiRowBuilder.h"
 
 ChordAIAudioProcessor::ChordAIAudioProcessor()
     : AudioProcessor (BusesProperties()
@@ -89,6 +90,7 @@ void ChordAIAudioProcessor::loadAudioFile (const juce::File& file)
             // clear before broadcasting so the Editor never observes a stale
             // result alongside the new waveform.
             std::atomic_store (&analysisResult, std::shared_ptr<const AnalysisResult>());
+            std::atomic_store (&midiSetRows, std::shared_ptr<const std::vector<MidiSetRow>>());
         }
         else
         {
@@ -183,6 +185,18 @@ void ChordAIAudioProcessor::triggerAnalysis()
             return; // superseded -- keep the last good result on screen
 
         std::atomic_store (&analysisResult, result);
+
+        // Row generation is pure math over a few dozen chords, measured
+        // sub-millisecond even on the ~150-segment real-track-scale fixture
+        // (MidiRowBuilderTests.GenerationPerformanceBudget) -- safe to call
+        // synchronously right here, on the message thread, before the
+        // broadcast (05-RESEARCH.md Pattern 6). This ordering -- BEFORE
+        // sendChangeMessage() -- IS the "same broadcast" guarantee (GEN-01):
+        // rows and the chord timeline can never be observed out of sync.
+        auto rows = std::make_shared<const std::vector<MidiSetRow>> (
+            result != nullptr ? generateAllRows (*result) : std::vector<MidiSetRow>{});
+        std::atomic_store (&midiSetRows, rows);
+
         analyzingFlag = false;
         analysisProgress = 1.0;
         analysisBroadcaster.sendChangeMessage();
