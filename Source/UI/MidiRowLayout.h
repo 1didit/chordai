@@ -45,3 +45,8 @@ inline float pitchToY (int pitch, int minPitch, int maxPitch, int height)
 
     return juce::jlimit (0.0f, (float) height - 1.0f, y);
 }
+
+// Pure hit-zone geometry for MidiRowView's play/save icons (Phase 6, RED --
+// declarations only, bodies land in the GREEN commit).
+juce::Rectangle<int> playIconRect (juce::Rectangle<int> gutterBounds);
+juce::Rectangle<int> saveIconRect (juce::Rectangle<int> gutterBounds);

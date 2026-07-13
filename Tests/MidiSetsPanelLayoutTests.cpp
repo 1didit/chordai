@@ -50,3 +50,51 @@ TEST_CASE ("MidiSetsPanelLayoutTests.NoteRectNonDegenerate", "[midisetspanellayo
     auto w = noteWidthPx (0.25, 600.0, 320);
     CHECK (w >= 1.0f);
 }
+
+TEST_CASE ("MidiSetsPanelLayoutTests.IconRectsFitInsideGutterAndDoNotOverlap", "[midisetspanellayout]")
+{
+    // Matches MidiRowView's real gutter/row shape: kGutterWidth=92, row
+    // height 28 (140px band / 5 rows).
+    juce::Rectangle<int> gutter (0, 0, 92, 28);
+
+    auto play = playIconRect (gutter);
+    auto save = saveIconRect (gutter);
+
+    // Both fully inside the gutter.
+    CHECK (gutter.contains (play));
+    CHECK (gutter.contains (save));
+
+    // Each at least a 10x10 usable hit target.
+    CHECK (play.getWidth() >= 10);
+    CHECK (play.getHeight() >= 10);
+    CHECK (save.getWidth() >= 10);
+    CHECK (save.getHeight() >= 10);
+
+    // Non-overlapping.
+    CHECK_FALSE (play.intersects (save));
+
+    // Right-aligned: label keeps >= 55px of text width to the left of the
+    // icon zones' left edge.
+    auto iconsLeft = juce::jmin (play.getX(), save.getX());
+    CHECK (iconsLeft >= 55);
+}
+
+TEST_CASE ("MidiSetsPanelLayoutTests.IconRectsAreStableAndDegenerateSafe", "[midisetspanellayout]")
+{
+    juce::Rectangle<int> gutter (0, 0, 92, 28);
+
+    // Pure/deterministic: same input -> same output across calls.
+    CHECK (playIconRect (gutter) == playIconRect (gutter));
+    CHECK (saveIconRect (gutter) == saveIconRect (gutter));
+
+    // Degenerate zero-height gutter must return empty-safe (non-negative
+    // size) rects, never negative width/height.
+    juce::Rectangle<int> degenerate (0, 0, 92, 0);
+    auto playDeg = playIconRect (degenerate);
+    auto saveDeg = saveIconRect (degenerate);
+
+    CHECK (playDeg.getWidth() >= 0);
+    CHECK (playDeg.getHeight() >= 0);
+    CHECK (saveDeg.getWidth() >= 0);
+    CHECK (saveDeg.getHeight() >= 0);
+}
