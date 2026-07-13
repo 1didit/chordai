@@ -90,7 +90,7 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — AnalysisPipeline ThreadPoolJob + generation-guarded cancel-and-restart on PluginProcessor (auto-trigger on load/region change) (Wave 1) (completed 2026-07-13)
 - [x] 04-02-PLAN.md — ChordNameFormatter + ChordTimelineView band over the waveform + editor wiring (Wave 2) (completed 2026-07-13)
-- [ ] 04-03-PLAN.md — Conveyor progress fill + belt speed-up; chunk-fall moved to analysis-complete (Wave 3)
+- [x] 04-03-PLAN.md — Conveyor progress fill + belt speed-up; chunk-fall moved to analysis-complete (Wave 3) (completed 2026-07-13)
 - [ ] 04-04-PLAN.md — One-time Release build + human checkpoint: real-track timing, responsiveness, timeline legibility (Wave 4)
 
 ### Phase 5: MIDI Conveyor Generation
