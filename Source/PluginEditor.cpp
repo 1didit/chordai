@@ -1,13 +1,17 @@
 #include "PluginEditor.h"
+#include "UI/GenreSelectionLogic.h"
+#include "MidiGen/GenreRegistry.h"
 
 ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
     addAndMakeVisible (conveyor);
     addAndMakeVisible (chordTimeline);
+    addAndMakeVisible (genreChipsBar);
     addAndMakeVisible (waveformView);
     addAndMakeVisible (regionOverlay); // on top of waveformView (z-order) — handles all mouse input
     addAndMakeVisible (midiSetsPanel);
+    addChildComponent (genreSelectorOverlay); // hidden by default; full-editor modal, on top of everything
 
     conveyor.onFileDropped = [this] (juce::File f) { processor.loadAudioFile (std::move (f)); };
     regionOverlay.onRegionChanged = [this] (juce::Range<double> r) { processor.setSelectedRegion (r); };
@@ -38,6 +42,35 @@ ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor&
     {
         return processor.isAuditionPlaying() && processor.getAuditionRowId() == id;
     };
+    midiSetsPanel.onRegenerateRow = [this] (int idx) { processor.regenerateRow (idx); };
+    // Row rebuild + audition auto-stop ride the existing broadcast ->
+    // setRows path (Pitfall D honored, zero new update paths) — no
+    // additional wiring needed here beyond calling the processor.
+
+    // Genre chips + selector overlay wiring (GEN-09/GEN-10). Capturing
+    // `this` is safe: genreChipsBar/genreSelectorOverlay are members of this
+    // editor, so these hooks cannot outlive it.
+    genreChipsBar.onGenreClicked = [this] (const juce::String& id)
+    {
+        processor.setActiveGenre (id);
+        refreshGenreChips();
+        // Row refresh rides the same analysisBroadcaster path as every other
+        // genre-driven row rebuild — no extra call needed here.
+    };
+    genreChipsBar.onChangeGenresClicked = [this]
+    {
+        genreSelectorOverlay.setSelection (processor.getMainGenreIds());
+        genreSelectorOverlay.setVisible (true);
+        genreSelectorOverlay.toFront (false);
+    };
+    genreSelectorOverlay.onGenreToggled = [this] (const juce::String& id)
+    {
+        auto next = toggleMainGenre (processor.getMainGenreIds(), id);
+        processor.setMainGenres (next);
+        genreSelectorOverlay.setSelection (processor.getMainGenreIds());
+        refreshGenreChips();
+    };
+    genreSelectorOverlay.onDismiss = [this] { genreSelectorOverlay.setVisible (false); };
 
     processor.loadBroadcaster.addChangeListener (this);
     processor.analysisBroadcaster.addChangeListener (this);
@@ -49,6 +82,8 @@ ChordAIAudioProcessorEditor::ChordAIAudioProcessorEditor (ChordAIAudioProcessor&
     // + region immediately if a file is already loaded.
     if (auto loaded = processor.getLoadedAudio(); loaded != nullptr)
         handleLoadComplete (*loaded);
+
+    refreshGenreChips(); // editor-reopen restore: chips reflect processor state immediately
 }
 
 ChordAIAudioProcessorEditor::~ChordAIAudioProcessorEditor()
@@ -71,10 +106,13 @@ void ChordAIAudioProcessorEditor::resized()
     midiSetsPanel.setBounds (bounds.removeFromBottom (140));
 
     chordTimeline.setBounds (bounds.removeFromTop (28));
+    genreChipsBar.setBounds (bounds.removeFromTop (26)); // narrows the waveform to ~206px (was ~232px)
 
-    waveformArea = bounds; // remaining middle (~230 px)
+    waveformArea = bounds; // remaining middle (~206 px)
     waveformView.setBounds (waveformArea);
     regionOverlay.setBounds (waveformArea); // overlay MUST keep identical bounds — owns all mouse input
+
+    genreSelectorOverlay.setBounds (getLocalBounds());
 }
 
 bool ChordAIAudioProcessorEditor::isInterestedInFileDrag (const juce::StringArray& files)
@@ -110,6 +148,7 @@ void ChordAIAudioProcessorEditor::changeListenerCallback (juce::ChangeBroadcaste
         // fresher one lands.
         chordTimeline.setResult (processor.getAnalysisResult());
         midiSetsPanel.setRows (processor.getMidiSetRows());
+        refreshGenreChips(); // active-genre changes from any source stay in sync
 
         const bool nowAnalyzing = processor.isAnalyzing();
         conveyor.setAnalysisProgress (processor.getAnalysisProgress(), nowAnalyzing);
@@ -151,4 +190,24 @@ void ChordAIAudioProcessorEditor::handleLoadComplete (const LoadedAudio& loaded)
     // analysisBroadcaster message.
     conveyor.setAnalysisProgress (processor.getAnalysisProgress(), processor.isAnalyzing());
     wasAnalyzing = processor.isAnalyzing();
+}
+
+void ChordAIAudioProcessorEditor::refreshGenreChips()
+{
+    auto ids = processor.getMainGenreIds();
+
+    juce::StringArray resolvedIds, shortLabels;
+    for (auto& id : ids)
+    {
+        // Null-safe (Pitfall F): an unknown id (corrupt/foreign state) is
+        // skipped rather than dereferenced.
+        if (auto* genre = findGenre (id))
+        {
+            resolvedIds.add (id);
+            shortLabels.add (genre->shortLabel);
+        }
+    }
+
+    genreChipsBar.setGenres (resolvedIds, shortLabels);
+    genreChipsBar.setActiveGenreId (processor.getActiveGenreId());
 }
