@@ -166,3 +166,160 @@ TEST_CASE ("StyleVoicingTests.PopTrapVelocityDeterministicAndBounded", "[stylevo
         CHECK (notesA[i].velocity == notesB[i].velocity);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Task 2: R&B/Neo-soul voicing with voice leading
+// ---------------------------------------------------------------------------
+
+namespace
+{
+    // Dedicated high-root fixture (Pitfall 3 stress case): B minor, pc 11,
+    // one 4-beat segment. Not part of Tests/MidiGenFixtures.h since it's a
+    // single-purpose extreme-register probe, not a general-purpose fixture.
+    AnalysisResult makeBMinorFixture()
+    {
+        AnalysisResult result;
+        result.sampleRate = 44100.0;
+        result.bpm = 120.0;
+        result.beatTimesSeconds = { 0.0, 0.5, 1.0, 1.5, 2.0 };
+        result.barStartBeatIndices = { 0 };
+        result.analyzedRegionSeconds = juce::Range<double> (0.0, 2.0);
+        result.key.tonicPitchClass = 11;
+        result.key.isMajor = false;
+        result.key.confidence = 0.8f;
+        result.wasCancelled = false;
+
+        ChordSegment segment;
+        segment.chord.pitchClass = 11;
+        segment.chord.quality = ChordQuality::Minor;
+        segment.startBeatIndex = 0;
+        segment.endBeatIndex = 4;
+        segment.startSeconds = 0.0;
+        segment.endSeconds = 2.0;
+        segment.confidence = 0.9f;
+        result.chords = { segment };
+
+        return result;
+    }
+
+    std::vector<int> pitchesStartingAt (const std::vector<NoteEvent>& notes, double startBeats)
+    {
+        std::vector<int> pitches;
+        for (const auto& n : notes)
+            if (n.startBeats == startBeats)
+                pitches.push_back (n.pitch);
+        return pitches;
+    }
+
+    double meanPitch (const std::vector<int>& pitches)
+    {
+        if (pitches.empty())
+            return 0.0;
+        double sum = 0.0;
+        for (int p : pitches)
+            sum += (double) p;
+        return sum / (double) pitches.size();
+    }
+}
+
+TEST_CASE ("StyleVoicingTests.RnbExtensionsMatchQualityTable", "[stylevoicing]")
+{
+    const auto fixture = midigen_fixtures::makeFourChordFixture();
+    const auto notes = generateRnbNeoSoulRow (fixture, GenerationSettings {});
+
+    auto pitchClassesStartingAt = [&] (double startBeats)
+    {
+        std::vector<int> classes;
+        for (int p : pitchesStartingAt (notes, startBeats))
+            classes.push_back (((p % 12) + 12) % 12);
+        std::sort (classes.begin(), classes.end());
+        return classes;
+    };
+
+    SECTION ("Am (min11) -- 6 notes, pitch classes {9,0,4,7,11,2}")
+    {
+        const auto pitches = pitchesStartingAt (notes, 0.0);
+        REQUIRE (pitches.size() == 6);
+        CHECK (pitchClassesStartingAt (0.0) == std::vector<int> { 0, 2, 4, 7, 9, 11 });
+    }
+
+    SECTION ("first-chord anchor: root == rootMidiNote(9, 60) == 69")
+    {
+        const auto pitches = pitchesStartingAt (notes, 0.0);
+        CHECK (std::find (pitches.begin(), pitches.end(), 69) != pitches.end());
+    }
+
+    SECTION ("G7 (dom9) -- 5 notes, pitch classes {7,11,2,5,9}")
+    {
+        const auto pitches = pitchesStartingAt (notes, 12.0);
+        REQUIRE (pitches.size() == 5);
+        CHECK (pitchClassesStartingAt (12.0) == std::vector<int> { 2, 5, 7, 9, 11 });
+    }
+}
+
+TEST_CASE ("StyleVoicingTests.RnbVoiceLeadingMinimizesMovement", "[stylevoicing]")
+{
+    const auto fixture = midigen_fixtures::makeFourChordFixture();
+    const auto notes = generateRnbNeoSoulRow (fixture, GenerationSettings {});
+
+    const std::vector<double> segmentStarts = { 0.0, 4.0, 8.0, 12.0 };
+    bool foundStrictlyLess = false;
+
+    for (size_t i = 1; i < segmentStarts.size(); ++i)
+    {
+        const auto previousPitches = pitchesStartingAt (notes, segmentStarts[i - 1]);
+        const auto actualPitches = pitchesStartingAt (notes, segmentStarts[i]);
+        const double previousChordMeanPitch = meanPitch (previousPitches);
+
+        double voiceLedMovement = 0.0;
+        for (int p : actualPitches)
+            voiceLedMovement += std::abs ((double) p - previousChordMeanPitch);
+
+        const auto& segment = fixture.chords[i];
+        const int naiveRoot = rootMidiNote (segment.chord.pitchClass, 60);
+        const auto naivePitches = intervalsToMidiNotes (naiveRoot, rnbExtensionIntervals (segment.chord.quality));
+
+        double naiveMovement = 0.0;
+        for (int p : naivePitches)
+            naiveMovement += std::abs ((double) p - previousChordMeanPitch);
+
+        CHECK (voiceLedMovement <= naiveMovement);
+        if (voiceLedMovement < naiveMovement)
+            foundStrictlyLess = true;
+    }
+
+    CHECK (foundStrictlyLess);
+}
+
+TEST_CASE ("StyleVoicingTests.RnbRegisterClampHolds", "[stylevoicing]")
+{
+    const auto fixture = makeBMinorFixture();
+    const auto notes = generateRnbNeoSoulRow (fixture, GenerationSettings {});
+
+    REQUIRE_FALSE (notes.empty());
+    for (const auto& n : notes)
+    {
+        CHECK (n.pitch >= kRnbRegisterLow);
+        CHECK (n.pitch <= kRnbRegisterHigh);
+    }
+}
+
+TEST_CASE ("StyleVoicingTests.RnbVelocitySoftAndDeterministic", "[stylevoicing]")
+{
+    const auto fixture = midigen_fixtures::makeFourChordFixture();
+    const auto notesA = generateRnbNeoSoulRow (fixture, GenerationSettings {});
+    const auto notesB = generateRnbNeoSoulRow (fixture, GenerationSettings {});
+
+    REQUIRE (notesA.size() == notesB.size());
+
+    for (size_t i = 0; i < notesA.size(); ++i)
+    {
+        CHECK (notesA[i].velocity >= 0.58f);
+        CHECK (notesA[i].velocity <= 0.66f);
+
+        CHECK (notesA[i].startBeats == notesB[i].startBeats);
+        CHECK (notesA[i].lengthBeats == notesB[i].lengthBeats);
+        CHECK (notesA[i].pitch == notesB[i].pitch);
+        CHECK (notesA[i].velocity == notesB[i].velocity);
+    }
+}
