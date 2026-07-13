@@ -71,6 +71,7 @@ void MidiSetsPanel::setRows (std::shared_ptr<const std::vector<MidiSetRow>> newR
         view->getBpmForExport = getBpmForExport;
         view->getKeyForExport = getKeyForExport;
         view->isRowPlaying = isRowPlaying;
+        view->onRegenerateRow = onRegenerateRow;
         view->onAuditionToggle = [this] (const MidiSetRow& r)
         {
             if (onAuditionToggle)

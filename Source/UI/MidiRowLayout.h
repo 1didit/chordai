@@ -46,34 +46,48 @@ inline float pitchToY (int pitch, int minPitch, int maxPitch, int height)
     return juce::jlimit (0.0f, (float) height - 1.0f, y);
 }
 
-// Pure hit-zone geometry for MidiRowView's play/save icons (Phase 6). Two
-// 12x12 zones stacked vertically at the gutter's right edge (play on top,
-// save below, 2px gap, 3px right margin, vertically centred as a pair) --
-// unit-testable without a Component, same rationale as the functions above.
-// Degenerate (zero/negative height or too-narrow) gutterBounds returns
-// empty-safe (zero-size, non-negative) rects rather than asserting.
+// Pure hit-zone geometry for MidiRowView's regenerate/play/save icons
+// (Phase 6.1: horizontal triple, replacing the Phase 6 vertical play/save
+// pair -- the third stacked icon does not fit the 28px row height, see
+// 06.1-RESEARCH.md Pattern 7). Three 12x12 zones in a single horizontal row
+// at the gutter's right edge (regenerate, play, save, left-to-right, 2px
+// gaps, 3px right margin, vertically centred) -- unit-testable without a
+// Component, same rationale as the functions above. Degenerate (zero/
+// negative height, or too-narrow width) gutterBounds returns empty-safe
+// (zero-size, non-negative) rects rather than asserting.
 namespace MidiRowIconLayout
 {
     constexpr int kIconSize = 12;
     constexpr int kIconGap = 2;
     constexpr int kRightMargin = 3;
+    constexpr int kRowWidth = kIconSize * 3 + kIconGap * 2; // 40
+}
+
+inline juce::Rectangle<int> saveIconRect (juce::Rectangle<int> gutterBounds)
+{
+    using namespace MidiRowIconLayout;
+
+    if (gutterBounds.getHeight() < kIconSize || gutterBounds.getWidth() < kRowWidth + kRightMargin)
+        return {};
+
+    const int right = gutterBounds.getRight() - kRightMargin;
+    const int top = gutterBounds.getY() + (gutterBounds.getHeight() - kIconSize) / 2;
+
+    return { right - kIconSize, top, kIconSize, kIconSize };
 }
 
 inline juce::Rectangle<int> playIconRect (juce::Rectangle<int> gutterBounds)
 {
     using namespace MidiRowIconLayout;
 
-    const int pairHeight = kIconSize * 2 + kIconGap;
-    if (gutterBounds.getHeight() < pairHeight || gutterBounds.getWidth() < kIconSize + kRightMargin)
+    auto save = saveIconRect (gutterBounds);
+    if (save.isEmpty())
         return {};
 
-    const int right = gutterBounds.getRight() - kRightMargin;
-    const int top = gutterBounds.getY() + (gutterBounds.getHeight() - pairHeight) / 2;
-
-    return { right - kIconSize, top, kIconSize, kIconSize };
+    return { save.getX() - kIconGap - kIconSize, save.getY(), kIconSize, kIconSize };
 }
 
-inline juce::Rectangle<int> saveIconRect (juce::Rectangle<int> gutterBounds)
+inline juce::Rectangle<int> regenerateIconRect (juce::Rectangle<int> gutterBounds)
 {
     using namespace MidiRowIconLayout;
 
@@ -81,5 +95,5 @@ inline juce::Rectangle<int> saveIconRect (juce::Rectangle<int> gutterBounds)
     if (play.isEmpty())
         return {};
 
-    return { play.getX(), play.getBottom() + kIconGap, kIconSize, kIconSize };
+    return { play.getX() - kIconGap - kIconSize, play.getY(), kIconSize, kIconSize };
 }

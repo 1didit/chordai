@@ -36,6 +36,10 @@ public:
     std::function<void (const MidiSetRow&)> onAuditionToggle;
     std::function<bool (const juce::String& rowId)> isRowPlaying;
     std::function<void()> onStopAudition;
+    // GEN-11: forwarded verbatim into every rebuilt MidiRowView, same idiom
+    // as onAuditionToggle -- MidiRowView never reaches into PluginProcessor
+    // directly.
+    std::function<void (int patternIndex)> onRegenerateRow;
 
 private:
     void timerCallback() override;

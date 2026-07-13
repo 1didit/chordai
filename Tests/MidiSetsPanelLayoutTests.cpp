@@ -51,50 +51,79 @@ TEST_CASE ("MidiSetsPanelLayoutTests.NoteRectNonDegenerate", "[midisetspanellayo
     CHECK (w >= 1.0f);
 }
 
-TEST_CASE ("MidiSetsPanelLayoutTests.IconRectsFitInsideGutterAndDoNotOverlap", "[midisetspanellayout]")
+TEST_CASE ("MidiSetsPanelLayoutTests.ThreeIconRowFitsInsideGutterAndDoesNotOverlap", "[midisetspanellayout]")
 {
     // Matches MidiRowView's real gutter/row shape: kGutterWidth=92, row
-    // height 28 (140px band / 5 rows).
+    // height 28 (140px band / 5 rows). 06.1-06: vertical play/save pair ->
+    // horizontal regenerate/play/save triple (Pattern 7).
     juce::Rectangle<int> gutter (0, 0, 92, 28);
 
+    auto regen = regenerateIconRect (gutter);
     auto play = playIconRect (gutter);
     auto save = saveIconRect (gutter);
 
-    // Both fully inside the gutter.
-    CHECK (gutter.contains (play));
-    CHECK (gutter.contains (save));
+    // All non-empty.
+    CHECK_FALSE (regen.isEmpty());
+    CHECK_FALSE (play.isEmpty());
+    CHECK_FALSE (save.isEmpty());
 
-    // Each at least a 10x10 usable hit target.
+    // Each at least a 10x10 usable hit target (actual size is 12x12).
+    CHECK (regen.getWidth() >= 10);
+    CHECK (regen.getHeight() >= 10);
     CHECK (play.getWidth() >= 10);
     CHECK (play.getHeight() >= 10);
     CHECK (save.getWidth() >= 10);
     CHECK (save.getHeight() >= 10);
 
-    // Non-overlapping.
-    CHECK_FALSE (play.intersects (save));
+    // All fully inside the gutter.
+    CHECK (gutter.contains (regen));
+    CHECK (gutter.contains (play));
+    CHECK (gutter.contains (save));
 
-    // Right-aligned: label keeps >= 55px of text width to the left of the
-    // icon zones' left edge.
-    auto iconsLeft = juce::jmin (play.getX(), save.getX());
-    CHECK (iconsLeft >= 55);
+    // Pairwise non-intersecting.
+    CHECK_FALSE (regen.intersects (play));
+    CHECK_FALSE (play.intersects (save));
+    CHECK_FALSE (regen.intersects (save));
+
+    // Ordered left-to-right: regenerate < play < save.
+    CHECK (regen.getX() < play.getX());
+    CHECK (play.getX() < save.getX());
+
+    // Right-aligned group: save sits kRightMargin (3px) from the gutter's
+    // right edge.
+    CHECK (save.getRight() == gutter.getRight() - 3);
+
+    // Vertically centred (all three share the same y/height).
+    CHECK (regen.getY() == play.getY());
+    CHECK (play.getY() == save.getY());
+    CHECK (regen.getHeight() == play.getHeight());
+    CHECK (play.getHeight() == save.getHeight());
 }
 
-TEST_CASE ("MidiSetsPanelLayoutTests.IconRectsAreStableAndDegenerateSafe", "[midisetspanellayout]")
+TEST_CASE ("MidiSetsPanelLayoutTests.ThreeIconRowDegenerateSafe", "[midisetspanellayout]")
 {
     juce::Rectangle<int> gutter (0, 0, 92, 28);
 
     // Pure/deterministic: same input -> same output across calls.
+    CHECK (regenerateIconRect (gutter) == regenerateIconRect (gutter));
     CHECK (playIconRect (gutter) == playIconRect (gutter));
     CHECK (saveIconRect (gutter) == saveIconRect (gutter));
 
-    // Degenerate zero-height gutter must return empty-safe (non-negative
-    // size) rects, never negative width/height.
-    juce::Rectangle<int> degenerate (0, 0, 92, 0);
-    auto playDeg = playIconRect (degenerate);
-    auto saveDeg = saveIconRect (degenerate);
+    // Degenerate zero-height gutter -> all three rects empty (no
+    // asserts/negative sizes).
+    juce::Rectangle<int> zeroHeight (0, 0, 92, 0);
+    CHECK (regenerateIconRect (zeroHeight).isEmpty());
+    CHECK (playIconRect (zeroHeight).isEmpty());
+    CHECK (saveIconRect (zeroHeight).isEmpty());
 
-    CHECK (playDeg.getWidth() >= 0);
-    CHECK (playDeg.getHeight() >= 0);
-    CHECK (saveDeg.getWidth() >= 0);
-    CHECK (saveDeg.getHeight() >= 0);
+    // Degenerate too-narrow gutter (width < 40 + 3 right margin) -> all
+    // three rects empty.
+    juce::Rectangle<int> tooNarrow (0, 0, 42, 28);
+    CHECK (regenerateIconRect (tooNarrow).isEmpty());
+    CHECK (playIconRect (tooNarrow).isEmpty());
+    CHECK (saveIconRect (tooNarrow).isEmpty());
+
+    // No negative sizes even in the degenerate cases.
+    CHECK (regenerateIconRect (zeroHeight).getWidth() >= 0);
+    CHECK (regenerateIconRect (zeroHeight).getHeight() >= 0);
 }

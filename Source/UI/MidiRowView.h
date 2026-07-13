@@ -37,6 +37,10 @@ public:
     std::function<KeyResult()> getKeyForExport;
     std::function<void (const MidiSetRow&)> onAuditionToggle;
     std::function<bool (const juce::String& rowId)> isRowPlaying;
+    // GEN-11: regenerate icon click. patternIndex identifies which of the 5
+    // fixed row slots to rebuild -- MidiSetsPanel forwards this straight to
+    // PluginProcessor::regenerateRow(int), same idiom as onAuditionToggle.
+    std::function<void (int patternIndex)> onRegenerateRow;
 
 private:
     void saveRow();

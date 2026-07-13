@@ -62,6 +62,30 @@ namespace
         g.fillRect (b.getX(),             b.getBottom() - 2, w, 2);              // tray
     }
 
+    // Regenerate glyph: a dice-style 5-pip pattern of flat 2x2 fillRect
+    // squares (06.1-RESEARCH.md Pattern 7 -- "reads unambiguously as
+    // randomize"; NO circular-arrow paths, flat rects only per the pixel-art
+    // constraint).
+    void drawRegenerateGlyph (juce::Graphics& g, juce::Rectangle<int> bounds, juce::Colour colour)
+    {
+        g.setColour (colour);
+        auto b = bounds.reduced (1);
+        auto pip = juce::jmax (2, b.getWidth() / 4);
+
+        auto left = b.getX();
+        auto right = b.getRight() - pip;
+        auto midX = b.getCentreX() - pip / 2;
+        auto top = b.getY();
+        auto bottom = b.getBottom() - pip;
+        auto midY = b.getCentreY() - pip / 2;
+
+        g.fillRect (left,  top,    pip, pip); // top-left
+        g.fillRect (right, top,    pip, pip); // top-right
+        g.fillRect (midX,  midY,   pip, pip); // centre
+        g.fillRect (left,  bottom, pip, pip); // bottom-left
+        g.fillRect (right, bottom, pip, pip); // bottom-right
+    }
+
     // Drag-out temp .mid (EXP-01). 06-RESEARCH.md Pitfall 1 (Ableton "could
     // not be opened"): deleting the temp file in a performExternalDragDropOfFiles
     // completion callback races the host's own async read of the file --
@@ -120,21 +144,24 @@ void MidiRowView::paint (juce::Graphics& g)
     g.setColour (accent);
     g.fillRect (gutter.removeFromLeft (kAccentBarWidth));
 
+    auto regen = regenerateIconRect (gutterBounds);
     auto play = playIconRect (gutterBounds);
     auto save = saveIconRect (gutterBounds);
 
     // Label text never underlaps the icon zones: shrink the label rect on
     // the right by however far the icons' left edge intrudes.
     auto labelRect = gutter.reduced (4, 0);
-    if (! play.isEmpty())
-        labelRect.setRight (juce::jmin (labelRect.getRight(), play.getX() - 2));
+    if (! regen.isEmpty())
+        labelRect.setRight (juce::jmin (labelRect.getRight(), regen.getX() - 2));
 
     g.setColour (juce::Colour (0xffd8d8e0));
     g.setFont (juce::Font (juce::FontOptions (10.0f)));
     g.drawText (row.label, labelRect, juce::Justification::centredLeft);
 
-    // Play/stop + save icons, flat single-colour fills only (pixel-art
-    // constraint, 02-CONTEXT.md).
+    // Regenerate/play/stop/save icons, flat single-colour fills only
+    // (pixel-art constraint, 02-CONTEXT.md).
+    drawRegenerateGlyph (g, regen, juce::Colour (kIconIdleColour));
+
     const bool playing = isRowPlaying && isRowPlaying (row.id);
     if (playing)
         drawStopGlyph (g, play, accent);
@@ -223,7 +250,12 @@ void MidiRowView::mouseUp (const juce::MouseEvent& e)
         auto gutterBounds = getLocalBounds().removeFromLeft (kGutterWidth);
         auto pos = e.getPosition();
 
-        if (playIconRect (gutterBounds).contains (pos))
+        if (regenerateIconRect (gutterBounds).contains (pos))
+        {
+            if (onRegenerateRow)
+                onRegenerateRow (row.patternIndex);
+        }
+        else if (playIconRect (gutterBounds).contains (pos))
         {
             if (onAuditionToggle)
                 onAuditionToggle (row);
