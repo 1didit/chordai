@@ -42,13 +42,36 @@ std::vector<NoteEvent> generateBassRow (const AnalysisResult& result, BassRhythm
 
             case BassRhythm::RnbRootFifth:
             {
-                // Implemented in plan 05-03 Task 2.
+                // Walk each full 4-beat span within the segment: root for
+                // the first half, fifth (root+7 semitones -- stays in
+                // register, no %12 wrap) for the second half. A trailing
+                // remainder shorter than 4 beats (or a whole segment
+                // shorter than 4 beats) sustains root only.
+                const int fifth = juce::jlimit (0, 127, root + 7);
+                double spanOffset = 0.0;
+
+                while (spanOffset + 4.0 <= segmentLength)
+                {
+                    pushNote (segmentStart + spanOffset, 2.0, root);
+                    pushNote (segmentStart + spanOffset + 2.0, 2.0, fifth);
+                    spanOffset += 4.0;
+                }
+
+                const double remainder = segmentLength - spanOffset;
+                if (remainder > 0.0)
+                    pushNote (segmentStart + spanOffset, remainder, root);
+
                 break;
             }
 
             case BassRhythm::HouseFourOnFloor:
             {
-                // Implemented in plan 05-03 Task 2.
+                // One short, punchy note per whole beat -- sits under the
+                // off-beat stabs (kHouseStabOffsetsBeats).
+                constexpr double kHouseBassNoteLengthBeats = 0.5;
+                for (double beatOffset = 0.0; beatOffset < segmentLength; beatOffset += 1.0)
+                    pushNote (segmentStart + beatOffset, kHouseBassNoteLengthBeats, root);
+
                 break;
             }
         }
