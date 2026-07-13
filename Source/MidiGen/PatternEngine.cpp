@@ -70,6 +70,110 @@ namespace
         const size_t idx = (size_t) h % scale.size();
         return ((tonicPitchClass + scale[idx]) % 12 + 12) % 12;
     }
+
+    // Places each chord tone at a concrete MIDI pitch: either a fresh
+    // register-anchored placement (octave-preserving clamp) or, once
+    // useVoiceLeading is active and a previous segment has already been
+    // voiced, VoiceLeadingEngine's nearestOctaveNote against the running
+    // mean pitch (Phase 5's proven R&B voice-leading mechanism).
+    std::vector<int> applyRegister (const std::vector<int>& toneSet, const ChordSymbol& chord, int root,
+                                     const PatternArchetype& archetype, bool hasVoicedPrevious, int previousVoicedPitch)
+    {
+        std::vector<int> pitches;
+        pitches.reserve (toneSet.size());
+
+        if (archetype.useVoiceLeading && hasVoicedPrevious)
+        {
+            for (int interval : toneSet)
+            {
+                const int targetClass = ((chord.pitchClass + interval) % 12 + 12) % 12;
+                pitches.push_back (nearestOctaveNote (targetClass, previousVoicedPitch, archetype.registerLow, archetype.registerHigh));
+            }
+        }
+        else
+        {
+            for (int interval : toneSet)
+                pitches.push_back (clampToRegisterByOctave (root + interval, archetype.registerLow, archetype.registerHigh));
+        }
+
+        return pitches;
+    }
+
+    int meanPitchOr (const std::vector<int>& pitches, int fallback)
+    {
+        if (pitches.empty())
+            return fallback;
+        double sum = 0.0;
+        for (int p : pitches)
+            sum += (double) p;
+        return (int) std::lround (sum / (double) pitches.size());
+    }
+
+    // Tiles the seed-selected rhythm variant across one chord segment and
+    // emits every onset's note(s) -- StabArp steps one tone per onset
+    // (Arpeggiator::Up), every other slot stacks the full chord -- plus the
+    // TopLineMotif-only diatonic ornament. Appends into `notes`;
+    // runningNoteIndex threads through by reference so velocity jitter stays
+    // continuous across segments (Phase 5's own running-index convention).
+    void emitSegmentOnsets (std::vector<NoteEvent>& notes, const AnalysisResult& result, const PatternArchetype& archetype,
+                             size_t segIdx, const std::vector<int>& pitches, int root,
+                             double segStartBeats, double segLengthBeats, uint32_t seed, uint32_t& runningNoteIndex)
+    {
+        if (archetype.rhythmPool.empty())
+            return;
+
+        const auto& variant = archetype.rhythmPool[seed % archetype.rhythmPool.size()];
+        const auto onsets = tileOnsets (variant.onsetsBeats, variant.spanBeats, segLengthBeats);
+
+        std::vector<int> arpSequence;
+        const bool isArpSlot = archetype.kind == PatternKind::StabArp && pitches.size() > 1;
+        if (isArpSlot && ! onsets.empty())
+            arpSequence = arpeggiate (pitches, ArpDirection::Up, (int) onsets.size());
+
+        for (size_t onsetIdx = 0; onsetIdx < onsets.size(); ++onsetIdx)
+        {
+            const double onsetBeat = onsets[onsetIdx];
+
+            // Note length: noteLengthRatio * gap to the next onset, or to
+            // the segment end for the last onset in this segment.
+            const double gap = (onsetIdx + 1 < onsets.size())
+                ? onsets[onsetIdx + 1] - onsetBeat
+                : segLengthBeats - onsetBeat;
+            const double noteLength = juce::jmax (0.0, gap * variant.noteLengthRatio);
+
+            const float accent = archetype.accentPattern.empty() ? 1.0f
+                : archetype.accentPattern[onsetIdx % archetype.accentPattern.size()];
+
+            const std::vector<int> onsetPitches = isArpSlot
+                ? std::vector<int> { arpSequence[onsetIdx] }
+                : pitches;
+
+            for (int pitch : onsetPitches)
+            {
+                const float velocity = juce::jlimit (0.05f, 1.0f,
+                    archetype.baseVelocity * accent + deterministicJitter (runningNoteIndex++, seed, archetype.jitterRange));
+                notes.push_back ({ segStartBeats + onsetBeat, noteLength, pitch, velocity });
+            }
+
+            // TopLineMotif ONLY: per-onset hash-thresholded diatonic passing
+            // tone -- the ONLY non-chord-tone path, still key-diatonic.
+            if (archetype.kind == PatternKind::TopLineMotif && archetype.ornamentProbability > 0.0f)
+            {
+                const float roll = ornamentRoll01 (seed, (int) segIdx, (int) onsetIdx);
+                if (roll < archetype.ornamentProbability)
+                {
+                    const int ornamentClass = diatonicOrnamentPitchClass (seed, (int) segIdx, (int) onsetIdx,
+                                                                            result.key.isMajor, result.key.tonicPitchClass);
+                    const int anchorPitch = pitches.empty() ? root : pitches.front();
+                    const int ornamentPitch = nearestOctaveNote (ornamentClass, anchorPitch, archetype.registerLow, archetype.registerHigh);
+
+                    const float ornamentVelocity = juce::jlimit (0.05f, 1.0f,
+                        archetype.baseVelocity * accent + deterministicJitter (runningNoteIndex++, seed, archetype.jitterRange));
+                    notes.push_back ({ segStartBeats + onsetBeat, noteLength, ornamentPitch, ornamentVelocity });
+                }
+            }
+        }
+    }
 }
 
 std::vector<NoteEvent> generatePattern (const AnalysisResult& result, const PatternArchetype& archetype, uint32_t seed)
@@ -130,97 +234,14 @@ std::vector<NoteEvent> generatePattern (const AnalysisResult& result, const Patt
             : archetype.octaveOffsetPool[seedOctave % archetype.octaveOffsetPool.size()];
         const int root = rootMidiNote (segment.chord.pitchClass, archetype.registerAnchor) + octaveOffset;
 
-        // Register: place each chord tone, optionally voice-led against the
-        // previous voiced segment (Phase 5 R&B mechanism -- VoiceLeadingEngine's
-        // nearestOctaveNote against the running mean pitch), always clamped
-        // into [registerLow, registerHigh] pitch-class-preservingly.
-        std::vector<int> pitches;
-        pitches.reserve (toneSet.size());
+        const auto pitches = applyRegister (toneSet, segment.chord, root, archetype, hasVoicedPrevious, previousVoicedPitch);
+        previousVoicedPitch = meanPitchOr (pitches, previousVoicedPitch);
+        hasVoicedPrevious = hasVoicedPrevious || ! pitches.empty();
 
-        if (archetype.useVoiceLeading && hasVoicedPrevious)
-        {
-            for (int interval : toneSet)
-            {
-                const int targetClass = ((segment.chord.pitchClass + interval) % 12 + 12) % 12;
-                pitches.push_back (nearestOctaveNote (targetClass, previousVoicedPitch, archetype.registerLow, archetype.registerHigh));
-            }
-        }
-        else
-        {
-            for (int interval : toneSet)
-                pitches.push_back (clampToRegisterByOctave (root + interval, archetype.registerLow, archetype.registerHigh));
-        }
-
-        if (! pitches.empty())
-        {
-            double sum = 0.0;
-            for (int p : pitches)
-                sum += (double) p;
-            previousVoicedPitch = (int) std::lround (sum / (double) pitches.size());
-            hasVoicedPrevious = true;
-        }
-
-        // Rhythm: seed-selected variant, tiled across the segment.
         const double segStartBeats = (double) segment.startBeatIndex;
         const double segLengthBeats = (double) (segment.endBeatIndex - segment.startBeatIndex);
 
-        if (archetype.rhythmPool.empty())
-            continue;
-
-        const auto& variant = archetype.rhythmPool[seedRhythm % archetype.rhythmPool.size()];
-        const auto onsets = tileOnsets (variant.onsetsBeats, variant.spanBeats, segLengthBeats);
-
-        // StabArp: one tone per onset, stepping Up through the chord tones
-        // (Arpeggiator.h) -- only meaningful when there's more than one
-        // tone to step through.
-        std::vector<int> arpSequence;
-        if (archetype.kind == PatternKind::StabArp && pitches.size() > 1 && ! onsets.empty())
-            arpSequence = arpeggiate (pitches, ArpDirection::Up, (int) onsets.size());
-
-        for (size_t onsetIdx = 0; onsetIdx < onsets.size(); ++onsetIdx)
-        {
-            const double onsetBeat = onsets[onsetIdx];
-
-            // Note length: noteLengthRatio * gap to the next onset, or to
-            // the segment end for the last onset in this segment.
-            const double gap = (onsetIdx + 1 < onsets.size())
-                ? onsets[onsetIdx + 1] - onsetBeat
-                : segLengthBeats - onsetBeat;
-            const double noteLength = juce::jmax (0.0, gap * variant.noteLengthRatio);
-
-            const float accent = archetype.accentPattern.empty() ? 1.0f
-                : archetype.accentPattern[onsetIdx % archetype.accentPattern.size()];
-
-            const bool isArpOnset = archetype.kind == PatternKind::StabArp && pitches.size() > 1;
-            const std::vector<int> onsetPitches = isArpOnset
-                ? std::vector<int> { arpSequence[onsetIdx] }
-                : pitches;
-
-            for (int pitch : onsetPitches)
-            {
-                const float velocity = juce::jlimit (0.05f, 1.0f,
-                    archetype.baseVelocity * accent + deterministicJitter (runningNoteIndex++, seed, archetype.jitterRange));
-                notes.push_back ({ segStartBeats + onsetBeat, noteLength, pitch, velocity });
-            }
-
-            // TopLineMotif ONLY: per-onset hash-thresholded diatonic passing
-            // tone -- the ONLY non-chord-tone path, still key-diatonic.
-            if (archetype.kind == PatternKind::TopLineMotif && archetype.ornamentProbability > 0.0f)
-            {
-                const float roll = ornamentRoll01 (seed, (int) segIdx, (int) onsetIdx);
-                if (roll < archetype.ornamentProbability)
-                {
-                    const int ornamentClass = diatonicOrnamentPitchClass (seed, (int) segIdx, (int) onsetIdx,
-                                                                            result.key.isMajor, result.key.tonicPitchClass);
-                    const int anchorPitch = pitches.empty() ? root : pitches.front();
-                    const int ornamentPitch = nearestOctaveNote (ornamentClass, anchorPitch, archetype.registerLow, archetype.registerHigh);
-
-                    const float ornamentVelocity = juce::jlimit (0.05f, 1.0f,
-                        archetype.baseVelocity * accent + deterministicJitter (runningNoteIndex++, seed, archetype.jitterRange));
-                    notes.push_back ({ segStartBeats + onsetBeat, noteLength, ornamentPitch, ornamentVelocity });
-                }
-            }
-        }
+        emitSegmentOnsets (notes, result, archetype, segIdx, pitches, root, segStartBeats, segLengthBeats, seed, runningNoteIndex);
     }
 
     return notes;
