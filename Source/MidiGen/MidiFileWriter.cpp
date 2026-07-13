@@ -4,6 +4,12 @@ namespace MidiFileWriter
 {
     namespace
     {
+        // Duplicated verbatim from Source/UI/ChordNameFormatter.h's kNoteNames
+        // (06-RESEARCH.md's explicit guidance: duplicate the 12-entry array
+        // here rather than refactor the shared header this phase).
+        constexpr const char* kNoteNames[12] =
+            { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+
         // Zero/negative-length notes are dropped, not written (Pitfall 5):
         // some hosts silently discard a zero-tick-length note anyway, and a
         // defensive guard here is cheaper than relying on that.
@@ -70,8 +76,12 @@ namespace MidiFileWriter
         return temp.overwriteTargetFileWithTemporary();
     }
 
-    juce::String suggestedFileName (const MidiSetRow& row, const KeyResult&, double)
+    juce::String suggestedFileName (const MidiSetRow& row, const KeyResult& key, double bpm)
     {
-        return row.id + ".mid"; // real implementation lands in Task 2
+        // row.id is already a filesystem-safe slug -- never use row.label
+        // (contains '/', '&', spaces).
+        const juce::String keyLabel = juce::String (kNoteNames[key.tonicPitchClass]) + (key.isMajor ? "" : "m");
+        const int bpmInt = juce::roundToInt (bpm > 0.0 ? bpm : 120.0);
+        return row.id + "_" + keyLabel + "_" + juce::String (bpmInt) + "bpm.mid";
     }
 }
