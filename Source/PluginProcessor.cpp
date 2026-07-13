@@ -220,6 +220,30 @@ double ChordAIAudioProcessor::getAnalysisProgress() const
     return analysisProgress;
 }
 
+// --- Row audition API (PRV-01) -----------------------------------------------
+
+void ChordAIAudioProcessor::startAudition (const MidiSetRow& row)
+{
+    juce::ignoreUnused (row);
+    // RED stub -- GREEN phase (Task 2) implements the real double-buffer
+    // render + publish sequence described in PluginProcessor.h.
+}
+
+void ChordAIAudioProcessor::stopAudition()
+{
+    // RED stub.
+}
+
+bool ChordAIAudioProcessor::isAuditionPlaying() const
+{
+    return false; // RED stub.
+}
+
+juce::String ChordAIAudioProcessor::getAuditionRowId() const
+{
+    return {}; // RED stub.
+}
+
 // This creates new instances of the plugin — required by every JUCE plugin, build
 // fails at link without it.
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

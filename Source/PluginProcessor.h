@@ -82,6 +82,29 @@ public:
     // a new load).
     std::shared_ptr<const std::vector<MidiSetRow>> getMidiSetRows() const { return std::atomic_load (&midiSetRows); }
 
+    // --- Row audition API (PRV-01) ------------------------------------------
+    // Message-thread only unless noted. The rendered preview buffer is handed
+    // to processBlock via a lock-free double-buffer of plain atomics -- NOT
+    // this file's std::atomic_load/atomic_store shared_ptr idiom used above,
+    // which is unsafe to call from the audio thread (06-RESEARCH.md Pitfall 2:
+    // those free functions are not guaranteed lock-free and are commonly
+    // implemented with an internal mutex/spinlock on the control block).
+
+    // Message thread only; renders row on the calling thread (cheap -- a few
+    // seconds of audio, additive synthesis, sub-millisecond in practice) and
+    // hands it to the audio thread. Replaces any currently-playing audition.
+    void startAudition (const MidiSetRow& row);
+
+    // Atomic store only -- safe to call from anywhere.
+    void stopAudition();
+
+    // Relaxed atomic read -- safe to call from anywhere.
+    bool isAuditionPlaying() const;
+
+    // Message thread only. Stale after auto-stop is by design -- callers
+    // must AND this with isAuditionPlaying() to know "is THIS row playing".
+    juce::String getAuditionRowId() const;
+
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
@@ -121,6 +144,24 @@ private:
     // Bumped by every triggerAnalysis() call; progress/completion callbacks
     // compare their captured generation against this to detect supersession.
     std::atomic<uint64_t> analysisGeneration { 0 };
+
+    // Row audition double-buffer handoff (PRV-01). Deliberately NOT a
+    // shared_ptr + atomic_load/atomic_store (see the startAudition doc
+    // comment above and 06-RESEARCH.md Pitfall 2) -- these are plain,
+    // genuinely lock-free atomics safe to touch from processBlock.
+    // auditionBuffers[]: message thread resizes/writes the INACTIVE slot
+    // only; the audio thread only ever reads the ACTIVE slot's raw samples.
+    juce::AudioBuffer<float> auditionBuffers[2];
+    std::atomic<int>  auditionActiveIndex  { 0 };
+    std::atomic<int>  auditionActiveLength { 0 }; // valid sample count in the active buffer
+    std::atomic<int>  auditionReadPos      { 0 };
+    std::atomic<bool> auditionPlaying      { false };
+
+    // Message-thread only (same discipline as selectedRegion below) -- which
+    // row id is "the one playing" lives HERE, not on any MidiRowView, since
+    // MidiSetsPanel::setRows() destroys every MidiRowView on every
+    // regeneration (06-RESEARCH.md Pitfall 3).
+    juce::String auditionRowId;
 
     // Message-thread only (like selectedRegion below) -- not touched from any
     // analysis-thread code; callbacks marshal back via callAsync before
